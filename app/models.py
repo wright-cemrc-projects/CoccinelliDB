@@ -1,12 +1,27 @@
 from . import db
 
+from __future__ import annotations
+from typing import List
+
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import relationship
+
 class FacilityModel(db.Model):
+    """ Representation of a facility """
     __tablename__ = "facility"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45), nullable=False, unique=True)
     group = db.relationship("FacilityGroup", back_populates="facility", lazy="dynamic")
+    projects: Mapped[List["FacilityProject"]] = relationship(back_populates="facility")
+    instruments: Mapped[List["FacilityInstrument"]] = relationship(back_populates="facility")
+    sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(back_populates="facility")
 
 class FacilityGroup(db.Model):
+    """ Representation of a lab group or organization """
     __tablename__ = "facility_group"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45), nullable=False)
@@ -15,6 +30,7 @@ class FacilityGroup(db.Model):
     person = db.relationship("FacilityPerson", back_populates="facility_group", lazy="dynamic")
 
 class FacilityPerson(db.Model):
+    """ Representation of an individual """
     __tablename__ = "facility_person"
     id = db.Column(db.Integer, primary_key=True)
     group = db.relationship("FacilityGroup", back_populates="facility_person")
@@ -31,3 +47,76 @@ class FacilityPerson(db.Model):
     net_id = db.Column(db.String(45 ))
     start_date = db.Column(db.DateTime) 
     end_date = db.Column(db.DateTime)
+
+# Entries below using SQLAlchemy ORM configuration style with Declarative mappings with Mapped.
+# https://docs.sqlalchemy.org/en/20/orm/basic_relationships.html
+# back_populates argument is to be used when we want data access in both directions from
+# Example, from the FacilityProject back to the FacilityModel and vice versa.
+
+class FacilityProject(db.Model):
+    """ Representation of a research project """
+    __tablename__ = "facility_project"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.String(45))
+    facility_id = Mapped[int] = mapped_column(ForeignKey("facility.id"))
+    facility = Mapped["FacilityModel"] = relationship(back_populates="projects")
+
+class FacilityInstrument(db.Model):
+    """ Representation of an instrument """
+    __tablename__ = "facility_instrument"
+    name = db.Column(db.String(45))
+    model = db.Column(db.String(45))
+    facility_id = Mapped[int] = mapped_column(ForeignKey("facility.id"))
+    facility = Mapped["FacilityModel"] = relationship(back_populates="instruments")
+    issues: Mapped[List["FacilityInstrumentIssue"]] = relationship(back_populates="facility_instrument")
+
+class FacilityInstrumentIssue(db.Model):
+    """ Representation of an instrument issue """
+    __tablename__ = "facility_instrument_issue"
+    instrument_offline = db.column(db.Integer)
+    issue_title = db.Column(db.String(45))
+    issue_description = db.Column(db.String(45))
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)
+    instrument_id = Mapped[int] = mapped_column(ForeignKey("facility_instrument.id"))
+    facility_instrument = Mapped["FacilityInstrument"] = relationship(back_populates="issues")
+
+class FacilityInstrumentSession(db.Model):
+    """ Representation of a session of instrument use """
+    __tablename__ = "facility_instrument_session"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, primary_key=True)
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)
+    facility_id = Mapped[int] = mapped_column(ForeignKey("facility.id"))
+    facility = Mapped["FacilityModel"] = relationship(back_populates="instrument_sessions")
+
+#class FacilitySessionPersonLink(db.Model):
+#    """ Representation of many-to-many relationship between Session and Person tables """
+#    __tablename__ = "session_person_link"
+#    Q: how to setup this links to two different tables, FacilityInstrumentSession and FacilityPerson
+
+class FacilityCollection(db.Model):
+    """ Representation of a data collection that occurred duing an instrument session """
+    __tablename__ = "facility_collection"
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)
+    data_location = db.Column(db.String(45))
+
+class FacilityGridBox(db.Model):
+    """ Representation of a grid box, an organize of grids in the facility storage """
+    __tablename__ = "facility_grid_box"
+    id = db.Column(db.Integer, primary_key=True)
+    box_position = db.Column(db.String(45)) # is this correct
+    box_label = db.Column(db.String(45))
+    box_slot = db.Column(db.Integer) # what is the purpose
+    bsl_level = db.Column(db.Integer) # 1 - 4
+    date_prepared = db.Column(db.DateTime)
+    grid_type = db.Column(db.String(45))
+    blot_time_seconds = db.Column(db.Float)
+    drain_time_seconds = db.Column(db.Float)
+    blot_force = db.Column(db.Integer)
+    falcon_type_location = db.Column(db.String(45))
+    instrument = db.Column(db.String(45)) # could link to a facility instrument?
+    comments = db.Column(db.String(45)) # may need a larger comment block
+    box_status = db.Column(db.String(45)) # could be with options here
