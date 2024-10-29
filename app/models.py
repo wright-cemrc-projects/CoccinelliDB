@@ -1,6 +1,6 @@
+from __future__ import annotations
 from . import db
 
-from __future__ import annotations
 from typing import List
 
 from sqlalchemy import ForeignKey
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import validates
 
 class FacilityModel(db.Model):
     """ Representation of a facility """
@@ -19,6 +20,8 @@ class FacilityModel(db.Model):
     projects: Mapped[List["FacilityProject"]] = relationship(back_populates="facility")
     instruments: Mapped[List["FacilityInstrument"]] = relationship(back_populates="facility")
     sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(back_populates="facility")
+
+
 
 class FacilityGroup(db.Model):
     """ Representation of a lab group or organization """
@@ -58,28 +61,30 @@ class FacilityProject(db.Model):
     __tablename__ = "facility_project"
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.String(45))
-    facility_id = Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    facility = Mapped["FacilityModel"] = relationship(back_populates="projects")
+    facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
+    facility : Mapped["FacilityModel"] = relationship(back_populates="projects")
 
 class FacilityInstrument(db.Model):
     """ Representation of an instrument """
     __tablename__ = "facility_instrument"
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45))
     model = db.Column(db.String(45))
-    facility_id = Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    facility = Mapped["FacilityModel"] = relationship(back_populates="instruments")
+    facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
+    facility : Mapped["FacilityModel"] = relationship(back_populates="instruments")
     issues: Mapped[List["FacilityInstrumentIssue"]] = relationship(back_populates="facility_instrument")
 
 class FacilityInstrumentIssue(db.Model):
     """ Representation of an instrument issue """
     __tablename__ = "facility_instrument_issue"
+    id = db.Column(db.Integer, primary_key=True)
     instrument_offline = db.column(db.Integer)
     issue_title = db.Column(db.String(45))
     issue_description = db.Column(db.String(45))
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
-    instrument_id = Mapped[int] = mapped_column(ForeignKey("facility_instrument.id"))
-    facility_instrument = Mapped["FacilityInstrument"] = relationship(back_populates="issues")
+    instrument_id : Mapped[int] = mapped_column(ForeignKey("facility_instrument.id"))
+    facility_instrument : Mapped["FacilityInstrument"] = relationship(back_populates="issues")
 
 class FacilityInstrumentSession(db.Model):
     """ Representation of a session of instrument use """
@@ -88,8 +93,8 @@ class FacilityInstrumentSession(db.Model):
     project_id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
-    facility_id = Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    facility = Mapped["FacilityModel"] = relationship(back_populates="instrument_sessions")
+    facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
+    facility : Mapped["FacilityModel"] = relationship(back_populates="instrument_sessions")
 
 #class FacilitySessionPersonLink(db.Model):
 #    """ Representation of many-to-many relationship between Session and Person tables """
@@ -99,6 +104,7 @@ class FacilityInstrumentSession(db.Model):
 class FacilityCollection(db.Model):
     """ Representation of a data collection that occurred duing an instrument session """
     __tablename__ = "facility_collection"
+    id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
     data_location = db.Column(db.String(45))
