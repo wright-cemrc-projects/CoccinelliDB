@@ -16,27 +16,26 @@ class FacilityModel(db.Model):
     __tablename__ = "facility"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45), nullable=False, unique=True)
-    group = db.relationship("FacilityGroup", back_populates="facility", lazy="dynamic")
-    projects: Mapped[List["FacilityProject"]] = relationship(back_populates="facility")
-    instruments: Mapped[List["FacilityInstrument"]] = relationship(back_populates="facility")
-    sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(back_populates="facility")
-
+    group = db.relationship("FacilityGroup", backref="facility", lazy="dynamic")
+    projects: Mapped[List["FacilityProject"]] = relationship(backref="facility")
+    instruments: Mapped[List["FacilityInstrument"]] = relationship(backref="facility")
+    sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(backref="facility")
 
 
 class FacilityGroup(db.Model):
     """ Representation of a lab group or organization """
     __tablename__ = "facility_group"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(45), nullable=False)
+    name = db.Column(db.String(45), nullable=False, unique=True)
     facility_id = db.Column(db.Integer, db.ForeignKey("facility.id"), unique=False, nullable=False)
-    facility = db.relationship("FacilityModel", back_populates="facility_group")
-    person = db.relationship("FacilityPerson", back_populates="facility_group", lazy="dynamic")
+    # facility = db.relationship("FacilityModel", back_populates="facility_group")
+    person = db.relationship("FacilityPerson", backref="facility_group", lazy="dynamic")
 
 class FacilityPerson(db.Model):
     """ Representation of an individual """
     __tablename__ = "facility_person"
     id = db.Column(db.Integer, primary_key=True)
-    group = db.relationship("FacilityGroup", back_populates="facility_person")
+    # group = db.relationship("FacilityGroup", back_populates="facility_person")
     group_id = db.Column(db.Integer, db.ForeignKey("facility_group.id"), unique=False, nullable=False)
     first_name = db.Column(db.String(45))
     last_name = db.Column(db.String(45))
@@ -62,7 +61,7 @@ class FacilityProject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.String(45))
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    facility : Mapped["FacilityModel"] = relationship(back_populates="projects")
+    # facility : Mapped["FacilityModel"] = relationship(back_populates="projects")
 
 class FacilityInstrument(db.Model):
     """ Representation of an instrument """
@@ -71,14 +70,14 @@ class FacilityInstrument(db.Model):
     name = db.Column(db.String(45))
     model = db.Column(db.String(45))
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    facility : Mapped["FacilityModel"] = relationship(back_populates="instruments")
+    # facility : Mapped["FacilityModel"] = relationship(back_populates="instruments")
     issues: Mapped[List["FacilityInstrumentIssue"]] = relationship(back_populates="facility_instrument")
 
 class FacilityInstrumentIssue(db.Model):
     """ Representation of an instrument issue """
     __tablename__ = "facility_instrument_issue"
     id = db.Column(db.Integer, primary_key=True)
-    instrument_offline = db.column(db.Integer)
+    instrument_offline = db.column(db.Boolean)
     issue_title = db.Column(db.String(45))
     issue_description = db.Column(db.String(45))
     start_date = db.Column(db.DateTime)
@@ -94,7 +93,7 @@ class FacilityInstrumentSession(db.Model):
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    facility : Mapped["FacilityModel"] = relationship(back_populates="instrument_sessions")
+    # facility : Mapped["FacilityModel"] = relationship(back_populates="instrument_sessions")
 
 #class FacilitySessionPersonLink(db.Model):
 #    """ Representation of many-to-many relationship between Session and Person tables """
