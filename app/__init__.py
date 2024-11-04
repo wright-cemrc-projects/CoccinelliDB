@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
 from sqlalchemy import MetaData
-
+from flask_marshmallow import Marshmallow
 
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
@@ -15,7 +15,7 @@ naming_convention = {
 
 db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate()
-
+ma = Marshmallow()
 
 def create_app():
     app = Flask(__name__)
@@ -27,6 +27,7 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
+    ma.init_app(app)
     
     # Register routes (from routes.py)
     from .routes import main
@@ -55,5 +56,5 @@ def create_app():
         group = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
         db.session.delete(group)
         db.session.commit()
-        
+
     return app
