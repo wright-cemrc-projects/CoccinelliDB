@@ -37,7 +37,7 @@ class FacilityGroup(db.Model):
     facility_id = db.Column(db.Integer, db.ForeignKey("facility.id"), unique=False, nullable=False)
     # facility = db.relationship("FacilityModel", back_populates="facility_group")
     person = db.relationship("FacilityPerson", backref="facility_group", lazy="dynamic")
-
+    
     def __repr__(self):
         return f"<FacilityGroup(name={self.name})>"
 

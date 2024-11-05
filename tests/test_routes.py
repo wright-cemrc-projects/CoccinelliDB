@@ -10,11 +10,10 @@ def test_facility(client):
     for data in datas:
         resp = client.post("/facility", data=json.dumps(data), headers={"Content-Type": "application/json"})
         assert resp.status_code == 200
-        print(json.loads(resp.data))
         assert json.loads(resp.data)["message"] == "new facility created."
     get_resp = client.get("/facility/1")
-    assert get_resp.data["name"] == b"MCCET"
+    assert json.loads(get_resp.data)["name"] == "MCCET"
     del_resp = client.delete("/facility/4")
-    assert del_resp.data["message"] == b"facility CCET got deleted."
+    assert json.loads(del_resp.data)["message"] == "<Facility(name=CCET)> got deleted."
     get_list_resp = client.get("/facility")
-    assert len(get_list_resp.data) == 3
+    assert len(json.loads(get_list_resp.data)) == 3

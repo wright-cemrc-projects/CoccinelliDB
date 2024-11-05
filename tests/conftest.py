@@ -1,19 +1,22 @@
 import pytest
-from app import create_app
+from app import create_app, db
+import os
+import tempfile
 
 @pytest.fixture()
 def app():
     app = create_app()
     app.config.update({
         "TESTING": True,
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db' 
     })
 
-    # other setup can go here
-
+    with app.app_context():
+        db.create_all() 
     yield app
 
-    # clean up / reset resources here
-
+    with app.app_context():
+        db.drop_all()
 
 @pytest.fixture()
 def client(app):

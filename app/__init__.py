@@ -17,7 +17,7 @@ db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate()
 ma = Marshmallow()
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
     
     # Configure the app, by setting the database URI
@@ -28,7 +28,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    
+
     # Register routes (from routes.py)
     from .routes import main
     app.register_blueprint(main)
