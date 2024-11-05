@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request
 from flask_cors import CORS
 from . import db
-from .models import *
+from .models import FacilityModel
 from .schema import facilitySchema, facilitiesSchema
 
 main = Blueprint('main', __name__)
@@ -17,31 +17,34 @@ def hello_world():
     return jsonify({"message": "Hello World"})
 
 @main.route('/facility', methods=['GET'])
-def getFacilityList():
+def get_facility_list():
     facility_list = db.session.execute(db.select(FacilityModel)).scalars()
     return facilitiesSchema.jsonify(facility_list)
 
 @main.route('/facility/<int:id>', methods=['GET'])
-def getFacilityOne(id):
-    facility_one = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+def get_facility_by_id(id):
+    facility_one = db.session.execute(db.select(FacilityModel).filter_by(id=id)).scalar_one()
     return facilitySchema.jsonify(facility_one)
 
 @main.route('/facility', methods=['POST'])
-def createFacility():
-    name = request.form("name")
+def create_facility():
+    name = request.json["name"]
     try:
-        facility = FacilityGroup(name)
+        facility = FacilityModel(name)
         db.session.add(facility)
-        db.commit()
+        db.session.commit()
         return jsonify({"message": "new facility created."})
     except Exception as err:
-        return jsonify({"err": err})
+        return jsonify({"err": f"{err=}"})
 
 @main.route('/facility/<int:id>', methods=['DELETE'])
-def deleteFacility(id):
+def delete_facility(id):
     try:
-        facility = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+        facility = db.session.execute(db.select(FacilityModel).filter_by(id=id)).scalar_one()
+        facility_dict = dict(facility)
         db.session.delete(facility)
+        db.session.commit()
+        return jsonify({"message": f"facility {facility_dict["name"]} got deleted."})
     except Exception as err:
         return jsonify(err)
 

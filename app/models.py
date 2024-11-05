@@ -23,6 +23,9 @@ class FacilityModel(db.Model):
     instruments: Mapped[List["FacilityInstrument"]] = relationship(backref="facility")
     sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(backref="facility")
 
+    def __init__(self, name):
+        self.name = name
+
     def __repr__(self):
         return f"<Facility(name={self.name})>"
 
