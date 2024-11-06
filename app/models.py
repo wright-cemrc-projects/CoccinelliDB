@@ -56,15 +56,15 @@ class FacilityPerson(db.Model):
     state = db.Column(db.String(45), nullable=True)
     country = db.Column(db.String(45), nullable=True)
     telephone = db.Column(db.String(45), nullable=True)
-    net_id = db.Column(db.String(45 ), unique=False)
+    net_id = db.Column(db.String(45 ), unique=True)
     start_date = db.Column(db.DateTime, nullable=True) 
     end_date = db.Column(db.DateTime, nullable=True)
 
     @validates("email")
     def validate_email(self, key, email):
         if is_email(email, check_dns=True):
-            return address
-        raise ValueErrir("Invalid email!")
+            return self.address
+        raise ValueError("Invalid email!")
 
     def __repr__(self):
         return f"FacilityPerson(name={self.first_name} {self.last_name}, email={self.email})"

@@ -1,5 +1,6 @@
 from . import ma
-from .models import FacilityModel, FacilityGroup
+from .models import FacilityModel, FacilityGroup, FacilityPerson
+
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -15,3 +16,9 @@ class FacilityGroupSchema(ma.SQLAlchemyAutoSchema):
 facilityGroupSchema = FacilityGroupSchema()
 facilityGroupsSchema = FacilityGroupSchema(many=True)
 
+class FacilityPersonSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = FacilityPerson
+
+facilityPersonSchema = FacilityPersonSchema()
+facilityPersonsSchema = FacilityPersonSchema(many=True)

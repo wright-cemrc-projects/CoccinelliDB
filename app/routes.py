@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, jsonify, request
 from flask_cors import CORS
 from . import db
-from .models import FacilityModel, FacilityGroup
-from .schema import facilitySchema, facilitiesSchema, facilityGroupSchema, facilityGroupsSchema
+from .models import FacilityModel, FacilityGroup, FacilityPerson
+from .schema import facilitySchema, facilitiesSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema
 
 main = Blueprint('main', __name__)
 CORS(main)
@@ -44,6 +44,7 @@ def update_facility(id):
         facility = db.session.execute(db.select(FacilityModel).filter_by(id=id)).scalar_one()
         facility.name = name
         db.session.commit()
+        return jsonify({"message": f"{facility} got updated"})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
@@ -65,6 +66,7 @@ def create_group():
         group = FacilityGroup(name=name, facility_id=facility_id)
         db.session.add(group)
         db.session.commit()
+        return jsonify({"message": f"new group {name} created."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
@@ -86,7 +88,7 @@ def get_group_list():
         return jsonify({"err": f"{err=}"})
 
 @main.route('/group/<int:id>', methods=['POST'])
-def updage_group(id):
+def update_group(id):
     try:
         group = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
         if "name" in request.json:
@@ -94,6 +96,7 @@ def updage_group(id):
         if "facility_id" in request.json:
             group.facility_id = request.json["facility_id"]
         db.session.commit()
+        return jsonify({"message": f"{group} got updated"})
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
@@ -103,26 +106,95 @@ def delete_group(id):
         group = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
         db.session.delete(group)
         db.session.commit()
-        return jsonify({"message", f"{group} got deleted."})
+        return jsonify({"message": f"{group} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
 @main.route('/person', methods=['POST'])
 def create_person():
-    pass
+    try:
+        first_name = request.json["first_name"]
+        last_name = request.json["last_name"]
+        net_id = request.json["net_id"]
+        email = request.json["email"]
+        person = FacilityPerson(first_name, last_name, net_id, email)
+        if "group_id" in request.json:
+            person.group_id = request.json["group_id"]
+        if "address1" in request.json:
+            person.address1 = request.json["address1"]
+        if "address2" in request.json:
+            person.address2 = request.json["address2"]
+        if "organization" in request.json:
+            person.organization = request.json["organization"]
+        if "state" in request.json:
+            person.state = request.json["state"]
+        if "telephone" in request.json:
+            person.telephone = request.json["telephone"]
+        if "start_date" in request.json:
+            person.start_date = request.json["start_date"]
+        if "end_date" in request.json:
+            person.end_date = request.json["end_date"]
+        db.session.add(person)
+        db.session.commit()
+        return jsonify({"message": f"{person} created."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
 
 @main.route('/person/<int:id>', methods=['GET'])
 def get_person_by_id(id):
-    pass
+    try:
+        person = db.get_or_404(FacilityPerson, id)
+        return facilityPersonSchema.jsonify(person)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
 
 @main.route('/person', methods=['GET'])
 def get_person_list():
-    pass
+    try:
+        person_list = db.session.execute(db.select(FacilityPerson)).scalars()
+        return facilityPersonsSchema.jsonify(person_list)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
 
 @main.route('/person/<int:id>', methods=['POST'])
 def update_person(id):
-    pass
+    try:
+        person = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+        if "first_name" in request.json:
+            person.first_name = request.json["first_name"]
+        if "last_name" in request.json:
+            person.last_name = request.json["last_name"]
+        if "organization" in request.json:
+            person.organization = request.json["organization"]
+        if "email" in request.json:
+            person.email = request.json["email"]
+        if "state" in request.json:
+            person.state = request.json["state"]
+        if "address1" in request.json:
+            person.address1 = request.json["address1"]
+        if "address2" in request.json:
+            person.address2 = request.json["address2"]
+        if "country" in request.json:
+            person.country = request.json["country"]
+        if "telephone" in request.json:
+            person.telephone = request.json["telephone"]
+        if "net_id" in request.json:
+            person.net_id = request.json["net_id"]
+        if "start_date" in request.json:
+            person.start_date = request.json["start_date"]
+        if "end_date" in request.json:
+            person.end_date = request.json["end_date"]
+        db.session.commit()
+        return jsonify({"message": f"{person} got updated"})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
 
 @main.route('/person/<int:id>', methods=['POST'])
-def deletePerson(id):
-    pass
+def delete_person(id):
+    try:
+        person = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+        db.session.delete(person)
+        db.session.commit()
+        return jsonify({"message": f"{person} got deleted."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
