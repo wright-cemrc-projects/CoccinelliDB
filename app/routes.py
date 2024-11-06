@@ -117,7 +117,7 @@ def create_person():
         last_name = request.json["last_name"]
         net_id = request.json["net_id"]
         email = request.json["email"]
-        person = FacilityPerson(first_name, last_name, net_id, email)
+        person = FacilityPerson(first_name=first_name, last_name=last_name, net_id=net_id, email=email)
         if "group_id" in request.json:
             person.group_id = request.json["group_id"]
         if "address1" in request.json:
@@ -159,7 +159,7 @@ def get_person_list():
 @main.route('/person/<int:id>', methods=['POST'])
 def update_person(id):
     try:
-        person = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+        person = db.session.execute(db.select(FacilityPerson).filter_by(id=id)).scalar_one()
         if "first_name" in request.json:
             person.first_name = request.json["first_name"]
         if "last_name" in request.json:
@@ -185,14 +185,14 @@ def update_person(id):
         if "end_date" in request.json:
             person.end_date = request.json["end_date"]
         db.session.commit()
-        return jsonify({"message": f"{person} got updated"})
+        return jsonify({"message": f"{person} got updated."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/person/<int:id>', methods=['POST'])
+@main.route('/person/<int:id>', methods=['DELETE'])
 def delete_person(id):
     try:
-        person = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+        person = db.session.execute(db.select(FacilityPerson).filter_by(id=id)).scalar_one()
         db.session.delete(person)
         db.session.commit()
         return jsonify({"message": f"{person} got deleted."})

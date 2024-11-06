@@ -37,7 +37,7 @@ class FacilityGroup(db.Model):
     facility_id = db.Column(db.Integer, db.ForeignKey("facility.id"), unique=False, nullable=False)
     # facility = db.relationship("FacilityModel", back_populates="facility_group")
     person = db.relationship("FacilityPerson", backref="facility_group", lazy="dynamic")
-    
+
     def __repr__(self):
         return f"<FacilityGroup(name={self.name})>"
 
@@ -60,10 +60,16 @@ class FacilityPerson(db.Model):
     start_date = db.Column(db.DateTime, nullable=True) 
     end_date = db.Column(db.DateTime, nullable=True)
 
+    def __init__(self, first_name, last_name, email, net_id):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
+        self.net_id = net_id
+
     @validates("email")
     def validate_email(self, key, email):
         if is_email(email, check_dns=True):
-            return self.address
+            return email
         raise ValueError("Invalid email!")
 
     def __repr__(self):
