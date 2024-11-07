@@ -9,6 +9,13 @@ class Config:
 class DevelopmentConfig(Config):
     # SQLite database for development
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'dev.db')
+    DEBUG = True
+
+class ProductionConfig(Config):
+    DB_USERNAME = os.environ.get('DB_USERNAME') or 'no user'
+    DB_PASSWORD = os.environ.get('DB_PASSWORD') or 'no password'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://' + DB_USERNAME + ':' + DB_PASSWORD + ':password@localhost/coccinellidb'
+    DEBUG = False
 
 class TestingConfig(Config):
     # SQLite database for testing (using in-memory database)
