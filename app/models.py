@@ -10,6 +10,8 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
+from pyisemail import is_email
+
 
 class FacilityModel(db.Model):
     """ Representation of a facility """
@@ -21,6 +23,11 @@ class FacilityModel(db.Model):
     instruments: Mapped[List["FacilityInstrument"]] = relationship(backref="facility")
     sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(backref="facility")
 
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return f"<Facility(name={self.name})>"
 
 class FacilityGroup(db.Model):
     """ Representation of a lab group or organization """
@@ -31,6 +38,9 @@ class FacilityGroup(db.Model):
     # facility = db.relationship("FacilityModel", back_populates="facility_group")
     person = db.relationship("FacilityPerson", backref="facility_group", lazy="dynamic")
 
+    def __repr__(self):
+        return f"<FacilityGroup(name={self.name})>"
+
 class FacilityPerson(db.Model):
     """ Representation of an individual """
     __tablename__ = "facility_person"
@@ -39,17 +49,31 @@ class FacilityPerson(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey("facility_group.id"), unique=False, nullable=False)
     first_name = db.Column(db.String(45))
     last_name = db.Column(db.String(45))
-    organization = db.Column(db.String(45))
-    email = db.Column(db.String(45))
-    address1 = db.Column(db.String(45)) 
-    address2 = db.Column(db.String(45))
-    state = db.Column(db.String(45))
-    country = db.Column(db.String(45))
-    telephone = db.Column(db.String(45))
-    net_id = db.Column(db.String(45 ))
-    start_date = db.Column(db.DateTime) 
-    end_date = db.Column(db.DateTime)
+    organization = db.Column(db.String(45), nullable=True)
+    email = db.Column(db.String(45), unique=True)
+    address1 = db.Column(db.String(45), nullable=True) 
+    address2 = db.Column(db.String(45), nullable=True)
+    state = db.Column(db.String(45), nullable=True)
+    country = db.Column(db.String(45), nullable=True)
+    telephone = db.Column(db.String(45), nullable=True)
+    net_id = db.Column(db.String(45 ), unique=True)
+    start_date = db.Column(db.DateTime, nullable=True) 
+    end_date = db.Column(db.DateTime, nullable=True)
 
+    def __init__(self, first_name, last_name, email, net_id):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
+        self.net_id = net_id
+
+    @validates("email")
+    def validate_email(self, key, email):
+        if is_email(email, check_dns=True):
+            return email
+        raise ValueError("Invalid email!")
+
+    def __repr__(self):
+        return f"FacilityPerson(name={self.first_name} {self.last_name}, email={self.email})"
 # Entries below using SQLAlchemy ORM configuration style with Declarative mappings with Mapped.
 # https://docs.sqlalchemy.org/en/20/orm/basic_relationships.html
 # back_populates argument is to be used when we want data access in both directions from

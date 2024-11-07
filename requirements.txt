@@ -12,5 +12,10 @@ MarkupSafe==3.0.2
 SQLAlchemy==2.0.36
 typing_extensions==4.12.2
 Werkzeug==3.0.4
-flask-cors
-sqlalchemy-utils
+flask-cors==5.0.0
+sqlalchemy-utils==0.41.2
+pyIsEmail==2.0.1
+flask-marshmallow==1.2.1
+marshmallow-sqlalchemy==1.1.0
+pytest==8.3.3
+coverage==7.6.4
