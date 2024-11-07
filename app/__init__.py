@@ -23,10 +23,6 @@ def create_app(config=None):
     if config:
         app.config.from_object(config)
     
-    # Configure the app, by setting the database URI
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # For SQLite, update this for other databases
-    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
