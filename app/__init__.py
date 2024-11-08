@@ -1,9 +1,14 @@
+from email.policy import default
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
 from sqlalchemy import MetaData
 from flask_marshmallow import Marshmallow
+from sqlalchemy.testing.plugin.plugin_base import config
+
+import config
 
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
@@ -13,16 +18,22 @@ naming_convention = {
     "pk": "pk_%(table_name)s"
 }
 
+config_map = {
+    'development': config.DevelopmentConfig,
+    'testing': config.TestingConfig,
+    'production': config.ProductionConfig
+}
+
 db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate()
 ma = Marshmallow()
 
-def create_app(config=None):
+def create_app(config_name="development"):
     app = Flask(__name__)
 
-    if config:
-        app.config.from_object(config)
-    
+    conf = config_map.get(config_name, config.DevelopmentConfig)
+
+    app.config.from_object(conf)
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
