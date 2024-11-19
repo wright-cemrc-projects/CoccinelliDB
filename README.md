@@ -1,7 +1,7 @@
 # CoccinelliDB
 React, Flask, and SQLAlchemy DB interface
 
-# Setup environment
+# Setup environment (development)
 
 ```
 pip install virtualenv
@@ -20,5 +20,5 @@ cd client
 npm install
 
 # start client
-npx next dev
+npx run dev
 ```
