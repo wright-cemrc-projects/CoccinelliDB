@@ -29,6 +29,10 @@ class FacilityModel(db.Model):
     def __repr__(self):
         return f"<Facility(name={self.name})>"
 
+group_person = db.Table('group_person',
+                        db.Column('group_id', db.Integer, db.ForeignKey('facility_group.id')),
+                        db.Column('person_id', db.Integer, db.ForeignKey('facility_person.id')))
+
 class FacilityGroup(db.Model):
     """ Representation of a lab group or organization """
     __tablename__ = "facility_group"
