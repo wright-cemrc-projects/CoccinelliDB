@@ -2,9 +2,9 @@ import type { DataProvider } from "@refinedev/core";
 
 const API_URL = "https://api.fake-rest.refine.dev";
 
-export const dataProvider: DataProvider = {
+export const dataProvider = (url: string): DataProvider => ({
   getOne: async ({ resource, id, meta }) => {
-    const response = await fetch(`${API_URL}/${resource}/${id}`);
+    const response = await fetch(`${url}/${resource}/${id}`);
 
     if (response.status < 200 || response.status > 299) throw response;
 
@@ -27,4 +27,4 @@ export const dataProvider: DataProvider = {
   getApiUrl: () => {
     throw new Error("Not implemented");
   }
-};
+});
