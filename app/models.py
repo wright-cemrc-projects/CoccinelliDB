@@ -19,9 +19,9 @@ class FacilityModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45), nullable=False, unique=True)
     group = db.relationship("FacilityGroup", backref="facility", lazy="dynamic")
-    projects: Mapped[List["FacilityProject"]] = relationship(backref="facility")
-    instruments: Mapped[List["FacilityInstrument"]] = relationship(backref="facility")
-    sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(backref="facility")
+    projects: Mapped[List["FacilityProject"]] = relationship(back_populates="facility")
+    instruments: Mapped[List["FacilityInstrument"]] = relationship(back_populates="facility")
+    sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(back_populates="facility")
 
     def __init__(self, name):
         self.name = name
@@ -39,7 +39,6 @@ class FacilityGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45), nullable=False, unique=True)
     facility_id = db.Column(db.Integer, db.ForeignKey("facility.id"), unique=False, nullable=False)
-    # facility = db.relationship("FacilityModel", back_populates="facility_group")
     person = db.relationship("FacilityPerson", backref="facility_group", lazy="dynamic")
 
     def __repr__(self):
@@ -89,7 +88,7 @@ class FacilityProject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.String(45))
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    # facility : Mapped["FacilityModel"] = relationship(back_populates="projects")
+    facility : Mapped["FacilityModel"] = relationship(back_populates="projects")
 
 class FacilityInstrument(db.Model):
     """ Representation of an instrument """
@@ -98,8 +97,9 @@ class FacilityInstrument(db.Model):
     name = db.Column(db.String(45))
     model = db.Column(db.String(45))
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    # facility : Mapped["FacilityModel"] = relationship(back_populates="instruments")
+    facility : Mapped["FacilityModel"] = relationship(back_populates="instruments")
     issues: Mapped[List["FacilityInstrumentIssue"]] = relationship(back_populates="facility_instrument")
+    sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(back_populates="facility_instrument")
 
 class FacilityInstrumentIssue(db.Model):
     """ Representation of an instrument issue """
@@ -121,12 +121,19 @@ class FacilityInstrumentSession(db.Model):
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
-    # facility : Mapped["FacilityModel"] = relationship(back_populates="instrument_sessions")
+    facility : Mapped["FacilityModel"] = relationship(back_populates="sessions")
+    instrument_id : Mapped[int] = mapped_column(ForeignKey("facility_instrument.id"))
+    facility_instrument : Mapped["FacilityInstrument"] = relationship(back_populates="sessions")
+    collections: Mapped[List["FacilityCollection"]] = relationship(back_populates="facility_instrument_session")
 
-#class FacilitySessionPersonLink(db.Model):
-#    """ Representation of many-to-many relationship between Session and Person tables """
-#    __tablename__ = "session_person_link"
-#    Q: how to setup this links to two different tables, FacilityInstrumentSession and FacilityPerson
+session_person_link = db.Table(
+    'session_person_link',
+    db.Column('session_id', db.Integer, db.ForeignKey('facility_instrument_session.id')),
+    db.Column('person_id', db.Integer, db.ForeignKey('facility_person.id')),
+    db.Column('onsite', db.Boolean),
+    db.Column('role', db.String(45)),
+    db.Column('remote_access_level', db.String(45))
+)
 
 class FacilityCollection(db.Model):
     """ Representation of a data collection that occurred duing an instrument session """
@@ -135,6 +142,8 @@ class FacilityCollection(db.Model):
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
     data_location = db.Column(db.String(45))
+    facility_instrument_session_id : Mapped[int] = mapped_column(ForeignKey("facility_instrument_session.id"))
+    facility_instrument_session : Mapped["FacilityInstrumentSession"] = relationship(back_populates="collections")
 
 class FacilityGridBox(db.Model):
     """ Representation of a grid box, an organize of grids in the facility storage """
