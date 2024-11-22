@@ -41,12 +41,12 @@ def create_app(config_name="development"):
     from .routes import main
     app.register_blueprint(main)
     
-    from .models import FacilityGroup, FacilityModel
+    from .models import Group, Facility
 
     @app.cli.command("create-facility")
     @click.argument("name")
     def create_facility(name):
-        facility = FacilityModel(name=name)
+        facility = Facility(name=name)
         db.session.add(facility)
         db.session.commit()
 
@@ -54,14 +54,14 @@ def create_app(config_name="development"):
     @click.argument("name")
     @click.argument("facility_id")
     def create_group(name, facility_id):
-        group = FacilityGroup(name=name, facility_id=facility_id)
+        group = Group(name=name, facility_id=facility_id)
         db.session.add(group)
         db.session.commit()
 
     @app.cli.command("delete-group")
     @click.argument("id")
     def delete_group(id):
-        group = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+        group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
         db.session.delete(group)
         db.session.commit()
 
