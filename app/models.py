@@ -18,9 +18,11 @@ class FacilityModel(db.Model):
     __tablename__ = "facility"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45), nullable=False, unique=True)
-    group = db.relationship("FacilityGroup", backref="facility", lazy="dynamic")
+    # Linked table [one Facility -> many FacilityProject(s)]
     projects: Mapped[List["FacilityProject"]] = relationship(back_populates="facility")
+    # Linked table [one Facility -> many FacilityInstrument(s)]
     instruments: Mapped[List["FacilityInstrument"]] = relationship(back_populates="facility")
+    # Linked table [one Facility -> many FacilityInstrumentSessions(s)]
     sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(back_populates="facility")
 
     def __init__(self, name):
@@ -29,6 +31,7 @@ class FacilityModel(db.Model):
     def __repr__(self):
         return f"<Facility(name={self.name})>"
 
+# Linked table [many FacilityGroup -> many FacilityPerson(s)]
 group_person = db.Table('group_person',
                         db.Column('group_id', db.Integer, db.ForeignKey('facility_group.id')),
                         db.Column('person_id', db.Integer, db.ForeignKey('facility_person.id')))
@@ -38,7 +41,7 @@ class FacilityGroup(db.Model):
     __tablename__ = "facility_group"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45), nullable=False, unique=True)
-    facility_id = db.Column(db.Integer, db.ForeignKey("facility.id"), unique=False, nullable=False)
+    # Linked table [one FacilityGroup -> many FacilityPerson(s)]
     person = db.relationship("FacilityPerson", backref="facility_group", lazy="dynamic")
 
     def __repr__(self):
@@ -48,7 +51,7 @@ class FacilityPerson(db.Model):
     """ Representation of an individual """
     __tablename__ = "facility_person"
     id = db.Column(db.Integer, primary_key=True)
-    # group = db.relationship("FacilityGroup", back_populates="facility_person")
+    # Linked table [many FacilityGroup -> many FacilityPerson(s)]
     group_id = db.Column(db.Integer, db.ForeignKey("facility_group.id"), unique=False, nullable=False)
     first_name = db.Column(db.String(45))
     last_name = db.Column(db.String(45))
@@ -77,6 +80,7 @@ class FacilityPerson(db.Model):
 
     def __repr__(self):
         return f"FacilityPerson(name={self.first_name} {self.last_name}, email={self.email})"
+    
 # Entries below using SQLAlchemy ORM configuration style with Declarative mappings with Mapped.
 # https://docs.sqlalchemy.org/en/20/orm/basic_relationships.html
 # back_populates argument is to be used when we want data access in both directions from
@@ -89,6 +93,8 @@ class FacilityProject(db.Model):
     project_id = db.Column(db.String(45))
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
     facility : Mapped["FacilityModel"] = relationship(back_populates="projects")
+    # Linked table [one FacilityProject -> many FacilityInstrumentSessions]
+    sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(back_populates="facility_project")
 
 class FacilityInstrument(db.Model):
     """ Representation of an instrument """
@@ -96,20 +102,24 @@ class FacilityInstrument(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45))
     model = db.Column(db.String(45))
+    # Linked table [one Facility -> many FacilityInstrument(s)]
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
     facility : Mapped["FacilityModel"] = relationship(back_populates="instruments")
+    # Linked table [one FacilityInstrument -> many FacilityInstrumentIssue(s)]
     issues: Mapped[List["FacilityInstrumentIssue"]] = relationship(back_populates="facility_instrument")
+    # Linked table [one FacilityInstrument -> many FacilityInstrumentSession(s)]
     sessions: Mapped[List["FacilityInstrumentSession"]] = relationship(back_populates="facility_instrument")
 
 class FacilityInstrumentIssue(db.Model):
     """ Representation of an instrument issue """
     __tablename__ = "facility_instrument_issue"
     id = db.Column(db.Integer, primary_key=True)
-    instrument_offline = db.column(db.Boolean)
+    instrument_offline = db.Column(db.Boolean)
     issue_title = db.Column(db.String(45))
     issue_description = db.Column(db.String(45))
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
+    # Linked table [one FacilityInstrument -> many FacilityInstrumentIssue(s)]
     instrument_id : Mapped[int] = mapped_column(ForeignKey("facility_instrument.id"))
     facility_instrument : Mapped["FacilityInstrument"] = relationship(back_populates="issues")
 
@@ -117,15 +127,26 @@ class FacilityInstrumentSession(db.Model):
     """ Representation of a session of instrument use """
     __tablename__ = "facility_instrument_session"
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
+    # Linked table [one Facility-> many FacilityInstrumentSession(s)]
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
     facility : Mapped["FacilityModel"] = relationship(back_populates="sessions")
+    # Linked table [one FacilityProject-> many FacilityInstrumentSession(s)]
+    facility_project_id : Mapped[int] = mapped_column(ForeignKey("facility_project.id"))
+    facility_project : Mapped["FacilityProject"] = relationship(back_populates="sessions")
+    # Linked table [one FacilityInstrument-> many FacilityInstrumentSession(s)]
     instrument_id : Mapped[int] = mapped_column(ForeignKey("facility_instrument.id"))
     facility_instrument : Mapped["FacilityInstrument"] = relationship(back_populates="sessions")
+    # Linked table [one FacilityInstrumentSession-> many FacilityInstrumentCollection(s)]
     collections: Mapped[List["FacilityCollection"]] = relationship(back_populates="facility_instrument_session")
 
+# This is setup for additional flexibility for how we define persons being in a session,
+#  and includes fields tied to the person:
+#   'onsite': is this person an onsite user or remote?
+#   'role' : is this person an operator, trainee, or other?
+#   'remote_access_level' : 
+# Linked table [many FacilityInstrumentSession -> many FacilityPerson(s)]
 session_person_link = db.Table(
     'session_person_link',
     db.Column('session_id', db.Integer, db.ForeignKey('facility_instrument_session.id')),
@@ -142,6 +163,7 @@ class FacilityCollection(db.Model):
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
     data_location = db.Column(db.String(45))
+    # Linked table [one FacilityInstrumentSession-> many FacilityInstrumentCollection(s)]
     facility_instrument_session_id : Mapped[int] = mapped_column(ForeignKey("facility_instrument_session.id"))
     facility_instrument_session : Mapped["FacilityInstrumentSession"] = relationship(back_populates="collections")
 
@@ -162,3 +184,7 @@ class FacilityGridBox(db.Model):
     instrument = db.Column(db.String(45)) # could link to a facility instrument?
     comments = db.Column(db.String(45)) # may need a larger comment block
     box_status = db.Column(db.String(45)) # could be with options here
+    # TODO: this table is missing linkages in the database.
+    #  How does a GridBox (container of grids and indexing/storage of grids) relate to a sample (individual grid)?
+    #  How does a GridBox or Grid relate to a data collection or instrument session?
+    #  Where should we make these links and definitions?
