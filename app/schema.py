@@ -1,24 +1,24 @@
 from . import ma
-from .models import FacilityModel, FacilityGroup, FacilityPerson
+from .models import Facility, Group, Person
 
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        model = FacilityModel
+        model = Facility
 
 facilitySchema = FacilitySchema()
 facilitiesSchema = FacilitySchema(many=True)
 
 class FacilityGroupSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        model = FacilityGroup
+        model = Group
 
 facilityGroupSchema = FacilityGroupSchema()
 facilityGroupsSchema = FacilityGroupSchema(many=True)
 
 class FacilityPersonSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        model = FacilityPerson
+        model = Person
 
 facilityPersonSchema = FacilityPersonSchema()
 facilityPersonsSchema = FacilityPersonSchema(many=True)

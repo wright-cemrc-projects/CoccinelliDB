@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request
 from flask_cors import CORS
 from . import db
-from .models import FacilityModel, FacilityGroup, FacilityPerson
+from .models import Facility, Group, Person
 from .schema import facilitySchema, facilitiesSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema
 
 main = Blueprint('main', __name__)
@@ -18,19 +18,19 @@ def hello_world():
 
 @main.route('/facility', methods=['GET'])
 def get_facility_list():
-    facility_list = db.session.execute(db.select(FacilityModel)).scalars()
+    facility_list = db.session.execute(db.select(Facility)).scalars()
     return facilitiesSchema.jsonify(facility_list)
 
 @main.route('/facility/<int:id>', methods=['GET'])
 def get_facility_by_id(id):
-    facility_one = db.session.execute(db.select(FacilityModel).filter_by(id=id)).scalar_one()
+    facility_one = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
     return facilitySchema.jsonify(facility_one)
 
 @main.route('/facility', methods=['POST'])
 def create_facility():
     name = request.json["name"]
     try:
-        facility = FacilityModel(name)
+        facility = Facility(name)
         db.session.add(facility)
         db.session.commit()
         return jsonify({"message": "new facility created."})
@@ -41,7 +41,7 @@ def create_facility():
 def update_facility(id):
     try:
         name = request.json["name"]
-        facility = db.session.execute(db.select(FacilityModel).filter_by(id=id)).scalar_one()
+        facility = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
         facility.name = name
         db.session.commit()
         return jsonify({"message": f"{facility} got updated"})
@@ -51,7 +51,7 @@ def update_facility(id):
 @main.route('/facility/<int:id>', methods=['DELETE'])
 def delete_facility(id):
     try:
-        facility = db.session.execute(db.select(FacilityModel).filter_by(id=id)).scalar_one()
+        facility = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
         db.session.delete(facility)
         db.session.commit()
         return jsonify({"message": f"{facility} got deleted."})
@@ -63,7 +63,7 @@ def create_group():
     try:
         name = request.json["name"]
         facility_id = request.json["facility_id"]
-        group = FacilityGroup(name=name, facility_id=facility_id)
+        group = Group(name=name, facility_id=facility_id)
         db.session.add(group)
         db.session.commit()
         return jsonify({"message": f"new group {name} created."})
@@ -74,7 +74,7 @@ def create_group():
 @main.route('/group/<int:id>', methods=['GET'])
 def get_group_by_id(id):
     try:
-        group = db.get_or_404(FacilityGroup, id)
+        group = db.get_or_404(Group, id)
         return facilityGroupSchema.jsonify(group)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
@@ -82,7 +82,7 @@ def get_group_by_id(id):
 @main.route('/group', methods=['GET'])
 def get_group_list():
     try:
-        group_list = db.session.execute(db.select(FacilityModel)).scalars()
+        group_list = db.session.execute(db.select(Facility)).scalars()
         return facilityGroupsSchema.jsonify(group_list)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
@@ -90,7 +90,7 @@ def get_group_list():
 @main.route('/group/<int:id>', methods=['POST'])
 def update_group(id):
     try:
-        group = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+        group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
         if "name" in request.json:
             group.name = request.json["name"]
         if "facility_id" in request.json:
@@ -103,7 +103,7 @@ def update_group(id):
 @main.route('/group/<int:id>', methods=['DELETE'])
 def delete_group(id):
     try:
-        group = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
+        group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
         db.session.delete(group)
         db.session.commit()
         return jsonify({"message": f"{group} got deleted."})
@@ -117,7 +117,7 @@ def create_person():
         last_name = request.json["last_name"]
         net_id = request.json["net_id"]
         email = request.json["email"]
-        person = FacilityPerson(first_name=first_name, last_name=last_name, net_id=net_id, email=email)
+        person = Person(first_name=first_name, last_name=last_name, net_id=net_id, email=email)
         if "group_id" in request.json:
             person.group_id = request.json["group_id"]
         if "address1" in request.json:
@@ -143,7 +143,7 @@ def create_person():
 @main.route('/person/<int:id>', methods=['GET'])
 def get_person_by_id(id):
     try:
-        person = db.get_or_404(FacilityPerson, id)
+        person = db.get_or_404(Person, id)
         return facilityPersonSchema.jsonify(person)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
@@ -151,7 +151,7 @@ def get_person_by_id(id):
 @main.route('/person', methods=['GET'])
 def get_person_list():
     try:
-        person_list = db.session.execute(db.select(FacilityPerson)).scalars()
+        person_list = db.session.execute(db.select(Person)).scalars()
         return facilityPersonsSchema.jsonify(person_list)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
@@ -159,7 +159,7 @@ def get_person_list():
 @main.route('/person/<int:id>', methods=['POST'])
 def update_person(id):
     try:
-        person = db.session.execute(db.select(FacilityPerson).filter_by(id=id)).scalar_one()
+        person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()
         if "first_name" in request.json:
             person.first_name = request.json["first_name"]
         if "last_name" in request.json:
@@ -192,7 +192,7 @@ def update_person(id):
 @main.route('/person/<int:id>', methods=['DELETE'])
 def delete_person(id):
     try:
-        person = db.session.execute(db.select(FacilityPerson).filter_by(id=id)).scalar_one()
+        person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()
         db.session.delete(person)
         db.session.commit()
         return jsonify({"message": f"{person} got deleted."})
