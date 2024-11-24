@@ -1,3 +1,5 @@
+import string
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -64,5 +66,11 @@ def create_app(config_name="development"):
         group = db.session.execute(db.select(FacilityGroup).filter_by(id=id)).scalar_one()
         db.session.delete(group)
         db.session.commit()
+
+    @app.cli.command("load-testdata")
+    def load_test_data():
+        if config_name == "development":
+            test_flag = db.session.execute(db.select)
+            lowercase_alphabet = list(string.ascii_lowercase)
 
     return app
