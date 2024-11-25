@@ -35,9 +35,14 @@ import {
   CategoryList,
   CategoryShow,
 } from "./pages/categories";
+
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
+
+import axios from "axios";
+import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
+const httpClient = axios.create();
 
 function App() {
   return (
@@ -48,7 +53,8 @@ function App() {
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                dataProvider={dataProvider("https://api.fake-rest.refine.dev")}
+                // dataProvider={dataProvider("https://api.fake-rest.refine.dev", httpClient)}
+                  dataProvider={dataProvider("http://127.0.0.1:8080", httpClient)}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
@@ -72,6 +78,16 @@ function App() {
                     meta: {
                       canDelete: true,
                     },
+                  },
+                  {
+                    name: "groups",
+                    list: "/groups",
+                    create: "/groups/create",
+                    edit: "/groups/edit/:id",
+                    show: "/groups/show/:id",
+                    meta: {
+                      canDelete: true,
+                    }
                   },
                 ]}
                 options={{
@@ -112,6 +128,12 @@ function App() {
                       <Route path="create" element={<CategoryCreate />} />
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} />
+                    </Route>
+                    <Route path="/groups">
+                      <Route index element={<GroupList />}/>
+                      <Route path="create" element={<GroupCreate />}/>
+                      <Route path="edit/:id" element={<GroupEdit />}/>
+                      <Route path="show/:id" element={<GroupShow />}/>
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
