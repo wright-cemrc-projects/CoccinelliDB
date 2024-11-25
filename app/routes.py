@@ -58,12 +58,11 @@ def delete_facility(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/group', methods=['POST'])
+@main.route('/groups', methods=['POST'])
 def create_group():
     try:
         name = request.json["name"]
-        facility_id = request.json["facility_id"]
-        group = Group(name=name, facility_id=facility_id)
+        group = Group(name=name)
         db.session.add(group)
         db.session.commit()
         return jsonify({"message": f"new group {name} created."})
@@ -71,7 +70,7 @@ def create_group():
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/group/<int:id>', methods=['GET'])
+@main.route('/groups/<int:id>', methods=['GET'])
 def get_group_by_id(id):
     try:
         group = db.get_or_404(Group, id)
@@ -79,15 +78,16 @@ def get_group_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/group', methods=['GET'])
+@main.route('/groups', methods=['GET'])
 def get_group_list():
     try:
-        group_list = db.session.execute(db.select(Facility)).scalars()
+        group_list = db.session.execute(db.select(Group)).scalars()
+        print(group_list)
         return facilityGroupsSchema.jsonify(group_list)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/group/<int:id>', methods=['POST'])
+@main.route('/groups/<int:id>', methods=['PATCH'])
 def update_group(id):
     try:
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
@@ -100,7 +100,7 @@ def update_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/group/<int:id>', methods=['DELETE'])
+@main.route('/groups/<int:id>', methods=['DELETE'])
 def delete_group(id):
     try:
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()

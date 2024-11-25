@@ -22,22 +22,22 @@ def test_group(client):
     client.post("/facility", data=json.dumps({"name": "MCCET"}), headers={"Content-Type": "application/json"})
     facility_resp = client.get("/facility")
     assert len(json.loads(facility_resp.data)) == 1
-    datas = [{"name": "matt_group", "facility_id": 1}, {"name": "liz_group", "facility_id": 1}]
+    datas = [{"name": "matt_group"}, {"name": "liz_group"}]
     for data in datas:
-        resp = client.post("/group", data=json.dumps(data), headers={"Content-Type": "application/json"})
+        resp = client.post("/groups", data=json.dumps(data), headers={"Content-Type": "application/json"})
         assert resp.status_code == 200
         assert json.loads(resp.data)["message"] == f"new group {data['name']} created."
-    get_resp = client.get("/group/1")
+    get_resp = client.get("/groups/1")
     assert json.loads(get_resp.data)["name"] == "matt_group"
-    del_resp = client.delete("/group/2")
+    del_resp = client.delete("/groups/2")
     assert json.loads(del_resp.data)["message"] == "<FacilityGroup(name=liz_group)> got deleted."
-    update_resp = client.post("/group/1", data=json.dumps({"name": "Matt_group"}), headers={"Content-Type": "application/json"})
-    update_get_resp = client.get("/group/1")
+    update_resp = client.post("/groups/1", data=json.dumps({"name": "Matt_group"}), headers={"Content-Type": "application/json"})
+    update_get_resp = client.get("/groups/1")
     assert json.loads(update_get_resp.data)["name"] == "Matt_group"
 
 def test_person(client):
     client.post("/facility", data=json.dumps({"name": "MCCET"}), headers={"Content-Type": "application/json"})
-    client.post("/group", data=json.dumps({"name": "matt_group", "facility_id": 1}))
+    client.post("/groups", data=json.dumps({"name": "matt_group", "facility_id": 1}))
     create_person_resp = client.post("/person", data=json.dumps({"first_name": "Yan", "last_name": "Zhuang", "email": "yzhuang63@wisc.edu", "group_id": 1, "net_id": "9084938471"}), headers={"Content-Type": "application/json"})
     assert create_person_resp.status_code == 200
     assert json.loads(create_person_resp.data)["message"] == f"FacilityPerson(name=Yan Zhuang, email=yzhuang63@wisc.edu) created."

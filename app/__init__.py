@@ -1,3 +1,5 @@
+import string
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -7,6 +9,7 @@ from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
 
 import config
+from tests.test_routes import test_group
 
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
@@ -53,8 +56,8 @@ def create_app(config_name="development"):
     @app.cli.command("create-group")
     @click.argument("name")
     @click.argument("facility_id")
-    def create_group(name, facility_id):
-        group = Group(name=name, facility_id=facility_id)
+    def create_group(name):
+        group = Group(name=name)
         db.session.add(group)
         db.session.commit()
 
@@ -64,5 +67,22 @@ def create_app(config_name="development"):
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
         db.session.delete(group)
         db.session.commit()
+
+    @app.cli.command("load-testdata")
+    def load_test_data():
+        if config_name == "development":
+            test_flag = db.session.execute(db.select(Group).filter_by(name="test_group")).first()
+            if test_flag:
+                print("test group data is already loaded.")
+                return
+            test_group_flag = Group(name="test_group")
+            db.session.add(test_group_flag)
+            lowercase_alphabet = list(string.ascii_lowercase)
+            test_group_list = [letter + "_group" for letter in lowercase_alphabet]
+            for group_name in test_group_list:
+                group = Group(name=group_name)
+                db.session.add(group)
+            db.session.commit()
+            print("test group data successfully loaded.")
 
     return app
