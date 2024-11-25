@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, jsonify, request
 from flask_cors import CORS
 from . import db
-from .models import Facility, Group, Person
-from .schema import facilitySchema, facilitiesSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema
+from .models import Facility, Group, Person, InstrumentSession
+from .schema import facilitySchema, facilitiesSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema
+
+from datetime import datetime
 
 main = Blueprint('main', __name__)
 CORS(main)
@@ -196,5 +198,69 @@ def delete_person(id):
         db.session.delete(person)
         db.session.commit()
         return jsonify({"message": f"{person} got deleted."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+    
+@main.route('/instrumentsession', methods=['POST'])
+def create_session():
+    try:
+        date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        start_date = datetime.strptime(request.json["start_date"], date_format)
+        end_date = datetime.strptime(request.json["end_date"], date_format)
+        instrument_id = request.json["instrument_id"]
+        project_id = request.json["project_id"]
+        facility_id = request.json["facility_id"]
+        session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
+        db.session.add(session)
+        db.session.commit()
+        return jsonify({"message": f"new instrument session {start_date} created."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+
+@main.route('/instrumentsession/<int:id>', methods=['GET'])
+def get_session_by_id(id):
+    try:
+        session = db.get_or_404(InstrumentSession, id)
+        return instrumentSessionSchema.jsonify(session)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@main.route('/instrumentsession', methods=['GET'])
+def get_session_list():
+    try:
+        session_list = db.session.execute(db.select(InstrumentSession)).scalars()
+        print(session_list)
+        return instrumentSessionsSchema.jsonify(session_list)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@main.route('/instrumentsession/<int:id>', methods=['PATCH'])
+def update_session(id):
+    try:
+        date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
+        if "start_date" in request.json:
+            session.start_date = datetime.strptime(request.json["start_date"], date_format)
+        if "end_date" in request.json:
+            session.end_date = datetime.strptime(request.json["end_date"], date_format)
+        if "facility_id" in request.json:
+            session.facility_id = request.json["facility_id"]
+        if "project_id" in request.json:
+            session.project_id = request.json["project_id"]
+        if "instrument_id" in request.json:
+            session.instrument_id = request.json["instrument_id"]
+        db.session.commit()
+        return jsonify({"message": f"{session} got updated"})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})    
+
+@main.route('/instrumentsession/<int:id>', methods=['DELETE'])
+def delete_session(id):
+    try:
+        session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
+        db.session.delete(session)
+        db.session.commit()
+        return jsonify({"message": f"{session} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
