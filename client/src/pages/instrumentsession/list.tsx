@@ -8,11 +8,11 @@ import {
 import type { BaseRecord } from "@refinedev/core";
 import { Space, Table } from "antd";
 
+
 export const InstrumentSessionList = () => {
     const { tableProps } = useTable({
         syncWithLocation: true,
     });
-
     return (
         <List>
             <Table {...tableProps} rowKey="id">

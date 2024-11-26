@@ -26,6 +26,6 @@ facilityPersonsSchema = FacilityPersonSchema(many=True)
 class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = InstrumentSession
-
+        include_fk = True
 instrumentSessionSchema = InstrumentSessionSchema()
 instrumentSessionsSchema = InstrumentSessionSchema(many=True)

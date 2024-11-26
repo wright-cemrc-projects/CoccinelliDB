@@ -1,12 +1,13 @@
 import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, DatePicker } from "antd";
+import dayjs from 'dayjs';
 
 export const InstrumentSessionEdit = () => {
     const { formProps, saveButtonProps } = useForm({});
-
+    
     return (
-        <Edit saveButtonProps={saveButtonProps}>
-            <Form {...formProps} layout="vertical">
+        <Edit saveButtonProps={saveButtonProps} >
+            <Form {...formProps} layout="vertical" >
                 <Form.Item
                     label={"Start Date"}
                     name={["start_date"]}
@@ -15,8 +16,10 @@ export const InstrumentSessionEdit = () => {
                             required: true, message: "Start Date is required"
                         },
                     ]}
+                    getValueProps={(value) => ({ value: value ? dayjs(value) : "", })}
                 >
                     <DatePicker
+                        
                         showTime // Enables time selection
                         format="YYYY-MM-DD HH:mm:ss" // Adjust this to match your database format
                     />
@@ -29,6 +32,7 @@ export const InstrumentSessionEdit = () => {
                             required: true, message: "End Date is required"
                         },
                     ]}
+                    getValueProps={(value) => ({ value: value ? dayjs(value) : "", })}
                 >
                     <DatePicker
                         showTime // Enables time selection
