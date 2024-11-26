@@ -84,7 +84,6 @@ def get_group_by_id(id):
 def get_group_list():
     try:
         group_list = db.session.execute(db.select(Group)).scalars()
-        print(group_list)
         return facilityGroupsSchema.jsonify(group_list)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
@@ -230,7 +229,6 @@ def get_session_by_id(id):
 def get_session_list():
     try:
         session_list = db.session.execute(db.select(InstrumentSession)).scalars()
-        print(session_list)
         return instrumentSessionsSchema.jsonify(session_list)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
@@ -238,7 +236,7 @@ def get_session_list():
 @main.route('/instrumentsession/<int:id>', methods=['PATCH'])
 def update_session(id):
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        date_format = "%Y-%m-%dT%H:%M:%S"
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
         if "start_date" in request.json:
             session.start_date = datetime.strptime(request.json["start_date"], date_format)
