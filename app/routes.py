@@ -203,9 +203,11 @@ def delete_person(id):
 @main.route('/instrumentsession', methods=['POST'])
 def create_session():
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-        start_date = datetime.strptime(request.json["start_date"], date_format)
-        end_date = datetime.strptime(request.json["end_date"], date_format)
+        date_format = "%Y-%m-%dT%H:%M:%S"
+        cleaned_start_date = request.json["start_date"].split(".")[0]
+        start_date = datetime.strptime(cleaned_start_date, date_format)
+        cleaned_end_date = request.json["end_date"].split(".")[0]
+        end_date = datetime.strptime(cleaned_end_date, date_format)
         instrument_id = request.json["instrument_id"]
         project_id = request.json["project_id"]
         facility_id = request.json["facility_id"]
@@ -239,9 +241,11 @@ def update_session(id):
         date_format = "%Y-%m-%dT%H:%M:%S"
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
         if "start_date" in request.json:
-            session.start_date = datetime.strptime(request.json["start_date"], date_format)
+            cleaned_start_date = request.json["start_date"].split(".")[0]
+            session.start_date = datetime.strptime(cleaned_start_date, date_format)
         if "end_date" in request.json:
-            session.end_date = datetime.strptime(request.json["end_date"], date_format)
+            cleaned_end_date = request.json["end_date"].split(".")[0]
+            session.end_date = datetime.strptime(cleaned_end_date, date_format)
         if "facility_id" in request.json:
             session.facility_id = request.json["facility_id"]
         if "project_id" in request.json:
