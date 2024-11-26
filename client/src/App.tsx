@@ -23,25 +23,13 @@ import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { authProvider } from "./authProvider";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
-import {
-  BlogPostCreate,
-  BlogPostEdit,
-  BlogPostList,
-  BlogPostShow,
-} from "./pages/blog-posts";
-import {
-  CategoryCreate,
-  CategoryEdit,
-  CategoryList,
-  CategoryShow,
-} from "./pages/categories";
-
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 
 import axios from "axios";
 import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
+import {InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow} from "./pages/instrumentsession";
 const httpClient = axios.create();
 
 function App() {
@@ -60,26 +48,6 @@ function App() {
                 authProvider={authProvider}
                 resources={[
                   {
-                    name: "blog_posts",
-                    list: "/blog-posts",
-                    create: "/blog-posts/create",
-                    edit: "/blog-posts/edit/:id",
-                    show: "/blog-posts/show/:id",
-                    meta: {
-                      canDelete: true,
-                    },
-                  },
-                  {
-                    name: "categories",
-                    list: "/categories",
-                    create: "/categories/create",
-                    edit: "/categories/edit/:id",
-                    show: "/categories/show/:id",
-                    meta: {
-                      canDelete: true,
-                    },
-                  },
-                  {
                     name: "groups",
                     list: "/groups",
                     create: "/groups/create",
@@ -89,6 +57,16 @@ function App() {
                       canDelete: true,
                     }
                   },
+                  {
+                    name: "instrumentsession",
+                    list: "/instrumentsession",
+                    create: "/instrumentsession/create",
+                    edit: "/instrumentsession/edit/:id",
+                    show: "/instrumentsession/show/:id",
+                    meta: {
+                        canDelete: true,
+                    }
+                  }
                 ]}
                 options={{
                   syncWithLocation: true,
@@ -113,27 +91,17 @@ function App() {
                       </Authenticated>
                     }
                   >
-                    <Route
-                      index
-                      element={<NavigateToResource resource="blog_posts" />}
-                    />
-                    <Route path="/blog-posts">
-                      <Route index element={<BlogPostList />} />
-                      <Route path="create" element={<BlogPostCreate />} />
-                      <Route path="edit/:id" element={<BlogPostEdit />} />
-                      <Route path="show/:id" element={<BlogPostShow />} />
-                    </Route>
-                    <Route path="/categories">
-                      <Route index element={<CategoryList />} />
-                      <Route path="create" element={<CategoryCreate />} />
-                      <Route path="edit/:id" element={<CategoryEdit />} />
-                      <Route path="show/:id" element={<CategoryShow />} />
-                    </Route>
                     <Route path="/groups">
                       <Route index element={<GroupList />}/>
                       <Route path="create" element={<GroupCreate />}/>
                       <Route path="edit/:id" element={<GroupEdit />}/>
                       <Route path="show/:id" element={<GroupShow />}/>
+                    </Route>
+                    <Route path="/instrumentsession">
+                    <Route index element={<InstrumentSessionList />}/>
+                      <Route path="create" element={<InstrumentSessionCreate />}/>
+                      <Route path="edit/:id" element={<InstrumentSessionEdit />}/>
+                      <Route path="show/:id" element={<InstrumentSessionShow />}/>
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>

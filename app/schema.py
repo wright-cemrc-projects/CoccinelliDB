@@ -1,5 +1,5 @@
 from . import ma
-from .models import Facility, Group, Person
+from .models import Facility, Group, Person, InstrumentSession
 
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
@@ -22,3 +22,10 @@ class FacilityPersonSchema(ma.SQLAlchemyAutoSchema):
 
 facilityPersonSchema = FacilityPersonSchema()
 facilityPersonsSchema = FacilityPersonSchema(many=True)
+
+class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = InstrumentSession
+        include_fk = True
+instrumentSessionSchema = InstrumentSessionSchema()
+instrumentSessionsSchema = InstrumentSessionSchema(many=True)

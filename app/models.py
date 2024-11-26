@@ -139,6 +139,9 @@ class InstrumentSession(db.Model):
     # Linked table [one InstrumentSession-> many InstrumentCollection(s)]
     collections: Mapped[List["Collection"]] = relationship(back_populates="instrument_session")
 
+    def __repr__(self):
+        return f"<InstrumentSession(id={self.id},facility_id={self.facility_id},project_id={self.project_id},instrument_id={self.instrument_id},start_date={self.start_date},end_date={self.end_date})>"
+
 # This is setup for additional flexibility for how we define persons being in a session,
 #  and includes fields tied to the person:
 #   'onsite': is this person an onsite user or remote?
