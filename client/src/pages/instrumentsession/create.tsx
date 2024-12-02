@@ -17,7 +17,7 @@ export const InstrumentSessionCreate = () => {
                     ]}
                 >
                     <DatePicker
-                        showTime // Enables time selection
+                        showTime={{ use12Hours: true, format: "HH:mm a" }} // Enables time selection
                         format="YYYY-MM-DD HH:mm:ss" // Adjust this to match your database format
                     />
                 </Form.Item>
@@ -31,7 +31,7 @@ export const InstrumentSessionCreate = () => {
                     ]}
                 >
                     <DatePicker
-                        showTime // Enables time selection
+                        showTime={{ use12Hours: true, format: "HH:mm a" }}  // Enables time selection
                         format="YYYY-MM-DD HH:mm:ss" // Adjust this to match your database format
                     />
                 </Form.Item>
