@@ -30,6 +30,8 @@ import { Register } from "./pages/register";
 import axios from "axios";
 import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
 import {InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow} from "./pages/instrumentsession";
+import {PersonList, PersonEdit, PersonCreate, PersonShow} from "./pages/persons";
+
 const httpClient = axios.create();
 
 function App() {
@@ -66,6 +68,16 @@ function App() {
                     meta: {
                         canDelete: true,
                     }
+                  },
+                  {
+                    name: "persons",
+                    list: "/persons",
+                    create: "/persons/create",
+                    edit: "/persons/edit/:id",
+                    show: "/persons/show/:id",
+                    meta: {
+                      canDelete: true,
+                    }
                   }
                 ]}
                 options={{
@@ -98,10 +110,16 @@ function App() {
                       <Route path="show/:id" element={<GroupShow />}/>
                     </Route>
                     <Route path="/instrumentsession">
-                    <Route index element={<InstrumentSessionList />}/>
+                      <Route index element={<InstrumentSessionList />}/>
                       <Route path="create" element={<InstrumentSessionCreate />}/>
                       <Route path="edit/:id" element={<InstrumentSessionEdit />}/>
                       <Route path="show/:id" element={<InstrumentSessionShow />}/>
+                    </Route>
+                    <Route path="persons">
+                      <Route index element={<PersonList/>}/>
+                      <Route path="create" element={<PersonCreate/>}/>
+                      <Route path="edit/:id" element={<PersonEdit/>}/>
+                      <Route path="show/:id" element={<PersonShow/>}/>
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>

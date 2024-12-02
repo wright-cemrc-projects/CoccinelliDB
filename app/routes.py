@@ -111,7 +111,7 @@ def delete_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/person', methods=['POST'])
+@main.route('/persons', methods=['POST'])
 def create_person():
     try:
         first_name = request.json["first_name"]
@@ -141,7 +141,7 @@ def create_person():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/person/<int:id>', methods=['GET'])
+@main.route('/persons/<int:id>', methods=['GET'])
 def get_person_by_id(id):
     try:
         person = db.get_or_404(Person, id)
@@ -149,7 +149,7 @@ def get_person_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/person', methods=['GET'])
+@main.route('/persons', methods=['GET'])
 def get_person_list():
     try:
         person_list = db.session.execute(db.select(Person)).scalars()
@@ -157,7 +157,7 @@ def get_person_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/person/<int:id>', methods=['POST'])
+@main.route('/persons/<int:id>', methods=['PATCH'])
 def update_person(id):
     try:
         person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()
@@ -190,7 +190,7 @@ def update_person(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/person/<int:id>', methods=['DELETE'])
+@main.route('/persons/<int:id>', methods=['DELETE'])
 def delete_person(id):
     try:
         person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()
