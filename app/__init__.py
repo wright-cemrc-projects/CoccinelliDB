@@ -91,7 +91,7 @@ def create_app(config_name="development"):
     def load_test_person():
         if config_name == "development":
             # A person named test_person if the flag that test person data has been loaded
-            test_flag = db.session.execute(db.select(Person).filter_by(first_name="test_person")).first()
+            test_flag = db.session.execute(db.select(Person).filter_by(first_name="test")).first()
             if test_flag:
                 print("test person data is already loaded.")
                 return

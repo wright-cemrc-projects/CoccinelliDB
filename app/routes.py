@@ -114,6 +114,7 @@ def delete_group(id):
 @main.route('/persons', methods=['POST'])
 def create_person():
     try:
+        date_format = "%Y-%m-%dT%H:%M:%S"
         first_name = request.json["first_name"]
         last_name = request.json["last_name"]
         net_id = request.json["net_id"]
@@ -132,9 +133,11 @@ def create_person():
         if "telephone" in request.json:
             person.telephone = request.json["telephone"]
         if "start_date" in request.json:
-            person.start_date = request.json["start_date"]
+            cleaned_start_date = request.json["start_date"].split(".")[0]
+            person.start_date = datetime.strptime(cleaned_start_date, date_format)
         if "end_date" in request.json:
-            person.end_date = request.json["end_date"]
+            cleaned_end_date = request.json["end_date"].split(".")[0]
+            person.end_date = datetime.strptime(cleaned_end_date, date_format)
         db.session.add(person)
         db.session.commit()
         return jsonify({"message": f"{person} created."})
@@ -160,6 +163,7 @@ def get_person_list():
 @main.route('/persons/<int:id>', methods=['PATCH'])
 def update_person(id):
     try:
+        date_format = "%Y-%m-%dT%H:%M:%S"
         person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()
         if "first_name" in request.json:
             person.first_name = request.json["first_name"]
@@ -182,9 +186,11 @@ def update_person(id):
         if "net_id" in request.json:
             person.net_id = request.json["net_id"]
         if "start_date" in request.json:
-            person.start_date = request.json["start_date"]
+            cleaned_start_date = request.json["start_date"].split(".")[0]
+            person.start_date = datetime.strptime(cleaned_start_date, date_format)
         if "end_date" in request.json:
-            person.end_date = request.json["end_date"]
+            cleaned_end_date = request.json["end_date"].split(".")[0]
+            person.end_date = datetime.strptime(cleaned_end_date, date_format)
         db.session.commit()
         return jsonify({"message": f"{person} got updated."})
     except Exception as err:
