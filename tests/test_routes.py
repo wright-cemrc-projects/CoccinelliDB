@@ -38,15 +38,15 @@ def test_group(client):
 def test_person(client):
     client.post("/facility", data=json.dumps({"name": "MCCET"}), headers={"Content-Type": "application/json"})
     client.post("/groups", data=json.dumps({"name": "matt_group", "facility_id": 1}))
-    create_person_resp = client.post("/person", data=json.dumps({"first_name": "Yan", "last_name": "Zhuang", "email": "yzhuang63@wisc.edu", "group_id": 1, "net_id": "9084938471"}), headers={"Content-Type": "application/json"})
+    create_person_resp = client.post("/persons", data=json.dumps({"first_name": "Yan", "last_name": "Zhuang", "email": "yzhuang63@wisc.edu", "group_id": 1, "net_id": "9084938471"}), headers={"Content-Type": "application/json"})
     assert create_person_resp.status_code == 200
     assert json.loads(create_person_resp.data)["message"] == f"FacilityPerson(name=Yan Zhuang, email=yzhuang63@wisc.edu) created."
-    get_person_resp = client.get("/person/1")
+    get_person_resp = client.get("/persons/1")
     assert json.loads(get_person_resp.data)["email"] == "yzhuang63@wisc.edu"
-    update_person_resp = client.post("/person/1", data=json.dumps({"organization": "UW Madison"}), headers={"Content-Type": "application/json"})
+    update_person_resp = client.post("/persons/1", data=json.dumps({"organization": "UW Madison"}), headers={"Content-Type": "application/json"})
     assert update_person_resp.status_code == 200
     assert json.loads(update_person_resp.data)["message"] == "FacilityPerson(name=Yan Zhuang, email=yzhuang63@wisc.edu) got updated."
-    update_get_person_resp = client.get("/person/1")
+    update_get_person_resp = client.get("/persons/1")
     assert json.loads(update_get_person_resp.data)["organization"] == "UW Madison"
-    delete_person_resp = client.delete("/person/1")
+    delete_person_resp = client.delete("/persons/1")
     assert json.loads(delete_person_resp.data)["message"] == "FacilityPerson(name=Yan Zhuang, email=yzhuang63@wisc.edu) got deleted."
