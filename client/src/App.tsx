@@ -1,4 +1,4 @@
-import { Authenticated, GitHubBanner, Refine } from "@refinedev/core";
+import { Authenticated, Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -36,8 +36,7 @@ const httpClient = axios.create();
 
 function App() {
   return (
-    <BrowserRouter>
-      <GitHubBanner />
+    <BrowserRouter> 
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <AntdApp>
@@ -60,16 +59,6 @@ function App() {
                     }
                   },
                   {
-                    name: "instrumentsession",
-                    list: "/instrumentsession",
-                    create: "/instrumentsession/create",
-                    edit: "/instrumentsession/edit/:id",
-                    show: "/instrumentsession/show/:id",
-                    meta: {
-                        canDelete: true,
-                    }
-                  },
-                  {
                     name: "persons",
                     list: "/persons",
                     create: "/persons/create",
@@ -77,6 +66,16 @@ function App() {
                     show: "/persons/show/:id",
                     meta: {
                       canDelete: true,
+                    }
+                  },
+                  {
+                    name: "instrumentsession",
+                    list: "/instrumentsession",
+                    create: "/instrumentsession/create",
+                    edit: "/instrumentsession/edit/:id",
+                    show: "/instrumentsession/show/:id",
+                    meta: {
+                        canDelete: true,
                     }
                   }
                 ]}
@@ -109,17 +108,17 @@ function App() {
                       <Route path="edit/:id" element={<GroupEdit />}/>
                       <Route path="show/:id" element={<GroupShow />}/>
                     </Route>
-                    <Route path="/instrumentsession">
-                      <Route index element={<InstrumentSessionList />}/>
-                      <Route path="create" element={<InstrumentSessionCreate />}/>
-                      <Route path="edit/:id" element={<InstrumentSessionEdit />}/>
-                      <Route path="show/:id" element={<InstrumentSessionShow />}/>
-                    </Route>
                     <Route path="persons">
                       <Route index element={<PersonList/>}/>
                       <Route path="create" element={<PersonCreate/>}/>
                       <Route path="edit/:id" element={<PersonEdit/>}/>
                       <Route path="show/:id" element={<PersonShow/>}/>
+                    </Route>
+                    <Route path="/instrumentsession">
+                      <Route index element={<InstrumentSessionList />}/>
+                      <Route path="create" element={<InstrumentSessionCreate />}/>
+                      <Route path="edit/:id" element={<InstrumentSessionEdit />}/>
+                      <Route path="show/:id" element={<InstrumentSessionShow />}/>
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
