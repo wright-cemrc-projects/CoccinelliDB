@@ -32,6 +32,8 @@ import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
 import {InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow} from "./pages/instrumentsession";
 import {PersonList, PersonEdit, PersonCreate, PersonShow} from "./pages/persons";
 import {DashboardPage} from "@/src/pages/dashboard";
+import { BugOutlined } from "@ant-design/icons";
+
 const httpClient = axios.create();
 
 function App() {
@@ -42,8 +44,7 @@ function App() {
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                // dataProvider={dataProvider("https://api.fake-rest.refine.dev", httpClient)}
-                  dataProvider={dataProvider("http://127.0.0.1:8080", httpClient)}
+                dataProvider={dataProvider("http://127.0.0.1:8080", httpClient)}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
@@ -53,6 +54,10 @@ function App() {
                   warnWhenUnsavedChanges: true,
                   useNewQueryKeys: true,
                   projectId: "3fgJj6-lWqJLy-pmLN0C",
+                  title: {
+                    text: "CooccinelliDB",
+                    icon: <BugOutlined />
+                  }
                 }}
               >
                 <Routes>

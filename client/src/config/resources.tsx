@@ -1,5 +1,5 @@
 import type { IResourceItem } from "@refinedev/core";
-import {DashboardOutlined} from "@ant-design/icons";
+import {DashboardOutlined, GroupOutlined, UserOutlined, CalendarOutlined} from "@ant-design/icons";
 
 
 export const resources: IResourceItem[] = [
@@ -20,6 +20,7 @@ export const resources: IResourceItem[] = [
         meta: {
             label: "Groups",
             canDelete: true,
+            icon: <GroupOutlined />,
         }
     },
     {
@@ -31,6 +32,7 @@ export const resources: IResourceItem[] = [
         meta: {
             label: "Persons",
             canDelete: true,
+            icon: <UserOutlined />
         }
     },
     {
@@ -42,6 +44,7 @@ export const resources: IResourceItem[] = [
         meta: {
             label: "Instrumentsession",
             canDelete: true,
+            icon: <CalendarOutlined />
         }
     },
 
