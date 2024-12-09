@@ -16,22 +16,22 @@ import routerBindings, {
   NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router-v6";
-// import { dataProvider } from "./providers/data-providers";
+
 import { App as AntdApp } from "antd";
 import dataProvider from "@refinedev/simple-rest";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { authProvider } from "./authProvider";
-import { Header } from "./components/header";
+import { Header } from "@/src/components";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
-
+import {resources} from "@/src/config/resources";
 import axios from "axios";
 import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
 import {InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow} from "./pages/instrumentsession";
 import {PersonList, PersonEdit, PersonCreate, PersonShow} from "./pages/persons";
-
+import {DashboardPage} from "@/src/pages/dashboard";
 const httpClient = axios.create();
 
 function App() {
@@ -47,38 +47,7 @@ function App() {
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
-                resources={[
-                  {
-                    name: "groups",
-                    list: "/groups",
-                    create: "/groups/create",
-                    edit: "/groups/edit/:id",
-                    show: "/groups/show/:id",
-                    meta: {
-                      canDelete: true,
-                    }
-                  },
-                  {
-                    name: "persons",
-                    list: "/persons",
-                    create: "/persons/create",
-                    edit: "/persons/edit/:id",
-                    show: "/persons/show/:id",
-                    meta: {
-                      canDelete: true,
-                    }
-                  },
-                  {
-                    name: "instrumentsession",
-                    list: "/instrumentsession",
-                    create: "/instrumentsession/create",
-                    edit: "/instrumentsession/edit/:id",
-                    show: "/instrumentsession/show/:id",
-                    meta: {
-                        canDelete: true,
-                    }
-                  }
-                ]}
+                resources={resources}
                 options={{
                   syncWithLocation: true,
                   warnWhenUnsavedChanges: true,
@@ -102,6 +71,7 @@ function App() {
                       </Authenticated>
                     }
                   >
+                    <Route index element={<DashboardPage />} />
                     <Route path="/groups">
                       <Route index element={<GroupList />}/>
                       <Route path="create" element={<GroupCreate />}/>
