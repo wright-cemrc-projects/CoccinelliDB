@@ -97,9 +97,19 @@ def update_group(id):
         if "name" in request.json:
             group.name = request.json["name"]
         if "persons" in request.json:
-            for userId in request.json["persons"]:
-                person = db.session.execute(db.select(Person).filter_by(id=userId)).scalar_one()
+
+            new_persons_set = set(request.json["persons"])
+            old_persons_set = set([person.id for person in group.persons])
+            add_persons = new_persons_set.difference(old_persons_set)
+            delete_persons = old_persons_set.difference(new_persons_set)
+
+            for person_id in add_persons:
+                person = db.session.execute(db.select(Person).filter_by(id=person_id)).scalar_one()
                 group.persons.append(person)
+            for person_id in delete_persons:
+                person = db.session.execute(db.select(Person).filter_by(id=person_id)).scalar_one()
+                group.persons.remove(person)
+
         db.session.commit()
         return jsonify({"message": f"{group} got updated"})
     except Exception as err:
