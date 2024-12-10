@@ -96,8 +96,8 @@ def update_group(id):
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
         if "name" in request.json:
             group.name = request.json["name"]
-        if "userIds" in request.json:
-            for userId in request.json["userIds"]:
+        if "persons" in request.json:
+            for userId in request.json["persons"]:
                 person = db.session.execute(db.select(Person).filter_by(id=userId)).scalar_one()
                 group.persons.append(person)
         db.session.commit()

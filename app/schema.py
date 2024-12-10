@@ -1,3 +1,5 @@
+from marshmallow import fields
+
 from . import ma
 from .models import Facility, Group, Person, InstrumentSession
 
@@ -12,6 +14,12 @@ facilitiesSchema = FacilitySchema(many=True)
 class FacilityGroupSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Group
+        include_relationships = True  # Include relationships in the schema
+        load_instance = True
+    persons_ids = fields.Method("get_persons_ids")
+
+    def get_persons_ids(self, group):
+        return [person.id for person in group.persons]
 
 facilityGroupSchema = FacilityGroupSchema()
 facilityGroupsSchema = FacilityGroupSchema(many=True)

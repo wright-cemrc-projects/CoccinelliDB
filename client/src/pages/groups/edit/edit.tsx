@@ -4,7 +4,11 @@ import {Person} from "@/src/type";
 
 
 export const GroupEdit = () => {
-    const { formProps, saveButtonProps } = useForm({});
+    const { formProps, saveButtonProps, queryResult } = useForm({
+        meta: {
+            populate: ["persons"],
+        },
+    });
     const { selectProps } = useSelect({
         resource: "persons",
         optionLabel: (item: Person) => `${item?.first_name} ${item?.last_name}`,
@@ -22,9 +26,11 @@ export const GroupEdit = () => {
             },
         ],
     });
+    const initialPersons = queryResult?.data?.data?.persons ?? [];
+    const initialName = queryResult?.data?.data?.name ?? [];
     return (
         <Edit saveButtonProps={saveButtonProps}>
-            <Form {...formProps} layout="vertical">
+            <Form {...formProps} layout="vertical" initialValues={{persons: initialPersons, name: initialName}}>
                 <Form.Item
                     label={"Name"}
                     name={["name"]}
@@ -37,7 +43,7 @@ export const GroupEdit = () => {
                     <Input />
                 </Form.Item>
 
-                <Form.Item noStyle name="userIds">
+                <Form.Item name="persons">
                     <Select
                         {...selectProps}
                         dropdownStyle={{ padding: "0px" }}
