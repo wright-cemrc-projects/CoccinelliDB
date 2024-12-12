@@ -85,8 +85,16 @@ def get_group_by_id(id):
 @main.route('/groups', methods=['GET'])
 def get_group_list():
     try:
-        group_list = db.session.execute(db.select(Group)).scalars()
-        return facilityGroupsSchema.jsonify(group_list)
+        name_like = request.args.get("name_like")
+        query = db.session.query(Group)
+
+        if name_like:
+            print(name_like)
+            query = query.filter(
+                    Group.name.ilike(f"%{name_like}%"),
+            )
+            print(query.all())
+        return facilityGroupsSchema.jsonify(query.all())
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
