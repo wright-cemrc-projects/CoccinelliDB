@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request
 from flask_cors import CORS
+from sqlalchemy import or_
+
 from . import db
 from .models import Facility, Group, Person, InstrumentSession
 from .schema import facilitySchema, facilitiesSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema
@@ -94,8 +96,20 @@ def update_group(id):
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
         if "name" in request.json:
             group.name = request.json["name"]
-        if "facility_id" in request.json:
-            group.facility_id = request.json["facility_id"]
+        if "persons" in request.json:
+
+            new_persons_set = set(request.json["persons"])
+            old_persons_set = set([person.id for person in group.persons])
+            add_persons = new_persons_set.difference(old_persons_set)
+            delete_persons = old_persons_set.difference(new_persons_set)
+
+            for person_id in add_persons:
+                person = db.session.execute(db.select(Person).filter_by(id=person_id)).scalar_one()
+                group.persons.append(person)
+            for person_id in delete_persons:
+                person = db.session.execute(db.select(Person).filter_by(id=person_id)).scalar_one()
+                group.persons.remove(person)
+
         db.session.commit()
         return jsonify({"message": f"{group} got updated"})
     except Exception as err:
@@ -155,8 +169,18 @@ def get_person_by_id(id):
 @main.route('/persons', methods=['GET'])
 def get_person_list():
     try:
-        person_list = db.session.execute(db.select(Person)).scalars()
-        return facilityPersonsSchema.jsonify(person_list)
+        first_name_like = request.args.get("first_name_like")
+        last_name_like = request.args.get("last_name_like")
+        query = db.session.query(Person)
+        if first_name_like or last_name_like:
+            query = query.filter(
+                or_(
+                    Person.first_name.ilike(first_name_like),
+                    Person.last_name.ilike(last_name_like)
+                )
+            )
+
+        return facilityPersonsSchema.jsonify(query.all())
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
