@@ -1,23 +1,53 @@
 import {
     DeleteButton,
-    EditButton,
+    EditButton, FilterDropdown,
     List,
     ShowButton,
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Space, Table } from "antd";
+import {Input, Space, Table} from "antd";
+import {SearchOutlined} from "@ant-design/icons";
+import { getDefaultFilter } from "@refinedev/core";
 
 export const GroupList = () => {
-    const { tableProps } = useTable({
+    const { tableProps, filters } = useTable({
         syncWithLocation: true,
+        onSearch: (values: any) => {
+            return [
+                {
+                    field: "name",
+                    operator: "contains",
+                    value: values.name,
+                },
+            ];
+        },
+        filters: {
+            initial: [
+                {
+                    field: "name",
+                    operator: "contains",
+                    value: undefined,
+                },
+            ],
+        },
     });
 
     return (
         <List>
             <Table {...tableProps} rowKey="id">
                 <Table.Column dataIndex="id" title={"ID"} />
-                <Table.Column dataIndex="name" title={"Name"} />
+                <Table.Column
+                    dataIndex="name"
+                    title={"Name"}
+                    defaultFilteredValue={getDefaultFilter("id", filters)}
+                    filterIcon={<SearchOutlined />}
+                    filterDropdown={(props) => (
+                        <FilterDropdown {...props}>
+                            <Input placeholder="Search Group" />
+                        </FilterDropdown>
+                    )}
+                />
                 <Table.Column
                     title={"Actions"}
                     dataIndex="actions"

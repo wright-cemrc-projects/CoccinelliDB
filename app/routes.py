@@ -85,8 +85,14 @@ def get_group_by_id(id):
 @main.route('/groups', methods=['GET'])
 def get_group_list():
     try:
-        group_list = db.session.execute(db.select(Group)).scalars()
-        return facilityGroupsSchema.jsonify(group_list)
+        name_like = request.args.get("name_like")
+        query = db.session.query(Group)
+
+        if name_like:
+            query = query.filter(
+                    Group.name.ilike(f"%{name_like}%"),
+            )
+        return facilityGroupsSchema.jsonify(query.all())
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
@@ -169,10 +175,21 @@ def get_person_by_id(id):
 @main.route('/persons', methods=['GET'])
 def get_person_list():
     try:
+        full_name_like = request.args.get("full_name_like")
         first_name_like = request.args.get("first_name_like")
         last_name_like = request.args.get("last_name_like")
+        if full_name_like is not None:
+            name_parse = full_name_like.split(" ")
+            if len(name_parse) >= 2:
+                last_name_like = name_parse[1]
+            first_name_like = name_parse[0]
+
         query = db.session.query(Person)
         if first_name_like or last_name_like:
+            if not first_name_like:
+                first_name_like = ""
+            if not last_name_like:
+                last_name_like = ""
             query = query.filter(
                 or_(
                     Person.first_name.ilike(first_name_like),
@@ -181,6 +198,7 @@ def get_person_list():
             )
 
         return facilityPersonsSchema.jsonify(query.all())
+
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 

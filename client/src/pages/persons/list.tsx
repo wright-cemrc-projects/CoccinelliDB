@@ -1,17 +1,28 @@
 import {
     DeleteButton,
-    EditButton,
+    EditButton, FilterDropdown,
     List,
     ShowButton,
     useTable,
 } from "@refinedev/antd";
-import type { BaseRecord } from "@refinedev/core";
-import { Space, Table } from "antd";
+import {BaseRecord, getDefaultFilter} from "@refinedev/core";
+import {Input, Space, Table} from "antd";
+import {SearchOutlined} from "@ant-design/icons";
 
 export const PersonList = () => {
-    const { tableProps } = useTable({
+    const { tableProps, filters } = useTable({
         syncWithLocation: true,
+        filters: {
+            initial: [
+                {
+                    field: "full_name",
+                    operator: "contains",
+                    value: undefined,
+                },
+            ],
+        },
     });
+    console.log(tableProps.dataSource);
     const transformedDataSource = tableProps.dataSource?.map((record) => ({
         ...record,
         full_name: `${record.first_name} ${record.last_name}`, 
@@ -29,7 +40,17 @@ export const PersonList = () => {
         <List>
             <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">
                 <Table.Column dataIndex="id" title={"ID"} />
-                <Table.Column dataIndex="full_name" title="Full Name"/>
+                <Table.Column
+                    dataIndex="full_name"
+                    title="Full Name"
+                    defaultFilteredValue={getDefaultFilter("id", filters)}
+                    filterIcon={<SearchOutlined />}
+                    filterDropdown={(props) => (
+                        <FilterDropdown {...props}>
+                            <Input placeholder="Search Person" />
+                        </FilterDropdown>
+                    )}
+                />
                 <Table.Column dataIndex="net_id" title="Net ID"/>
                 <Table.Column dataIndex="email" title="Email"/>
                 <Table.Column dataIndex="start_date" title="Start Date"/>
