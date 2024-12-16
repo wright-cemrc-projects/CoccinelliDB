@@ -3,7 +3,7 @@ from flask_cors import CORS
 from sqlalchemy import or_
 
 from . import db
-from .models import Facility, Group, Person, InstrumentSession
+from .models import Facility, Group, Person, InstrumentSession, group_person
 from .schema import facilitySchema, facilitiesSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema
 
 from datetime import datetime
@@ -171,6 +171,16 @@ def get_person_by_id(id):
         return facilityPersonSchema.jsonify(person)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
+
+@main.route('/groups/<int:id>/persons', methods=['GET'])
+def get_person_by_group(id):
+    try:
+        group = Group.query.get_or_404(id)
+        persons = Person.query.join(group_person).filter(group_person.c.group_id == group.id).all()
+        return facilityPersonsSchema.jsonify(persons)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
 
 @main.route('/persons', methods=['GET'])
 def get_person_list():

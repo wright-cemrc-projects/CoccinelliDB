@@ -22,7 +22,6 @@ export const PersonList = () => {
             ],
         },
     });
-    console.log(tableProps.dataSource);
     const transformedDataSource = tableProps.dataSource?.map((record) => ({
         ...record,
         full_name: `${record.first_name} ${record.last_name}`, 
