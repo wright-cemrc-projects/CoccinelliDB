@@ -1,5 +1,5 @@
 import type { IResourceItem } from "@refinedev/core";
-import {DashboardOutlined, GroupOutlined, UserOutlined, CalendarOutlined} from "@ant-design/icons";
+import {DashboardOutlined, GroupOutlined, UserOutlined, ProjectOutlined, CalendarOutlined, AlertOutlined} from "@ant-design/icons";
 
 
 export const resources: IResourceItem[] = [
@@ -10,6 +10,18 @@ export const resources: IResourceItem[] = [
           label: "Dashboard",
           icon: <DashboardOutlined />,
       }
+    },
+    {
+        name: "facilities",
+        list: "/facilities",
+        create: "/facilities/create",
+        edit: "/facilities/edit/:id",
+        show: "/facilities/show/:id",
+        meta: {
+            label: "Facilities",
+            canDelete: true,
+            icon: <ProjectOutlined />
+        }
     },
     {
         name: "groups",
@@ -36,15 +48,51 @@ export const resources: IResourceItem[] = [
         }
     },
     {
+        name: "projects",
+        list: "/projects",
+        create: "/projects/create",
+        edit: "/projects/edit/:id",
+        show: "/projects/show/:id",
+        meta: {
+            label: "Projects",
+            canDelete: true,
+            icon: <ProjectOutlined />
+        }
+    },
+    {
+        name: "instruments",
+        list: "/instruments",
+        create: "/instruments/create",
+        edit: "/instruments/edit/:id",
+        show: "/instruments/show/:id",
+        meta: {
+            label: "Instruments",
+            canDelete: true,
+            icon: <ProjectOutlined />
+        }
+    },
+    {
         name: "instrumentsession",
         list: "/instrumentsession",
         create: "/instrumentsession/create",
         edit: "/instrumentsession/edit/:id",
         show: "/instrumentsession/show/:id",
         meta: {
-            label: "Instrumentsession",
+            label: "Instrument Sessions",
             canDelete: true,
             icon: <CalendarOutlined />
+        }
+    },
+    {
+        name: "instrumentissues",
+        list: "/instrumentissues",
+        create: "/instrumentissues/create",
+        edit: "/instrumentissues/edit/:id",
+        show: "/instrumentissues/show/:id",
+        meta: {
+            label: "Instruments Issues",
+            canDelete: true,
+            icon: <AlertOutlined />
         }
     },
 

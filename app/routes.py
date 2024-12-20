@@ -20,17 +20,17 @@ def index():
 def hello_world():
     return jsonify({"message": "Hello World"})
 
-@main.route('/facility', methods=['GET'])
+@main.route('/facilities', methods=['GET'])
 def get_facility_list():
     facility_list = db.session.execute(db.select(Facility)).scalars()
     return facilitiesSchema.jsonify(facility_list)
 
-@main.route('/facility/<int:id>', methods=['GET'])
+@main.route('/facilities/<int:id>', methods=['GET'])
 def get_facility_by_id(id):
     facility_one = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
     return facilitySchema.jsonify(facility_one)
 
-@main.route('/facility', methods=['POST'])
+@main.route('/facilities', methods=['POST'])
 def create_facility():
     name = request.json["name"]
     try:
@@ -41,7 +41,7 @@ def create_facility():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/facility/<int:id>', methods=['POST'])
+@main.route('/facilities/<int:id>', methods=['PATCH'])
 def update_facility(id):
     try:
         name = request.json["name"]
@@ -52,7 +52,7 @@ def update_facility(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/facility/<int:id>', methods=['DELETE'])
+@main.route('/facilities/<int:id>', methods=['DELETE'])
 def delete_facility(id):
     try:
         facility = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
@@ -314,3 +314,4 @@ def delete_session(id):
         return jsonify({"message": f"{session} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
+    
