@@ -28,6 +28,7 @@ import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import {resources} from "@/src/config/resources";
 import axios from "axios";
+import { FacilityCreate, FacilityList, FacilityShow, FacilityEdit } from "./pages/facilities";
 import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
 import {InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow} from "./pages/instrumentsession";
 import {PersonList, PersonEdit, PersonCreate, PersonShow} from "./pages/persons";
@@ -77,6 +78,12 @@ function App() {
                     }
                   >
                     <Route index element={<DashboardPage />} />
+                    <Route path="facilities">
+                      <Route index element={<FacilityList/>}/>
+                      <Route path="create" element={<FacilityCreate/>}/>
+                      <Route path="edit/:id" element={<FacilityEdit/>}/>
+                      <Route path="show/:id" element={<FacilityShow/>}/>
+                    </Route>
                     <Route path="/groups">
                       <Route index element={<GroupList />}/>
                       <Route path="create" element={<GroupCreate />}/>
