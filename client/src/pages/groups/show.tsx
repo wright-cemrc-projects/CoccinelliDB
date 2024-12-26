@@ -105,6 +105,24 @@ export const GroupShow = () => {
                         );
                     }}
                     />
+
+                    <Table.Column<Person>
+                    title="Primary Contact"
+                    dataIndex="primary_contact"
+                    render={(_, record) => {
+                        return (
+                            <Space>
+                                <Text
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {record.primary_contact ? "True" : "False"}
+                                </Text>
+                            </Space>
+                        );
+                    }}
+                    />
                 </Table>
             </Card>
         </Show>

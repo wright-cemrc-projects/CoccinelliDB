@@ -115,15 +115,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_session_person_link_person_id_person')),
     sa.ForeignKeyConstraint(['session_id'], ['instrument_session.id'], name=op.f('fk_session_person_link_session_id_instrument_session'))
     )
-    op.drop_table('facility_grid_box')
-    op.drop_table('facility_person')
-    op.drop_table('facility_project')
-    op.drop_table('facility_instrument')
-    op.drop_table('facility_instrument_session')
-    op.drop_table('facility_group')
-    op.drop_table('facility_instrument_issue')
-    op.drop_table('facility_model')
-    op.drop_table('facility_collection')
+
     with op.batch_alter_table('group_person', schema=None) as batch_op:
         batch_op.drop_constraint('fk_group_person_person_id_facility_person', type_='foreignkey')
         batch_op.drop_constraint('fk_group_person_group_id_facility_group', type_='foreignkey')

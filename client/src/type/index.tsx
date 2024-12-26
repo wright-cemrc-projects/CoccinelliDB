@@ -1,4 +1,5 @@
 export interface Person {
+    primary_contact: boolean;
     id: number;
     first_name: string;
     last_name: string;

@@ -34,7 +34,6 @@ export const PersonList = () => {
         end_date: !record.end_date ? "None" : record.end_date,
         telephone: !record.telephone ? "None" : record.telephone,
     }));
-    console.log(transformedDataSource)
     return (
         <List>
             <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">
