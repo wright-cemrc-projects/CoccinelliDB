@@ -3,8 +3,8 @@ from flask_cors import CORS
 from sqlalchemy import or_
 
 from . import db
-from .models import Facility, Group, Person, InstrumentSession
-from .schema import facilitySchema, facilitiesSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema
+from .models import Project, Facility, Group, Person, InstrumentSession
+from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema
 
 from datetime import datetime
 
@@ -19,6 +19,49 @@ def index():
 @main.route('/home', methods=['GET'])
 def hello_world():
     return jsonify({"message": "Hello World"})
+##
+
+@main.route('/projects', methods=['GET'])
+def get_project_list():
+    project_list = db.session.execute(db.select(Project)).scalars()
+    return projectSchema.jsonify(project_list)
+
+@main.route('/projects/<int:id>', methods=['GET'])
+def get_project_by_id(id):
+    project_one = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
+    return projectSchema.jsonify(project_one)
+
+@main.route('/projects', methods=['POST'])
+def create_project():
+    project_id = request.json["project_id"]
+    try:
+        project = Project(project_id)
+        db.session.add(project)
+        db.session.commit()
+        return jsonify({"message": "new project created."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@main.route('/projects/int:id>', methods=['PATCH'])
+def update_project(id):
+    try:
+        project_id = request.json["project_id"]
+        project = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
+        project.project_id = project_id
+        db.session.commit()
+        return jsonify({"message": f"{project} got updated"})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@main.route('/projects/<int:id>', methods=['DELETE'])
+def delete_project(id):
+    try:
+        project = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
+        db.session.delete(project)
+        db.session.commit()
+        return jsonify({"message": f"{project} got deleted."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
 
 @main.route('/facilities', methods=['GET'])
 def get_facility_list():

@@ -29,6 +29,7 @@ import { Register } from "./pages/register";
 import {resources} from "@/src/config/resources";
 import axios from "axios";
 import { FacilityCreate, FacilityList, FacilityShow, FacilityEdit } from "./pages/facilities";
+import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/projects";
 import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
 import {InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow} from "./pages/instrumentsession";
 import {PersonList, PersonEdit, PersonCreate, PersonShow} from "./pages/persons";
@@ -95,6 +96,12 @@ function App() {
                       <Route path="create" element={<PersonCreate/>}/>
                       <Route path="edit/:id" element={<PersonEdit/>}/>
                       <Route path="show/:id" element={<PersonShow/>}/>
+                    </Route>
+                    <Route path="projects">
+                      <Route index element={<ProjectList/>}/>
+                      <Route path="create" element={<ProjectCreate/>}/>
+                      <Route path="edit/:id" element={<ProjectEdit/>}/>
+                      <Route path="show/:id" element={<ProjectShow/>}/>
                     </Route>
                     <Route path="/instrumentsession">
                       <Route index element={<InstrumentSessionList />}/>
