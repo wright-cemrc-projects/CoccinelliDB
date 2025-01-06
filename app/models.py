@@ -34,7 +34,8 @@ class Facility(db.Model):
 # Linked table [many Group -> many Person(s)]
 group_person = db.Table('group_person',
                         db.Column('group_id', db.Integer, db.ForeignKey('group.id')),
-                        db.Column('person_id', db.Integer, db.ForeignKey('person.id')))
+                        db.Column('person_id', db.Integer, db.ForeignKey('person.id')),
+                        db.Column('primary_contact', db.Boolean))
 
 class Group(db.Model):
     """ Representation of a lab group or organization """
