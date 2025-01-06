@@ -3,7 +3,7 @@ from flask_cors import CORS
 from sqlalchemy import or_
 
 from . import db
-from .models import Project, Facility, Group, Person, InstrumentSession
+from .models import Project, Facility, Group, Person, InstrumentSession, group_person
 from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema
 
 from datetime import datetime
@@ -19,12 +19,12 @@ def index():
 @main.route('/home', methods=['GET'])
 def hello_world():
     return jsonify({"message": "Hello World"})
-##
+
 
 @main.route('/projects', methods=['GET'])
 def get_project_list():
     project_list = db.session.execute(db.select(Project)).scalars()
-    return projectSchema.jsonify(project_list)
+    return projectsSchema.jsonify(project_list)
 
 @main.route('/projects/<int:id>', methods=['GET'])
 def get_project_by_id(id):
@@ -146,8 +146,8 @@ def update_group(id):
         if "name" in request.json:
             group.name = request.json["name"]
         if "persons" in request.json:
-
-            new_persons_set = set(request.json["persons"])
+            persons_data = request.json["persons"]
+            new_persons_set = set(person["id"] for person in persons_data)
             old_persons_set = set([person.id for person in group.persons])
             add_persons = new_persons_set.difference(old_persons_set)
             delete_persons = old_persons_set.difference(new_persons_set)
@@ -158,7 +158,14 @@ def update_group(id):
             for person_id in delete_persons:
                 person = db.session.execute(db.select(Person).filter_by(id=person_id)).scalar_one()
                 group.persons.remove(person)
-
+            for person_data in persons_data:
+                stmt = (
+                    group_person.update()
+                    .where(group_person.c.group_id == group.id)
+                    .where(group_person.c.person_id == person_data["id"])
+                    .values(primary_contact=person_data.get("primary_contact", False))
+                )
+                db.session.execute(stmt)
         db.session.commit()
         return jsonify({"message": f"{group} got updated"})
     except Exception as err:
@@ -215,6 +222,25 @@ def get_person_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
+@main.route('/groups/<int:id>/persons', methods=['GET'])
+def get_person_by_group(id):
+    try:
+        group = Group.query.get_or_404(id)
+        persons = db.session.execute(
+            db.select(
+                Person.id,
+                Person.first_name,
+                Person.last_name,
+                Person.email,
+                group_person.c.primary_contact
+            ).join(group_person).filter(group_person.c.group_id == group.id)
+        ).all()
+
+        return facilityPersonsSchema.jsonify(persons)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+
 @main.route('/persons', methods=['GET'])
 def get_person_list():
     try:
@@ -240,7 +266,10 @@ def get_person_list():
                 )
             )
 
-        return facilityPersonsSchema.jsonify(query.all())
+        persons = query.all()
+
+        # Serialize the results using the facilityPersonsSchema
+        return facilityPersonsSchema.jsonify(persons)
 
     except Exception as err:
         return jsonify({"err": f"{err=}"})

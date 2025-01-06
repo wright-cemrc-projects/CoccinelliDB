@@ -25,8 +25,13 @@ facilityGroupSchema = FacilityGroupSchema()
 facilityGroupsSchema = FacilityGroupSchema(many=True)
 
 class FacilityPersonSchema(ma.SQLAlchemyAutoSchema):
+    primary_contact = ma.Boolean()
     class Meta:
         model = Person
+        include_relationships = True
+        load_instance = True
+
+
 
 facilityPersonSchema = FacilityPersonSchema()
 facilityPersonsSchema = FacilityPersonSchema(many=True)
