@@ -18,6 +18,8 @@ export const ProjectShow = () => {
             <Title level={5}>{"Project_ID"}</Title>
             <TextField value={record?.project_id} />
 
+            <Title level={5}>{"Facility_ID"}</Title>
+            <TextField value={record?.facility_id} />
         </Show>
     );
 };

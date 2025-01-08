@@ -34,20 +34,25 @@ def get_project_by_id(id):
 @main.route('/projects', methods=['POST'])
 def create_project():
     project_id = request.json["project_id"]
+    facility_id = request.json["facility_id"]
     try:
         project = Project(project_id)
+        project.facility_id = facility_id
         db.session.add(project)
         db.session.commit()
         return jsonify({"message": "new project created."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/projects/int:id>', methods=['PATCH'])
+@main.route('/projects/<int:id>', methods=['PATCH'])
 def update_project(id):
+    print("update_project")
     try:
         project_id = request.json["project_id"]
+        facility_id = request.json["facility_id"]
         project = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
         project.project_id = project_id
+        project.facility_id = facility_id
         db.session.commit()
         return jsonify({"message": f"{project} got updated"})
     except Exception as err:

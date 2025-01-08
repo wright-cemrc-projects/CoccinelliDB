@@ -18,6 +18,17 @@ export const ProjectCreate = () => {
                 >
                     <Input />
                 </Form.Item>
+                <Form.Item
+                    label={"Facility_ID"}
+                    name={["facility_id"]}
+                    rules={[
+                        {
+                            required: true,
+                        },
+                    ]}
+                >
+                    <Input />
+                </Form.Item>
             </Form>
         </Create>
     );
