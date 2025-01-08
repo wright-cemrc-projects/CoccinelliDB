@@ -1,7 +1,7 @@
 from marshmallow import fields
 
 from . import ma
-from .models import Facility, Group, Person, InstrumentSession
+from .models import Project, Facility, Group, Person, InstrumentSession
 
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
@@ -42,3 +42,10 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
 instrumentSessionSchema = InstrumentSessionSchema()
 instrumentSessionsSchema = InstrumentSessionSchema(many=True)
+
+class ProjectSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Project
+        include_fk = True
+projectSchema = ProjectSchema()
+projectsSchema = ProjectSchema(many=True)

@@ -95,6 +95,9 @@ class Project(db.Model):
     # Linked table [one FacilityProject -> many FacilityInstrumentSessions]
     sessions: Mapped[List["InstrumentSession"]] = relationship(back_populates="project")
 
+    def __init__(self, project_id):
+        self.project_id = project_id
+
 class Instrument(db.Model):
     """ Representation of an instrument """
     __tablename__ = "instrument"
