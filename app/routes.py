@@ -3,8 +3,8 @@ from flask_cors import CORS
 from sqlalchemy import or_
 
 from . import db
-from .models import Project, Facility, Group, Person, InstrumentSession, group_person
-from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema
+from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, group_person
+from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema
 
 from datetime import datetime
 
@@ -324,6 +324,67 @@ def delete_person(id):
         return jsonify({"message": f"{person} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
+    
+# instrument entries
+@main.route('/instruments', methods=['POST'])
+def create_instrument():
+    try:
+        instrument = Instrument()
+        if "name" in request.json:
+            instrument.name = request.json["name"]
+        if "model" in request.json:
+            instrument.model = request.json["model"]
+        if "facility_id" in request.json:
+            instrument.facility_id = request.json["facility_id"]
+        db.session.add(instrument)
+        db.session.commit()
+        return jsonify({"message": f"{instrument} created."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@main.route('/instruments/<int:id>', methods=['GET'])
+def get_instrument_by_id(id):
+    try:
+        session = db.get_or_404(Instrument, id)
+        return instrumentSchema.jsonify(session)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@main.route('/instruments', methods=['GET'])
+def get_instrument_list():
+    try:
+        instruments_list = db.session.execute(db.select(Instrument)).scalars()
+        return instrumentsSchema.jsonify(instruments_list)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+     
+@main.route('/instruments/<int:id>', methods=['PATCH'])
+def update_instrument(id):
+    try:
+        instrument = db.session.execute(db.select(Instrument).filter_by(id=id)).scalar_one()
+        if "name" in request.json:
+            instrument.name = request.json["name"]
+        if "model" in request.json:
+            instrument.model = request.json["model"]
+        if "facility_id" in request.json:
+            instrument.facility_id = request.json["facility_id"]
+
+        db.session.commit()
+        return jsonify({"message": f"{instrument} got updated"})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})    
+
+@main.route('/instruments/<int:id>', methods=['DELETE'])
+def delete_instrument(id):
+    try:
+        instrument = db.session.execute(db.select(Instrument).filter_by(id=id)).scalar_one()
+        db.session.delete(instrument)
+        db.session.commit()
+        return jsonify({"message": f"{instrument} got deleted."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+# instrument entries end
     
 @main.route('/instrumentsession', methods=['POST'])
 def create_session():

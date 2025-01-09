@@ -31,6 +31,7 @@ import axios from "axios";
 import { FacilityCreate, FacilityList, FacilityShow, FacilityEdit } from "./pages/facilities";
 import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/projects";
 import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
+import { InstrumentCreate, InstrumentEdit, InstrumentList, InstrumentShow } from "./pages/instruments";
 import {InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow} from "./pages/instrumentsession";
 import {PersonList, PersonEdit, PersonCreate, PersonShow} from "./pages/persons";
 import {DashboardPage} from "@/src/pages/dashboard";
@@ -102,6 +103,12 @@ function App() {
                       <Route path="create" element={<ProjectCreate/>}/>
                       <Route path="edit/:id" element={<ProjectEdit/>}/>
                       <Route path="show/:id" element={<ProjectShow/>}/>
+                    </Route>
+                    <Route path="/instruments">
+                      <Route index element={<InstrumentList />}/>
+                      <Route path="create" element={<InstrumentCreate />}/>
+                      <Route path="edit/:id" element={<InstrumentEdit />}/>
+                      <Route path="show/:id" element={<InstrumentShow />}/>
                     </Route>
                     <Route path="/instrumentsession">
                       <Route index element={<InstrumentSessionList />}/>
