@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request
 from flask_cors import CORS
-from sqlalchemy import or_
+from sqlalchemy import or_, inspect
 
 from . import db
 from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person
@@ -84,7 +84,10 @@ def create_facility():
     try:
         facility = Facility(name)
         db.session.add(facility)
+        print(inspect(facility).pending)
+        print
         db.session.commit()
+        db.session.flush()
         return jsonify({"message": "new facility created."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
@@ -394,11 +397,12 @@ def create_session():
         start_date = datetime.strptime(cleaned_start_date, date_format)
         cleaned_end_date = request.json["end_date"].split(".")[0]
         end_date = datetime.strptime(cleaned_end_date, date_format)
-        instrument_id = request.json["instrument_id"]
-        project_id = request.json["project_id"]
-        facility_id = request.json["facility_id"]
-        session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
-        db.session.add(session)
+        instrument_id = int(request.json["instrument_id"])
+        project_id = int(request.json["project_id"])
+        facility_id = int(request.json["facility_id"])
+        instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
+        print(instrument_session)
+        db.session.add(instrument_session)
         db.session.commit()
         return jsonify({"message": f"new instrument session {start_date} created."})
     except Exception as err:
@@ -451,7 +455,7 @@ def delete_session(id):
 
 # Stat of instrument issue routes
 
-@main.route('/instrumentissue', methods=['POST'])
+@main.route('/instrumentissues', methods=['POST'])
 def create_instrumentissue():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -470,7 +474,7 @@ def create_instrumentissue():
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/instrumentissue/<int:id>', methods=['GET'])
+@main.route('/instrumentissues/<int:id>', methods=['GET'])
 def get_instrumentissue_by_id(id):
     try:
         issue = db.get_or_404(InstrumentIssue, id)
@@ -478,7 +482,7 @@ def get_instrumentissue_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentissue', methods=['GET'])
+@main.route('/instrumentissues', methods=['GET'])
 def get_instrumentissue_list():
     try:
         issue_list = db.session.execute(db.select(InstrumentIssue)).scalars()
@@ -486,7 +490,7 @@ def get_instrumentissue_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentissue/<int:id>', methods=['PATCH'])
+@main.route('/instrumentissues/<int:id>', methods=['PATCH'])
 def update_instrumentissue(id):
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -508,7 +512,7 @@ def update_instrumentissue(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/instrumentissue/<int:id>', methods=['DELETE'])
+@main.route('/instrumentissues/<int:id>', methods=['DELETE'])
 def delete_instrumentissue(id):
     try:
         session = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()

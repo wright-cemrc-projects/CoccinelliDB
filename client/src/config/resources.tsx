@@ -90,7 +90,7 @@ export const resources: IResourceItem[] = [
         edit: "/instrumentissues/edit/:id",
         show: "/instrumentissues/show/:id",
         meta: {
-            label: "Instruments Issues",
+            label: "Instrument Issues",
             canDelete: true,
             icon: <AlertOutlined />
         }
