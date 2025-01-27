@@ -463,7 +463,10 @@ def create_instrumentissue():
         cleaned_end_date = request.json["end_date"].split(".")[0]
         end_date = datetime.strptime(cleaned_end_date, date_format)
         instrument_id = request.json["instrument_id"]
-        issue = InstrumentIssue(start_date=start_date, end_date=end_date, instrument_id=instrument_id)
+        issue_title = request.json["issue_title"]
+        issue_description = request.json["issue_description"]
+
+        issue = InstrumentIssue(issue_title=issue_title,issue_description=issue_description,start_date=start_date, end_date=end_date, instrument_id=instrument_id)
         db.session.add(issue)
         db.session.commit()
         return jsonify({"message": f"new instrument session {start_date} created."})
