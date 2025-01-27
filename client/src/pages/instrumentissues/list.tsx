@@ -24,6 +24,8 @@ export const InstrumentIssueList = () => {
             <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">
                 <Table.Column dataIndex="id" title={"ID"} />
                 <Table.Column dataIndex="instrument_id" title="Instrument_ID"/>
+                <Table.Column dataIndex="start_date" title="Start Date"/>
+                <Table.Column dataIndex="end_date" title="End Date"/>
                 <Table.Column dataIndex="issue_title" title="Issue Title"/>
                 <Table.Column dataIndex="issue_description" title="Issue Description"/>
                 <Table.Column

@@ -18,6 +18,12 @@ export const InstrumentIssueShow = () => {
             <Title level={5}>{"Instrument ID"}</Title>
             <TextField value={record?.name} />
 
+            <Title level={5}>{"Issue Title"}</Title>
+            <TextField value={record?.issue_title} />
+
+            <Title level={5}>{"Issue Description"}</Title>
+            <TextField value={record?.issue_description} />
+
             <Title level={5}>{""}</Title>
             <TextField value={record?.model} />
         </Show>
