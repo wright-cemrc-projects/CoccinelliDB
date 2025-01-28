@@ -64,7 +64,7 @@ def upgrade():
         sa.Column('end_date', sa.DateTime(), nullable=True),
         sa.Column('facility_id', sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(['facility_id'], ['facility.id'], ),
-        sa.PrimaryKeyConstraint('id', 'project_id')
+        sa.PrimaryKeyConstraint('id')
         )
     if 'facility_project' not in tables:
         op.create_table('facility_project',

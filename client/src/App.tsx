@@ -30,10 +30,12 @@ import {resources} from "@/src/config/resources";
 import axios from "axios";
 import { FacilityCreate, FacilityList, FacilityShow, FacilityEdit } from "./pages/facilities";
 import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/projects";
-import {GroupList, GroupEdit, GroupCreate, GroupShow} from "./pages/groups";
-import {InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow} from "./pages/instrumentsession";
-import {PersonList, PersonEdit, PersonCreate, PersonShow} from "./pages/persons";
-import {DashboardPage} from "@/src/pages/dashboard";
+import { GroupList, GroupEdit, GroupCreate, GroupShow } from "./pages/groups";
+import { InstrumentCreate, InstrumentEdit, InstrumentList, InstrumentShow } from "./pages/instruments";
+import { InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow } from "./pages/instrumentsession";
+import { PersonList, PersonEdit, PersonCreate, PersonShow } from "./pages/persons";
+import { InstrumentIssueCreate, InstrumentIssueEdit, InstrumentIssueList, InstrumentIssueShow } from "./pages/instrumentissues";
+import { DashboardPage } from "@/src/pages/dashboard";
 import { BugOutlined } from "@ant-design/icons";
 
 const httpClient = axios.create();
@@ -103,11 +105,23 @@ function App() {
                       <Route path="edit/:id" element={<ProjectEdit/>}/>
                       <Route path="show/:id" element={<ProjectShow/>}/>
                     </Route>
+                    <Route path="/instruments">
+                      <Route index element={<InstrumentList />}/>
+                      <Route path="create" element={<InstrumentCreate />}/>
+                      <Route path="edit/:id" element={<InstrumentEdit />}/>
+                      <Route path="show/:id" element={<InstrumentShow />}/>
+                    </Route>
                     <Route path="/instrumentsession">
                       <Route index element={<InstrumentSessionList />}/>
                       <Route path="create" element={<InstrumentSessionCreate />}/>
                       <Route path="edit/:id" element={<InstrumentSessionEdit />}/>
                       <Route path="show/:id" element={<InstrumentSessionShow />}/>
+                    </Route>
+                    <Route path="/instrumentissues">
+                      <Route index element={<InstrumentIssueList />}/>
+                      <Route path="create" element={<InstrumentIssueCreate />}/>
+                      <Route path="edit/:id" element={<InstrumentIssueEdit />}/>
+                      <Route path="show/:id" element={<InstrumentIssueShow />}/>
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
