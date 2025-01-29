@@ -1,9 +1,36 @@
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
+import {Create, useForm, useSelect} from "@refinedev/antd";
+import {Form, Input, DatePicker, Select} from "antd";
+import {Facility, Instrument} from "@/src/type";
 
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
+    const { selectProps: facilitySelectProps } = useSelect({
+        resource: "facilities",
+        optionLabel: (item: Facility) => `${item?.name}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "name",
+                operator: "contains",
+                value: value,
+            },
 
+        ],
+    });
+
+    const { selectProps: instrumentSelectProps } = useSelect({
+        resource: "instruments",
+        optionLabel: (item: Instrument) => `${item?.name}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "name",
+                operator: "contains",
+                value: value,
+            },
+
+        ],
+    });
     return (
         <Create saveButtonProps={saveButtonProps}>
             <Form {...formProps} layout="vertical">
@@ -44,7 +71,12 @@ export const InstrumentSessionCreate = () => {
                         },
                     ]}
                 >
-                    <Input />
+                    <Select
+                        {...facilitySelectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+
+                    />
                 </Form.Item>
                 <Form.Item
                     label={"Project ID"}
@@ -66,7 +98,12 @@ export const InstrumentSessionCreate = () => {
                         },
                     ]}
                 >
-                    <Input />
+                    <Select
+                        {...instrumentSelectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+
+                    />
                 </Form.Item>
             </Form>
         </Create>
