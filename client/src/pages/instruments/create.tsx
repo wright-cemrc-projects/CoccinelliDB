@@ -1,9 +1,22 @@
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input } from "antd";
+import {Create, useForm, useSelect} from "@refinedev/antd";
+import {Form, Input, Select} from "antd";
+import {Facility} from "@/src/type";
 
 export const InstrumentCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
+    const { selectProps } = useSelect({
+        resource: "facilities",
+        optionLabel: (item: Facility) => `${item?.name}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "name",
+                operator: "contains",
+                value: value,
+            },
 
+        ],
+    });
     return (
         <Create saveButtonProps={saveButtonProps}>
             <Form {...formProps} layout="vertical">
@@ -38,7 +51,12 @@ export const InstrumentCreate = () => {
                         },
                     ]}
                 >
-                    <Input />
+                    <Select
+                        {...selectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+
+                    />
                 </Form.Item>
             </Form>
         </Create>

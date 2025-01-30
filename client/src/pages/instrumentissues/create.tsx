@@ -1,9 +1,22 @@
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
+import {Create, useForm, useSelect} from "@refinedev/antd";
+import {Form, Input, DatePicker, Select} from "antd";
+import {Instrument} from "@/src/type";
 
 export const InstrumentIssueCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
+    const { selectProps: instrumentSelectProps } = useSelect({
+        resource: "instruments",
+        optionLabel: (item: Instrument) => `${item?.name}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "name",
+                operator: "contains",
+                value: value,
+            },
 
+        ],
+    });
     return (
         <Create saveButtonProps={saveButtonProps}>
             <Form {...formProps} layout="vertical">
@@ -16,7 +29,12 @@ export const InstrumentIssueCreate = () => {
                         },
                     ]}
                 >
-                    <Input />
+                    <Select
+                        {...instrumentSelectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+
+                    />
                 </Form.Item>
                 <Form.Item
                     label={"Instrument Offline"}

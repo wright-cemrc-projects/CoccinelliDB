@@ -1,3 +1,8 @@
+export interface Facility {
+    id: number;
+    name: string;
+}
+
 export interface Person {
     primary_contact: boolean;
     id: number;
@@ -13,4 +18,11 @@ export interface Person {
     net_id: number;
     start_date: Date;
     end_date: Date;
+}
+
+export interface Instrument {
+    id: number;
+    name: string;
+    model: string;
+
 }
