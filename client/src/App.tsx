@@ -59,7 +59,7 @@ function App() {
                   useNewQueryKeys: true,
                   projectId: "3fgJj6-lWqJLy-pmLN0C",
                   title: {
-                    text: "CooccinelliDB",
+                    text: "CoccinelliDB",
                     icon: <BugOutlined />
                   }
                 }}

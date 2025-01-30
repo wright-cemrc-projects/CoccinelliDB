@@ -11,7 +11,6 @@ from datetime import datetime
 main = Blueprint('main', __name__)
 CORS(main)
 
-
 @main.route('/')
 def index():
     return "Hello, World!"
@@ -521,4 +520,22 @@ def delete_instrumentissue(id):
         return jsonify({"message": f"{session} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
+
+# ------------------------------    
+# API routes defined below here
+# ------------------------------
+
+from app.services.session_service import is_session_booked
+
+# TODO: check if this is correct way to make modular routes.
+session_bp = Blueprint('session', __name__)
+
+@session_bp.route('/api/sessions/booked', methods=['GET'])
+def check_booked_session():
+    """Check if a session is booked."""
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({"error": "Missing session_id"}), 400
     
+    booked = is_session_booked(session_id)
+    return jsonify({"session_id": session_id, "is_booked": booked})
