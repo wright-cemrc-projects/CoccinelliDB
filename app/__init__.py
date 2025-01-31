@@ -41,8 +41,9 @@ def create_app(config_name="development"):
     ma.init_app(app)
 
     # Register routes (from routes.py)
-    from .routes import main
+    from .routes import main, api_bp
     app.register_blueprint(main)
+    app.register_blueprint(api_bp)
     
     from .models import Group, Facility, Person
 
