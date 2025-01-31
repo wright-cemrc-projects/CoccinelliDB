@@ -1,10 +1,37 @@
-import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
+import {Edit, useForm, useSelect} from "@refinedev/antd";
+import {Form, Input, DatePicker, Select} from "antd";
 import dayjs from 'dayjs';
+import {Facility, Instrument} from "@/src/type";
 
 export const InstrumentSessionEdit = () => {
     const { formProps, saveButtonProps } = useForm({});
-    
+    const { selectProps: facilitySelectProps } = useSelect({
+        resource: "facilities",
+        optionLabel: (item: Facility) => `${item?.name}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "name",
+                operator: "contains",
+                value: value,
+            },
+
+        ],
+    });
+
+    const { selectProps: instrumentSelectProps } = useSelect({
+        resource: "instruments",
+        optionLabel: (item: Instrument) => `${item?.name}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "name",
+                operator: "contains",
+                value: value,
+            },
+
+        ],
+    });
     return (
         <Edit saveButtonProps={saveButtonProps} >
             <Form {...formProps} layout="vertical" >
@@ -47,7 +74,12 @@ export const InstrumentSessionEdit = () => {
                         },
                     ]}
                 >
-                    <Input />
+                    <Select
+                        {...facilitySelectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+
+                    />
                 </Form.Item>
                 <Form.Item
                     label={"Project ID"}
@@ -69,7 +101,12 @@ export const InstrumentSessionEdit = () => {
                         },
                     ]}
                 >
-                    <Input />
+                    <Select
+                        {...instrumentSelectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+
+                    />
                 </Form.Item>
             </Form>
         </Edit>
