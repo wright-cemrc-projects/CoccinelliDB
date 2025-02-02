@@ -3,7 +3,7 @@ from flask_cors import CORS
 from sqlalchemy import or_, inspect
 
 from . import db
-from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person
+from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
 from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
 
 from datetime import datetime
@@ -437,6 +437,55 @@ def update_session(id):
             session.end_date = datetime.strptime(cleaned_end_date, date_format)
         if "instrument_id" in request.json:
             session.instrument_id = request.json["instrument_id"]
+
+        # Update persons in the session
+
+        if "persons" in request.json:
+            new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
+
+            # Get current person IDs linked to the session
+            current_person_ids = {
+                person_id for person_id, in db.session.query(session_person_link.c.person_id)
+                .filter_by(session_id=id)
+                .all()
+            }
+
+            # Process new persons list
+            for person_data in new_persons:
+                person_id = person_data["person_id"]
+                onsite = person_data.get("onsite", False)
+                role = person_data.get("role", "")
+                remote_access_level = person_data.get("remote_access_level", "")
+
+                if person_id in current_person_ids:
+                    # Update existing record
+                    db.session.execute(
+                        session_person_link.update()
+                        .where(session_person_link.c.session_id == id)
+                        .where(session_person_link.c.person_id == person_id)
+                        .values(onsite=onsite, role=role, remote_access_level=remote_access_level)
+                    )
+                    current_person_ids.remove(person_id)  # Mark as processed
+                else:
+                    # Insert new record
+                    db.session.execute(
+                        session_person_link.insert().values(
+                            session_id=id,
+                            person_id=person_id,
+                            onsite=onsite,
+                            role=role,
+                            remote_access_level=remote_access_level
+                        )
+                    )
+
+            # Remove persons that were not in the updated list
+            if current_person_ids:
+                db.session.execute(
+                    session_person_link.delete()
+                    .where(session_person_link.c.session_id == id)
+                    .where(session_person_link.c.person_id.in_(current_person_ids))
+                )
+
         db.session.commit()
         return jsonify({"message": f"{session} got updated"})
     except Exception as err:

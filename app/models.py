@@ -125,6 +125,21 @@ class InstrumentIssue(db.Model):
     instrument_id : Mapped[int] = mapped_column(ForeignKey("instrument.id"))
     instrument : Mapped["Instrument"] = relationship(back_populates="issues")
 
+# This is setup for additional flexibility for how we define persons being in a session,
+#  and includes fields tied to the person:
+#   'onsite': is this person an onsite user or remote?
+#   'role' : is this person an operator, trainee, or other?
+#   'remote_access_level' :
+# Linked table [many FacilityInstrumentSession -> many FacilityPerson(s)]
+session_person_link = db.Table(
+    'session_person_link',
+    db.Column('session_id', db.Integer, db.ForeignKey('instrument_session.id')),
+    db.Column('person_id', db.Integer, db.ForeignKey('person.id')),
+    db.Column('onsite', db.Boolean),
+    db.Column('role', db.String(45)),
+    db.Column('remote_access_level', db.String(45))
+)
+
 class InstrumentSession(db.Model):
     """ Representation of a session of instrument use """
     __tablename__ = "instrument_session"
@@ -142,24 +157,13 @@ class InstrumentSession(db.Model):
     instrument : Mapped["Instrument"] = relationship(back_populates="sessions")
     # Linked table [one InstrumentSession-> many InstrumentCollection(s)]
     collections: Mapped[List["Collection"]] = relationship(back_populates="instrument_session")
+    # Linked table [many FacilityInstrumentSession-> many FacilityPersons]
+    persons = db.relationship("Person", backref="instrument_session", lazy="dynamic", secondary=session_person_link)
 
     def __repr__(self):
         return f"<InstrumentSession(id={self.id},facility_id={self.facility_id},project_id={self.project_id},instrument_id={self.instrument_id},start_date={self.start_date},end_date={self.end_date})>"
 
-# This is setup for additional flexibility for how we define persons being in a session,
-#  and includes fields tied to the person:
-#   'onsite': is this person an onsite user or remote?
-#   'role' : is this person an operator, trainee, or other?
-#   'remote_access_level' : 
-# Linked table [many FacilityInstrumentSession -> many FacilityPerson(s)]
-session_person_link = db.Table(
-    'session_person_link',
-    db.Column('session_id', db.Integer, db.ForeignKey('instrument_session.id')),
-    db.Column('person_id', db.Integer, db.ForeignKey('person.id')),
-    db.Column('onsite', db.Boolean),
-    db.Column('role', db.String(45)),
-    db.Column('remote_access_level', db.String(45))
-)
+
 
 class Collection(db.Model):
     """ Representation of a data collection that occurred duing an instrument session """
