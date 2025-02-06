@@ -65,11 +65,12 @@ class Person(db.Model):
     start_date = db.Column(db.DateTime, nullable=True) 
     end_date = db.Column(db.DateTime, nullable=True)
 
-    def __init__(self, first_name, last_name, email, net_id):
+    def __init__(self, first_name, last_name, email, net_id, ext=None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
         self.net_id = net_id
+        self.ext = ext
 
     @validates("email")
     def validate_email(self, key, email):
@@ -79,7 +80,8 @@ class Person(db.Model):
 
     def __repr__(self):
         return f"Person(name={self.first_name} {self.last_name}, email={self.email})"
-    
+
+
 # Entries below using SQLAlchemy ORM configuration style with Declarative mappings with Mapped.
 # https://docs.sqlalchemy.org/en/20/orm/basic_relationships.html
 # back_populates argument is to be used when we want data access in both directions from
