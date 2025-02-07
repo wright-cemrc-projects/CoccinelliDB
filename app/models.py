@@ -11,7 +11,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 from pyisemail import is_email
-
+from flask import session
 
 class Facility(db.Model):
     """ Representation of a facility """
@@ -65,11 +65,7 @@ class Person(db.Model):
     start_date = db.Column(db.DateTime, nullable=True) 
     end_date = db.Column(db.DateTime, nullable=True)
 
-    def __init__(self, first_name, last_name, email, net_id, ext=None):
-        self.first_name = first_name
-        self.last_name = last_name
-        self.email = email
-        self.net_id = net_id
+    def __init__(self, ext=None):
         self.ext = ext
 
     @validates("email")
@@ -77,6 +73,22 @@ class Person(db.Model):
         if is_email(email, check_dns=True):
             return email
         raise ValueError("Invalid email!")
+
+    # Flask-OIDC expected methods
+    @property
+    def logged_in(self):
+        """Return True if the user is logged in, False otherwise."""
+        return session.get("oidc_auth_token") is not None
+
+    @property
+    def access_token(self):
+        """The user's OIDC access token."""
+        return self.ext.get_access_token()
+
+    @property
+    def refresh_token(self):
+        """The user's OIDC refresh token."""
+        return self.ext.get_refresh_token()
 
     def __repr__(self):
         return f"Person(name={self.first_name} {self.last_name}, email={self.email})"

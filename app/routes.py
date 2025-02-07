@@ -193,11 +193,15 @@ def delete_group(id):
 def create_person():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
-        first_name = request.json["first_name"]
-        last_name = request.json["last_name"]
-        net_id = request.json["net_id"]
-        email = request.json["email"]
-        person = Person(first_name=first_name, last_name=last_name, net_id=net_id, email=email)
+        person = Person()
+        if "first_name" in request.json:
+            person.first_name = request.json["first_name"]
+        if "last_name" in request.json:
+            person.last_name = request.json["last_name"]
+        if "net_id" in request.json:
+            person.net_id = request.json["net_id"]
+        if "email" in request.json:
+            person.email = request.json["email"]
         if "group_id" in request.json:
             person.group_id = request.json["group_id"]
         if "address1" in request.json:

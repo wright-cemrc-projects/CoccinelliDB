@@ -41,14 +41,17 @@ def create_app(config_name="development"):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
     oidc = OpenIDConnect(app)
-    
+
     # Register routes (from routes.py)
     from .routes import main
     app.register_blueprint(main)
 
     from .models import Group, Facility, Person
     app.config["OIDC_USER_CLASS"] = Person
+
+
 
     @app.cli.command("create-facility")
     @click.argument("name")
