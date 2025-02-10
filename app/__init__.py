@@ -1,6 +1,6 @@
 import string
 
-from flask import Flask
+from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
@@ -8,7 +8,7 @@ from sqlalchemy import MetaData
 from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
 from flask_oidc import OpenIDConnect
-
+from flask_session import Session
 
 import config
 from tests.test_routes import test_group, test_person
@@ -30,6 +30,7 @@ config_map = {
 db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate()
 ma = Marshmallow()
+oidc = None
 
 def create_app(config_name="development"):
     app = Flask(__name__)
@@ -41,8 +42,9 @@ def create_app(config_name="development"):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
-    oidc = OpenIDConnect(app)
+    if config_name == "production":
+        app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
+        oidc = OpenIDConnect(app)
 
     # Register routes (from routes.py)
     from .routes import main

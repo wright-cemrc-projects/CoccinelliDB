@@ -1,8 +1,7 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, session, redirect
 from flask_cors import CORS
 from sqlalchemy import or_, inspect
-
-from . import db
+from . import db, oidc
 from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
 from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
 
@@ -574,4 +573,27 @@ def delete_instrumentissue(id):
         return jsonify({"message": f"{session} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
-    
+
+@main.route("/login")
+def login():
+    return oidc.redirect_to_auth_server(request.url)
+
+@main.route("/authorize")
+def auth_callback():
+    if oidc.user_loggedin:
+        return redirect("http://localhost:5173/")  # Redirect to frontend
+
+    return "Login failed", 401
+
+@main.route("/logout", methods=["POST"])
+def logout():
+    oidc.logout()
+    session.clear()  # Clear session data
+    return jsonify({"message": "Logged out"}), 200
+
+# User Info Route
+@main.route("/me")
+def me():
+    if "user" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify(session["user"])
