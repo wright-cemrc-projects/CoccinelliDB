@@ -47,8 +47,11 @@ def create_app(config_name="development"):
         oidc = OpenIDConnect(app)
 
     # Register routes (from routes.py)
-    from .routes import main
+    from routes.main_routes import main
     app.register_blueprint(main)
+
+    from routes.login_routes import login_bp
+    app.register_blueprint(login_bp)
 
     from .models import Group, Facility, Person
     app.config["OIDC_USER_CLASS"] = Person

@@ -1,10 +1,9 @@
 from flask import Blueprint, render_template, jsonify, request, session, redirect
 from flask_cors import CORS
 from sqlalchemy import or_, inspect
-from . import db, oidc
-from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
-from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
-
+from app import db, oidc
+from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
+from app.schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
 from datetime import datetime
 
 main = Blueprint('main', __name__)
@@ -45,7 +44,6 @@ def create_project():
 
 @main.route('/projects/<int:id>', methods=['PATCH'])
 def update_project(id):
-    print("update_project")
     try:
         project_id = request.json["project_id"]
         facility_id = request.json["facility_id"]
@@ -83,8 +81,6 @@ def create_facility():
     try:
         facility = Facility(name)
         db.session.add(facility)
-        print(inspect(facility).pending)
-        print
         db.session.commit()
         db.session.flush()
         return jsonify({"message": "new facility created."})
@@ -573,27 +569,3 @@ def delete_instrumentissue(id):
         return jsonify({"message": f"{session} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
-
-@main.route("/login")
-def login():
-    return oidc.redirect_to_auth_server(request.url)
-
-@main.route("/authorize")
-def auth_callback():
-    if oidc.user_loggedin:
-        return redirect("http://localhost:5173/")  # Redirect to frontend
-
-    return "Login failed", 401
-
-@main.route("/logout", methods=["POST"])
-def logout():
-    oidc.logout()
-    session.clear()  # Clear session data
-    return jsonify({"message": "Logged out"}), 200
-
-# User Info Route
-@main.route("/me")
-def me():
-    if "user" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    return jsonify(session["user"])

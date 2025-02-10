@@ -46,6 +46,7 @@ export const authProvider: AuthProvider = {
       await fetchWithCredentials("/me");
       return { authenticated: true };
     } catch {
+
       return { authenticated: false, redirectTo: "/login" };
     }
   },
