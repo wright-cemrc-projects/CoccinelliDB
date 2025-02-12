@@ -5,7 +5,7 @@ from app import db, oidc
 from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
 from app.schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
 from datetime import datetime
-
+from .login_routes import oidc_login_required
 main = Blueprint('main', __name__)
 CORS(main)
 
@@ -18,7 +18,7 @@ def index():
 def hello_world():
     return jsonify({"message": "Hello World"})
 
-
+@oidc_login_required(oidc)
 @main.route('/projects', methods=['GET'])
 def get_project_list():
     project_list = db.session.execute(db.select(Project)).scalars()
