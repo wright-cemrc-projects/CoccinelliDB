@@ -32,7 +32,11 @@ def oidc_login_required(oidc: OpenIDConnect):
 
 @login_bp.route("/login")
 def login():
-    # the name of this method shouldn't be the same as the blueprint name
+    """
+    Perform login logic. Store user info in session on development mode
+    Redirect to auth server of oidc provider on production mode
+    :return: Response
+    """
     if os.getenv("FLASK_ENV") == "development":
         session["user"] = {
             "id": 1,
@@ -46,6 +50,10 @@ def login():
 
 @login_bp.route("/authorize")
 def auth_callback():
+    """
+    Receive response from auth server. Resource access control happens here
+    :return: Response
+    """
     if os.getenv("FLASK_ENV") == "development":
         return redirect("http://localhost:5173/")
     elif os.getenv("FLASK_ENV") == "production":
@@ -56,6 +64,10 @@ def auth_callback():
 
 @login_bp.route("/logout", methods=["POST"])
 def logout():
+    """
+    Clear all login info from browser
+    :return:
+    """
     if os.getenv("FLASK_ENV") == "production":
         oidc.logout()
     session.clear()  # Clear session data
@@ -64,6 +76,9 @@ def logout():
 # User Info Route
 @login_bp.route("/me")
 def me():
+    """
+    :return: User info
+    """
     if "user" not in session:
         return jsonify({"error": "Unauthorized"}), 401
     return jsonify(session["user"])
