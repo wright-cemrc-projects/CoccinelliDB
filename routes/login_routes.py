@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, jsonify, request, session, redirect
-from flask_cors import CORS
 from app import oidc, db
 import os
 from app.models import Person
@@ -7,7 +6,6 @@ from flask_oidc import OpenIDConnect
 from functools import wraps
 
 login_bp = Blueprint('login', __name__)
-CORS(login_bp, supports_credentials=True)
 
 
 def oidc_login_required(oidc: OpenIDConnect):
@@ -37,16 +35,7 @@ def login():
     Redirect to auth server of oidc provider on production mode
     :return: Response
     """
-    if os.getenv("FLASK_ENV") == "development":
-        session["user"] = {
-            "id": 1,
-            "first_name": "demo",
-            "last_name": "refine",
-            "email": "demo@refine.dev"
-        }
-        return redirect("/authorize")
-    elif os.getenv("FLASK_ENV")  == "production":
-        return oidc.redirect_to_auth_server(request.url) # Redirect to campus login page
+    return oidc.redirect_to_auth_server(request.url)
 
 @login_bp.route("/authorize")
 def auth_callback():
@@ -54,24 +43,19 @@ def auth_callback():
     Receive response from auth server. Resource access control happens here
     :return: Response
     """
-    if os.getenv("FLASK_ENV") == "development":
-        return redirect("http://localhost:5173/")
-    elif os.getenv("FLASK_ENV") == "production":
-        if oidc.user_loggedin:
-            return redirect("http://localhost:5173/")  # Redirect to frontend
-
+    if oidc.user_loggedin:
+        return redirect("http://localhost:5173/")  # Redirect to frontend
     return "Login failed", 401
 
-@login_bp.route("/logout", methods=["POST"])
+@login_bp.route("/logout", methods=["GET"])
 def logout():
     """
     Clear all login info from browser
     :return:
     """
-    if os.getenv("FLASK_ENV") == "production":
-        oidc.logout()
     session.clear()  # Clear session data
-    return jsonify({"message": "Logged out"}), 200
+    oidc.logout()
+    return redirect("http://localhost:5173/login")
 
 # User Info Route
 @login_bp.route("/me")
@@ -79,6 +63,11 @@ def me():
     """
     :return: User info
     """
-    if "user" not in session:
+    if "oidc_auth_profile" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    return jsonify(session["user"])
+    return jsonify(session["oidc_auth_profile"])
+
+
+@login_bp.route("/test_redirect")
+def test():
+    return redirect("http://localhost:5173/")

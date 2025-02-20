@@ -9,7 +9,7 @@ from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
 from flask_oidc import OpenIDConnect
 from flask_session import Session
-
+from flask_cors import CORS
 import config
 from tests.test_routes import test_group, test_person
 
@@ -42,10 +42,10 @@ def create_app(config_name="development"):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    if config_name == "production":
-        app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
-        oidc = OpenIDConnect(app)
-
+    # if config_name == "production":
+    app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
+    oidc = OpenIDConnect(app)
+    CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
     # Register routes (from routes.py)
     from routes.main_routes import main
     app.register_blueprint(main)
@@ -54,7 +54,6 @@ def create_app(config_name="development"):
     app.register_blueprint(login_bp)
 
     from .models import Group, Facility, Person
-    app.config["OIDC_USER_CLASS"] = Person
 
 
 

@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, jsonify, request, session, redirect
-from flask_cors import CORS
 from sqlalchemy import or_, inspect
 from app import db, oidc
 from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
@@ -7,7 +6,7 @@ from app.schema import facilitySchema, facilitiesSchema, projectSchema, projects
 from datetime import datetime
 from .login_routes import oidc_login_required
 main = Blueprint('main', __name__)
-CORS(main)
+
 
 
 @main.route('/')

@@ -10,7 +10,7 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-
+axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 
 const fetchWithCredentials = async (url: string, method: string = "GET", body: any = null) => {
   try {
@@ -30,14 +30,13 @@ export const authProvider: AuthProvider = {
   login: async () => {
     // Redirect the user to Flask's /login route, which starts OIDC authentication
     window.location.href = "http://localhost:8080/login";
-    return { success: true };
+    return { success: true, redirectTo: "/"};
   },
 
   logout: async () => {
     // Logout by calling Flask's /logout route
-    await fetchWithCredentials("/logout", "POST");
-    window.location.href = "/login";
-    return { success: true };
+    await fetchWithCredentials("/logout");
+    return { success: true, redirectTo: "/login" };
   },
 
   check: async () => {
@@ -46,7 +45,6 @@ export const authProvider: AuthProvider = {
       await fetchWithCredentials("/me");
       return { authenticated: true };
     } catch {
-
       return { authenticated: false, redirectTo: "/login" };
     }
   },
@@ -55,9 +53,10 @@ export const authProvider: AuthProvider = {
     // Get user details from Flask's /me endpoint
     try {
       const user = await fetchWithCredentials("/me");
+      console.log(user);
       return {
         id: user.id,
-        name: `${user.first_name} ${user.last_name}`,
+        name: `${user.given_name} ${user.family_name}`,
         email: user.email,
         avatar: "https://i.pravatar.cc/300",
       };
