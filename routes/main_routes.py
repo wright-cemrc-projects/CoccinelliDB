@@ -4,20 +4,18 @@ from app import db, oidc
 from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
 from app.schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
 from datetime import datetime
-from .login_routes import oidc_login_required
 main = Blueprint('main', __name__)
 
 
 
 @main.route('/')
 def index():
-    return "Hello, World!"
+    return redirect("http://localhost:5173")
 
 @main.route('/home', methods=['GET'])
 def hello_world():
     return jsonify({"message": "Hello World"})
 
-@oidc_login_required(oidc)
 @main.route('/projects', methods=['GET'])
 def get_project_list():
     project_list = db.session.execute(db.select(Project)).scalars()
@@ -66,6 +64,11 @@ def delete_project(id):
 
 @main.route('/facilities', methods=['GET'])
 def get_facility_list():
+    if oidc:
+        print(oidc)
+        print(oidc.user_loggedin)
+        print(oidc.get_access_token())
+        print(oidc.get_refresh_token())
     facility_list = db.session.execute(db.select(Facility)).scalars()
     return facilitiesSchema.jsonify(facility_list)
 

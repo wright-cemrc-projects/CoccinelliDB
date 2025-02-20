@@ -30,13 +30,13 @@ export const authProvider: AuthProvider = {
   login: async () => {
     // Redirect the user to Flask's /login route, which starts OIDC authentication
     window.location.href = "http://localhost:8080/login";
-    return { success: true, redirectTo: "/"};
+    return { success: true };
   },
 
   logout: async () => {
     // Logout by calling Flask's /logout route
-    await fetchWithCredentials("/logout");
-    return { success: true, redirectTo: "/login" };
+    window.location.href = "http://localhost:8080/logout";
+    return { success: true };
   },
 
   check: async () => {
@@ -53,7 +53,6 @@ export const authProvider: AuthProvider = {
     // Get user details from Flask's /me endpoint
     try {
       const user = await fetchWithCredentials("/me");
-      console.log(user);
       return {
         id: user.id,
         name: `${user.given_name} ${user.family_name}`,
