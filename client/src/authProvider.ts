@@ -34,8 +34,9 @@ export const authProvider: AuthProvider = {
   },
 
   logout: async () => {
-    // Logout by calling Flask's /logout route
-    window.location.href = "http://localhost:8080/logout";
+    console.log("logout");
+    // // Logout by calling Flask's /logout route
+    window.location.href = "http://localhost:8080/custom-logout";
     return { success: true };
   },
 

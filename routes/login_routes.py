@@ -2,46 +2,36 @@ from flask import Blueprint, render_template, jsonify, request, session, redirec
 from app import oidc, db
 import os
 from app.models import Person
-from flask_oidc import OpenIDConnect
+from flask_oidc import OpenIDConnect, signals
 from functools import wraps
 import requests
 
 login_bp = Blueprint('login', __name__)
 
+@signals.after_authorize.connect
+def after_auth_handler(sender, **kwargs):
+    """Triggered when the user is authenticated. Check if user is already registered"""
+    email = session["oidc_auth_profile"]["email"]
+    try:
+        Person.query.filter_by(email=email).first_or_404(description="User not found")
+        return redirect("http://localhost:5173")
+    except Exception as err:
+        print({"err": f"{err=}"})
+        print("user is not registered")
+        session.clear()
+        return redirect("/custom-logout")
 
-@login_bp.route("/login")
-def login():
+@login_bp.route("/custom-logout", methods=["GET"])
+def logout():
     """
-    Perform login logic. Store user info in session on development mode
-    Redirect to auth server of oidc provider on production mode
-    :return: Response
+    Clear all login info from browser
+    :return:
     """
-    return oidc.redirect_to_auth_server(request.url)
-
-@login_bp.route("/authorize")
-def auth_callback():
-    """
-    Receive response from auth server. Resource access control happens here
-    :return: Response
-    """
-    if oidc:
-        return redirect("http://localhost:5173")  # Redirect to frontend
-    return "Login failed", 401
-
-# @login_bp.route("/logout", methods=["GET"])
-# def logout():
-#     """
-#     Clear all login info from browser
-#     :return:
-#     """
-#     # input("Press Enter to continue...")
-#     # session.clear()  # Clear session data
-#     # domain = "dev-flo54hw1p0ohwfvo.us.auth0.com"
-#     # idToken = session["oidc_auth_token"]["id_token"]
-#     # callbackURL = "http://localhost:5173"
-#     # r = requests.get(f"https://{domain}/oidc/logout?id_token_hint={idToken}&post_logout_redirect_uri={callbackURL}")
-#     # return redirect("http://localhost:5173")
-    
+    domain = "dev-flo54hw1p0ohwfvo.us.auth0.com"
+    idToken = session["oidc_auth_token"]["id_token"]
+    callbackURL = "http://localhost:5173/login"
+    session.clear()
+    return redirect(f"https://{domain}/oidc/logout?id_token_hint={idToken}&post_logout_redirect_uri={callbackURL}")
 
 # User Info Route
 @login_bp.route("/me")

@@ -60,6 +60,15 @@ def create_app(config_name="development"):
     from .models import Group, Facility, Person
 
 
+    @app.cli.command("create-user")
+    @click.argument("first_name")
+    @click.argument("last_name")
+    @click.argument("email")
+    @click.argument("net_id")
+    def create_user(first_name, last_name, email, net_id):
+        person = Person(first_name, last_name, email, net_id)
+        db.session.add(person)
+        db.session.commit()
 
     @app.cli.command("create-facility")
     @click.argument("name")
