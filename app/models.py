@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from flask_rbac import RoleMixin
 
 from . import db
 
@@ -51,25 +50,6 @@ class Group(db.Model):
     def __repr__(self):
         return f"<Group(name={self.name})>"
 
-role_person = db.Table('role_person',
-                       db.Column('role_id', db.Integer, db.ForeighKey('role.id')),
-                       db.Column('person_id', db.Integer, db.ForeignKey('person.id')))
-
-class Role(RoleMixin):
-    __tablename__ = "role"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20))
-    persons = db.relationship(
-        'Role',
-        secondary=role_person,
-        primaryjoin=(id == role_person.c.role_id),
-        secondaryjoin=(id == role_person.c.person_id),
-        backref=db.backref('children', lazy='dynamic')
-    )
-    
-    def __init__(self, name):
-        RoleMixin.__init__(self)
-        self.name = name
 
 
 class Person(db.Model):
