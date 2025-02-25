@@ -13,6 +13,8 @@ from flask_cors import CORS
 import config
 from tests.test_routes import test_group, test_person
 import secrets
+from flask_rbac import RBAC
+
 
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
@@ -32,6 +34,8 @@ db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate()
 ma = Marshmallow()
 oidc = None
+# Role Based Access Control
+rbac = None
 
 def create_app(config_name="development"):
     app = Flask(__name__)
@@ -49,6 +53,8 @@ def create_app(config_name="development"):
     app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
     global oidc
     oidc = OpenIDConnect(app)
+    global rbac
+    rbac = RBAC(app)
     CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
     # Register routes (from routes.py)
     from routes.main_routes import main
