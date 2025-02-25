@@ -5,8 +5,8 @@ After=network.target
 [Service]
 User=nginx
 Group=nginx
-WorkingDirectory=/opt/CoccinelliDB
-ExecStart=/opt/CoccinelliDB/venv/bin/gunicorn --workers 3 --bind unix:/tmp/gunicorn.sock 'app:create_app("production")'
+WorkingDirectory=/opt/coccinellidb/CoccinelliDB
+ExecStart=/opt/coccinellidb/venv/bin/gunicorn --workers 3 --bind unix:/tmp/gunicorn.sock 'app:create_app("production")'
 
 [Install]
 WantedBy=multi-user.target
