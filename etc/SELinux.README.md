@@ -19,3 +19,6 @@ SELinux will interfere with the connections, and you need to have a socket set w
 5. `sudo systemctl restart coccinellidb nginx`
 
 These should all be setup by an installation script.
+
+
+sudo setsebool -P httpd_can_network_connect_db 1
