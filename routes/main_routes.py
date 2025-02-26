@@ -4,9 +4,9 @@ from app import db, oidc
 from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
 from app.schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
 from datetime import datetime
+from flask_security import roles_accepted
+
 main = Blueprint('main', __name__)
-
-
 
 @main.route('/')
 def index():
@@ -17,6 +17,7 @@ def hello_world():
     return jsonify({"message": "Hello World"})
 
 @main.route('/projects', methods=['GET'])
+@roles_accepted('Admin')
 def get_project_list():
     project_list = db.session.execute(db.select(Project)).scalars()
     return projectsSchema.jsonify(project_list)

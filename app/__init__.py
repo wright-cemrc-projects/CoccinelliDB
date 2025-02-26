@@ -60,15 +60,27 @@ def create_app(config_name="development"):
     from routes.login_routes import login_bp
     app.register_blueprint(login_bp)
 
-    from .models import Group, Facility, Person
+    from .models import Group, Facility, Person, Role
 
+    """
+    Usage: flask create-role role1 role2 ....
+    """
+    @app.cli.command("create-role")
+    @click.argument("roles", nargs=-1)
+    def create_roles(roles):
+        for role_name in roles:
+            role = Role(name=role_name)
+            db.session.add(role)
+        db.session.commit()
+        print("Roles created successfully!")
 
     @app.cli.command("create-user")
     @click.argument("first_name")
     @click.argument("last_name")
     @click.argument("email")
     @click.argument("net_id")
-    def create_user(first_name, last_name, email, net_id):
+    @click.argument("roles", nargs=-1)
+    def create_user(first_name, last_name, email, net_id, roles):
         person = Person(first_name, last_name, email, net_id)
         db.session.add(person)
         db.session.commit()
