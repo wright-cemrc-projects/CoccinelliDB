@@ -2,8 +2,6 @@ import { Space, Tag } from "antd";
 
 import {Person} from "../../type";
 
-import { CustomAvatar } from "../custom-avatar";
-
 type Props = {
     user: Person;
 };

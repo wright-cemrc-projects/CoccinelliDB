@@ -73,7 +73,7 @@ export const InstrumentSessionEdit = () => {
         if (queryResult?.data) {
             const persons = queryResult.data.data.persons;
             setPersons(persons || []);
-            formProps.form?.setFieldsValue({ persons: persons?.map(p => p.person_id) || [] });
+            formProps.form?.setFieldsValue({ persons: persons?.map((p: { person_id: number }) => p.person_id) || [] });
         }
     }, [queryResult?.data]);
 

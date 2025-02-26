@@ -4,6 +4,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
+import os
 from sqlalchemy import MetaData
 from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
@@ -29,12 +30,14 @@ db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate()
 ma = Marshmallow()
 
-def create_app(config_name="development"):
+def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
+
     app = Flask(__name__)
 
     conf = config_map.get(config_name, config.DevelopmentConfig)
 
     app.config.from_object(conf)
+
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
