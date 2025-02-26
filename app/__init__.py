@@ -4,6 +4,7 @@ from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
+import os
 from sqlalchemy import MetaData
 from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
@@ -35,7 +36,8 @@ migrate = Migrate()
 ma = Marshmallow()
 oidc = None
 
-def create_app(config_name="development"):
+def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
+
     app = Flask(__name__)
     # secret key for signing the cookie and session
     secret_key = secrets.token_hex(24)
@@ -43,6 +45,7 @@ def create_app(config_name="development"):
     conf = config_map.get(config_name, config.DevelopmentConfig)
 
     app.config.from_object(conf)
+
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
