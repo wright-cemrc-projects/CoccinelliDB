@@ -38,6 +38,8 @@ import { InstrumentIssueCreate, InstrumentIssueEdit, InstrumentIssueList, Instru
 import { DashboardPage } from "@/src/pages/dashboard";
 import { BugOutlined } from "@ant-design/icons";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
+
 const httpClient = axios.create();
 
 function App() {
@@ -48,7 +50,7 @@ function App() {
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                dataProvider={dataProvider("http://127.0.0.1:8080", httpClient)}
+                dataProvider={dataProvider(API_URL, httpClient)}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
@@ -59,7 +61,7 @@ function App() {
                   useNewQueryKeys: true,
                   projectId: "3fgJj6-lWqJLy-pmLN0C",
                   title: {
-                    text: "CooccinelliDB",
+                    text: "CoccinelliDB",
                     icon: <BugOutlined />
                   }
                 }}
