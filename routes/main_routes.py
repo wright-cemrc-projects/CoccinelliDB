@@ -8,26 +8,26 @@ from flask_security import roles_accepted
 
 main = Blueprint('main', __name__)
 
-@main.route('/')
+@main.route('/api/hello')
 def index():
     return redirect("http://localhost:5173")
 
-@main.route('/home', methods=['GET'])
+@main.route('/api/home', methods=['GET'])
 def hello_world():
     return jsonify({"message": "Hello World"})
 
-@main.route('/projects', methods=['GET'])
+@main.route('/api/projects', methods=['GET'])
 @roles_accepted('Admin')
 def get_project_list():
     project_list = db.session.execute(db.select(Project)).scalars()
     return projectsSchema.jsonify(project_list)
 
-@main.route('/projects/<int:id>', methods=['GET'])
+@main.route('/api/projects/<int:id>', methods=['GET'])
 def get_project_by_id(id):
     project_one = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
     return projectSchema.jsonify(project_one)
 
-@main.route('/projects', methods=['POST'])
+@main.route('/api/projects', methods=['POST'])
 def create_project():
     project_id = request.json["project_id"]
     facility_id = request.json["facility_id"]
@@ -40,7 +40,7 @@ def create_project():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/projects/<int:id>', methods=['PATCH'])
+@main.route('/api/projects/<int:id>', methods=['PATCH'])
 def update_project(id):
     try:
         project_id = request.json["project_id"]
@@ -53,7 +53,7 @@ def update_project(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/projects/<int:id>', methods=['DELETE'])
+@main.route('/api/projects/<int:id>', methods=['DELETE'])
 def delete_project(id):
     try:
         project = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
@@ -63,7 +63,7 @@ def delete_project(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/facilities', methods=['GET'])
+@main.route('/api/facilities', methods=['GET'])
 def get_facility_list():
     if oidc:
         print(oidc)
@@ -73,12 +73,12 @@ def get_facility_list():
     facility_list = db.session.execute(db.select(Facility)).scalars()
     return facilitiesSchema.jsonify(facility_list)
 
-@main.route('/facilities/<int:id>', methods=['GET'])
+@main.route('/api/facilities/<int:id>', methods=['GET'])
 def get_facility_by_id(id):
     facility_one = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
     return facilitySchema.jsonify(facility_one)
 
-@main.route('/facilities', methods=['POST'])
+@main.route('/api/facilities', methods=['POST'])
 def create_facility():
     name = request.json["name"]
     try:
@@ -90,7 +90,7 @@ def create_facility():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/facilities/<int:id>', methods=['PATCH'])
+@main.route('/api/facilities/<int:id>', methods=['PATCH'])
 def update_facility(id):
     try:
         name = request.json["name"]
@@ -101,7 +101,7 @@ def update_facility(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/facilities/<int:id>', methods=['DELETE'])
+@main.route('/api/facilities/<int:id>', methods=['DELETE'])
 def delete_facility(id):
     try:
         facility = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
@@ -111,7 +111,7 @@ def delete_facility(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/groups', methods=['POST'])
+@main.route('/api/groups', methods=['POST'])
 def create_group():
     try:
         name = request.json["name"]
@@ -123,7 +123,7 @@ def create_group():
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/groups/<int:id>', methods=['GET'])
+@main.route('/api/groups/<int:id>', methods=['GET'])
 def get_group_by_id(id):
     try:
         group = db.get_or_404(Group, id)
@@ -131,7 +131,7 @@ def get_group_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/groups', methods=['GET'])
+@main.route('/api/groups', methods=['GET'])
 def get_group_list():
     try:
         name_like = request.args.get("name_like")
@@ -145,7 +145,7 @@ def get_group_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/groups/<int:id>', methods=['PATCH'])
+@main.route('/api/groups/<int:id>', methods=['PATCH'])
 def update_group(id):
     try:
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
@@ -177,7 +177,7 @@ def update_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/groups/<int:id>', methods=['DELETE'])
+@main.route('/api/groups/<int:id>', methods=['DELETE'])
 def delete_group(id):
     try:
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
@@ -187,7 +187,7 @@ def delete_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/persons', methods=['POST'])
+@main.route('/api/persons', methods=['POST'])
 def create_person():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -224,7 +224,7 @@ def create_person():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/persons/<int:id>', methods=['GET'])
+@main.route('/api/persons/<int:id>', methods=['GET'])
 def get_person_by_id(id):
     try:
         person = db.get_or_404(Person, id)
@@ -232,7 +232,7 @@ def get_person_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/groups/<int:id>/persons', methods=['GET'])
+@main.route('/api/groups/<int:id>/persons', methods=['GET'])
 def get_person_by_group(id):
     try:
         group = Group.query.get_or_404(id)
@@ -251,7 +251,7 @@ def get_person_by_group(id):
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/persons', methods=['GET'])
+@main.route('/api/persons', methods=['GET'])
 def get_person_list():
     try:
         full_name_like = request.args.get("full_name_like")
@@ -284,7 +284,7 @@ def get_person_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/persons/<int:id>', methods=['PATCH'])
+@main.route('/api/persons/<int:id>', methods=['PATCH'])
 def update_person(id):
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -320,7 +320,7 @@ def update_person(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/persons/<int:id>', methods=['DELETE'])
+@main.route('/api/persons/<int:id>', methods=['DELETE'])
 def delete_person(id):
     try:
         person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()
@@ -331,7 +331,7 @@ def delete_person(id):
         return jsonify({"err": f"{err=}"})
     
 # instrument entries
-@main.route('/instruments', methods=['POST'])
+@main.route('/api/instruments', methods=['POST'])
 def create_instrument():
     try:
         instrument = Instrument()
@@ -347,7 +347,7 @@ def create_instrument():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instruments/<int:id>', methods=['GET'])
+@main.route('/api/instruments/<int:id>', methods=['GET'])
 def get_instrument_by_id(id):
     try:
         session = db.get_or_404(Instrument, id)
@@ -355,7 +355,7 @@ def get_instrument_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instruments', methods=['GET'])
+@main.route('/api/instruments', methods=['GET'])
 def get_instrument_list():
     try:
         instruments_list = db.session.execute(db.select(Instrument)).scalars()
@@ -363,7 +363,7 @@ def get_instrument_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
      
-@main.route('/instruments/<int:id>', methods=['PATCH'])
+@main.route('/api/instruments/<int:id>', methods=['PATCH'])
 def update_instrument(id):
     try:
         instrument = db.session.execute(db.select(Instrument).filter_by(id=id)).scalar_one()
@@ -379,7 +379,7 @@ def update_instrument(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/instruments/<int:id>', methods=['DELETE'])
+@main.route('/api/instruments/<int:id>', methods=['DELETE'])
 def delete_instrument(id):
     try:
         instrument = db.session.execute(db.select(Instrument).filter_by(id=id)).scalar_one()
@@ -391,7 +391,7 @@ def delete_instrument(id):
 
 # instrument entries end
     
-@main.route('/instrumentsession', methods=['POST'])
+@main.route('/api/instrumentsession', methods=['POST'])
 def create_session():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -410,7 +410,7 @@ def create_session():
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/instrumentsession/<int:id>', methods=['GET'])
+@main.route('/api/instrumentsession/<int:id>', methods=['GET'])
 def get_session_by_id(id):
     try:
         session = db.get_or_404(InstrumentSession, id)
@@ -418,7 +418,7 @@ def get_session_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentsession', methods=['GET'])
+@main.route('/api/instrumentsession', methods=['GET'])
 def get_session_list():
     try:
         session_list = db.session.execute(db.select(InstrumentSession)).scalars()
@@ -426,7 +426,7 @@ def get_session_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentsession/<int:id>', methods=['PATCH'])
+@main.route('/api/instrumentsession/<int:id>', methods=['PATCH'])
 def update_session(id):
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -493,7 +493,7 @@ def update_session(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/instrumentsession/<int:id>', methods=['DELETE'])
+@main.route('/api/instrumentsession/<int:id>', methods=['DELETE'])
 def delete_session(id):
     try:
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
@@ -505,7 +505,7 @@ def delete_session(id):
 
 # Stat of instrument issue routes
 
-@main.route('/instrumentissues', methods=['POST'])
+@main.route('/api/instrumentissues', methods=['POST'])
 def create_instrumentissue():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -525,7 +525,7 @@ def create_instrumentissue():
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/instrumentissues/<int:id>', methods=['GET'])
+@main.route('/api/instrumentissues/<int:id>', methods=['GET'])
 def get_instrumentissue_by_id(id):
     try:
         issue = db.get_or_404(InstrumentIssue, id)
@@ -533,7 +533,7 @@ def get_instrumentissue_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentissues', methods=['GET'])
+@main.route('/api/instrumentissues', methods=['GET'])
 def get_instrumentissue_list():
     try:
         issue_list = db.session.execute(db.select(InstrumentIssue)).scalars()
@@ -541,7 +541,7 @@ def get_instrumentissue_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentissues/<int:id>', methods=['PATCH'])
+@main.route('/api/instrumentissues/<int:id>', methods=['PATCH'])
 def update_instrumentissue(id):
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -563,7 +563,7 @@ def update_instrumentissue(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/instrumentissues/<int:id>', methods=['DELETE'])
+@main.route('/api/instrumentissues/<int:id>', methods=['DELETE'])
 def delete_instrumentissue(id):
     try:
         session = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()
