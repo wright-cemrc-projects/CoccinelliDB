@@ -8,7 +8,7 @@ from flask_security import roles_accepted
 
 main = Blueprint('main', __name__)
 
-@main.route('/api/hello')
+@main.route('/')
 def index():
     return redirect("http://localhost:5173")
 

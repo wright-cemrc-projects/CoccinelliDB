@@ -50,8 +50,8 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    # if config_name == "production":
     app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
+
     global oidc
     oidc = OpenIDConnect(app)
     
