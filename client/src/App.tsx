@@ -48,7 +48,7 @@ function App() {
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                dataProvider={dataProvider("http://127.0.0.1:8080", httpClient)}
+                dataProvider={dataProvider("http://127.0.0.1:8080/api", httpClient)}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
