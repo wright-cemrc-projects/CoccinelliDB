@@ -22,7 +22,7 @@ def after_auth_handler(sender, **kwargs):
         session.clear()
         return redirect("/custom-logout")
 
-@login_bp.route("/custom-logout", methods=["GET"])
+@login_bp.route("/api/custom-logout", methods=["GET"])
 def logout():
     """
     Clear all login info from browser
@@ -35,7 +35,7 @@ def logout():
     return redirect(f"https://{domain}/oidc/logout?id_token_hint={idToken}&post_logout_redirect_uri={callbackURL}")
 
 # User Info Route
-@login_bp.route("/me")
+@login_bp.route("/api/me")
 def me():
     """
     :return: User info
@@ -43,10 +43,4 @@ def me():
     if "oidc_auth_profile" not in session:
         return jsonify({"error": "Unauthorized"}), 401
     return jsonify(session["oidc_auth_profile"])
-
-
-@login_bp.route("/test_redirect")
-def test():
-    return jsonify({"message": "hello"})
-
 

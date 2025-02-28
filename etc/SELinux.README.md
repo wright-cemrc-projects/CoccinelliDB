@@ -18,6 +18,10 @@ SELinux will interfere with the connections, and you need to have a socket set w
 4. `sudo restorecon -v /opt/coccinellidb/venv/bin/gunicorn`
 5. `sudo systemctl restart coccinellidb nginx`
 
+# This may be more correct for gunicorn? 
+(venv) [cryoadmin@cryo-db coccinellidb]$ sudo semanage fcontext -a -t unconfined_exec_t "/opt/coccinellidb/venv/bin/gunicorn"
+(venv) [cryoadmin@cryo-db coccinellidb]$ sudo restorecon -v /opt/coccinellidb/venv/bin/gunicorn
+
 These should all be setup by an installation script.
 
 

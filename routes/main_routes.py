@@ -17,7 +17,7 @@ def hello_world():
     return jsonify({"message": "Hello World"})
 
 @main.route('/api/projects', methods=['GET'])
-@roles_accepted('Admin')
+# @roles_accepted('Admin')
 def get_project_list():
     project_list = db.session.execute(db.select(Project)).scalars()
     return projectsSchema.jsonify(project_list)
