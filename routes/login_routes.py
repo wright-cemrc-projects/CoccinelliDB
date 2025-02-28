@@ -30,7 +30,13 @@ def logout():
     """
     domain = "dev-flo54hw1p0ohwfvo.us.auth0.com"
     idToken = session["oidc_auth_token"]["id_token"]
+
+    # TODO: remove these FQDN from the code
     callbackURL = "http://localhost:5173/login"
+    environment = os.getenv('FLASK_ENV', 'development')
+    if environment == 'production':
+       callbackURL = "https://cryo-db.biochem.wisc.edu"
+
     session.clear()
     return redirect(f"https://{domain}/oidc/logout?id_token_hint={idToken}&post_logout_redirect_uri={callbackURL}")
 
