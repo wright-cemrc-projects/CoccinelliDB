@@ -73,7 +73,7 @@ export const InstrumentSessionEdit = () => {
         if (queryResult?.data) {
             const persons = queryResult.data.data.persons;
             setPersons(persons || []);
-            formProps.form?.setFieldsValue({ persons: persons?.map(p => p.person_id) || [] });
+            formProps.form?.setFieldsValue({ persons: persons?.map((p: { person_id: number }) => p.person_id) || [] });
         }
     }, [queryResult?.data]);
 
@@ -183,16 +183,36 @@ export const InstrumentSessionEdit = () => {
                             title="Role"
                             dataIndex="role"
                             render={(value, _, index) => (
-                                <Input value={value} onChange={(e) => updatePerson(index, "role", e.target.value)} />
+                                <Select
+                                    value={value}
+                                    onChange={(selectedValue) => updatePerson(index, "role", selectedValue)}
+                                    placeholder="Select a role"
+                                    style={{ width: "100%" }} 
+                                    options={[
+                                        { label: "Staff", value: "staff" },
+                                        { label: "Trainee", value: "trainee" },
+                                        { label: "Independent Operator", value: "operator" },
+                                        { label: "Client", value: "client" },
+                                        { label: "Observer", value: "observer" },
+                                        { label: "Other", value: "other" },
+                                    ]}
+                                />
                             )}
                         />
                         <Table.Column
                             title="Remote Access Level"
                             dataIndex="remote_access_level"
                             render={(value, _, index) => (
-                                <Input
+                                <Select
                                     value={value}
-                                    onChange={(e) => updatePerson(index, "remote_access_level", e.target.value)}
+                                    onChange={(selectedValue) => updatePerson(index, "remote_access_level", selectedValue)}
+                                    placeholder="Select remote access level"
+                                    style={{ width: "100%" }} 
+                                    options={[
+                                        { label: "No access", value: "no access" },
+                                        { label: "Remote view", value: "remote view" },
+                                        { label: "Remote control", value: "remove control" },
+                                    ]}
                                 />
                             )}
                         />

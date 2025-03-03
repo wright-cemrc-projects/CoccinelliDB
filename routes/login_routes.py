@@ -22,7 +22,7 @@ def after_auth_handler(sender, **kwargs):
         session.clear()
         return redirect("/custom-logout")
 
-@login_bp.route("/custom-logout", methods=["GET"])
+@login_bp.route("/api/custom-logout", methods=["GET"])
 def logout():
     """
     Clear all login info from browser
@@ -30,12 +30,18 @@ def logout():
     """
     domain = "dev-flo54hw1p0ohwfvo.us.auth0.com"
     idToken = session["oidc_auth_token"]["id_token"]
+
+    # TODO: remove these FQDN from the code
     callbackURL = "http://localhost:5173/login"
+    environment = os.getenv('FLASK_ENV', 'development')
+    if environment == 'production':
+       callbackURL = "https://cryo-db.biochem.wisc.edu"
+
     session.clear()
     return redirect(f"https://{domain}/oidc/logout?id_token_hint={idToken}&post_logout_redirect_uri={callbackURL}")
 
 # User Info Route
-@login_bp.route("/me")
+@login_bp.route("/api/me")
 def me():
     """
     :return: User info
@@ -43,10 +49,4 @@ def me():
     if "oidc_auth_profile" not in session:
         return jsonify({"error": "Unauthorized"}), 401
     return jsonify(session["oidc_auth_profile"])
-
-
-@login_bp.route("/test_redirect")
-def test():
-    return jsonify({"message": "hello"})
-
 

@@ -1,7 +1,8 @@
 import type { AuthProvider } from "@refinedev/core";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080";
+const AUTH_URL = import.meta.env.VITE_AUTH_URL || "http://127.0.0.1:8080";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -29,14 +30,14 @@ const fetchWithCredentials = async (url: string, method: string = "GET", body: a
 export const authProvider: AuthProvider = {
   login: async () => {
     // Redirect the user to Flask's /login route, which starts OIDC authentication
-    window.location.href = "http://localhost:8080/login";
+    window.location.href = `${AUTH_URL}/login`;
     return { success: true };
   },
 
   logout: async () => {
     console.log("logout");
     // // Logout by calling Flask's /logout route
-    window.location.href = "http://localhost:8080/custom-logout";
+    window.location.href = `${API_BASE_URL}/custom-logout`;
     return { success: true };
   },
 
