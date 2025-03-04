@@ -35,19 +35,20 @@ export const authProvider: AuthProvider = {
   },
 
   logout: async () => {
-    console.log("logout");
     // // Logout by calling Flask's /logout route
     window.location.href = `${API_BASE_URL}/custom-logout`;
     return { success: true };
   },
 
   check: async () => {
+    console.log("check");
+    setTimeout(() => {console.log("hello")}, 10000);
     // Check authentication status by calling Flask's /me endpoint
     try {
       await fetchWithCredentials("/me");
       return { authenticated: true };
     } catch {
-      return { authenticated: false, redirectTo: "/login" };
+      return { authenticated: false, redirectTo: "/unauthorized" };
     }
   },
 

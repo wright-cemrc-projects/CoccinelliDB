@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request, session, redirect
+from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for
 from app import oidc, db
 import os
 from app.models import Person
@@ -11,16 +11,16 @@ login_bp = Blueprint('login', __name__)
 @signals.after_authorize.connect
 def after_auth_handler(sender, **kwargs):
     """Triggered when the user is authenticated. Check if user is already registered"""
+    kwargs["return_to"] = "http://127.0.0.1:8080/api/home"
     email = session["oidc_auth_profile"]["email"]
-    print(email)
     try:
         Person.query.filter_by(email=email).first_or_404(description="User not found")
         return redirect("http://localhost:5173")
     except Exception as err:
         print({"err": f"{err=}"})
         print("user is not registered")
-        session.clear()
-        return redirect("/custom-logout")
+        session["return_to"] = url_for("login.logout", _external=True)
+        return
 
 @login_bp.route("/api/custom-logout", methods=["GET"])
 def logout():
@@ -32,7 +32,7 @@ def logout():
     idToken = session["oidc_auth_token"]["id_token"]
 
     # TODO: remove these FQDN from the code
-    callbackURL = "http://localhost:5173/login"
+    callbackURL = "http://localhost:5173"
     environment = os.getenv('FLASK_ENV', 'development')
     if environment == 'production':
        callbackURL = "https://cryo-db.biochem.wisc.edu"
