@@ -14,11 +14,9 @@ export const ProjectList = () => {
         filters: {
         },
     });
-    console.log(tableProps.dataSource);
     const transformedDataSource = tableProps.dataSource?.map((record) => ({
         ...record,
     }));
-    console.log(transformedDataSource)
     return (
         <List>
             <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">

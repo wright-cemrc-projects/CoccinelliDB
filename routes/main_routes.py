@@ -1,36 +1,33 @@
-from flask import Blueprint, render_template, jsonify, request
-from flask_cors import CORS
+from flask import Blueprint, render_template, jsonify, request, session, redirect
 from sqlalchemy import or_, inspect
-
-from . import db
-from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person
-from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
-
+from app import db, oidc
+from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
+from app.schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
 from datetime import datetime
+from flask_security import roles_accepted
 
 main = Blueprint('main', __name__)
-CORS(main)
 
 @main.route('/')
 def index():
-    return "Hello, World!"
+    return redirect("http://localhost:5173")
 
-@main.route('/home', methods=['GET'])
+@main.route('/api/home', methods=['GET'])
 def hello_world():
     return jsonify({"message": "Hello World"})
 
-
-@main.route('/projects', methods=['GET'])
+@main.route('/api/projects', methods=['GET'])
+# @roles_accepted('Admin')
 def get_project_list():
     project_list = db.session.execute(db.select(Project)).scalars()
     return projectsSchema.jsonify(project_list)
 
-@main.route('/projects/<int:id>', methods=['GET'])
+@main.route('/api/projects/<int:id>', methods=['GET'])
 def get_project_by_id(id):
     project_one = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
     return projectSchema.jsonify(project_one)
 
-@main.route('/projects', methods=['POST'])
+@main.route('/api/projects', methods=['POST'])
 def create_project():
     project_id = request.json["project_id"]
     facility_id = request.json["facility_id"]
@@ -43,9 +40,8 @@ def create_project():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/projects/<int:id>', methods=['PATCH'])
+@main.route('/api/projects/<int:id>', methods=['PATCH'])
 def update_project(id):
-    print("update_project")
     try:
         project_id = request.json["project_id"]
         facility_id = request.json["facility_id"]
@@ -57,7 +53,7 @@ def update_project(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/projects/<int:id>', methods=['DELETE'])
+@main.route('/api/projects/<int:id>', methods=['DELETE'])
 def delete_project(id):
     try:
         project = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
@@ -67,31 +63,34 @@ def delete_project(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/facilities', methods=['GET'])
+@main.route('/api/facilities', methods=['GET'])
 def get_facility_list():
+    if oidc:
+        print(oidc)
+        print(oidc.user_loggedin)
+        print(oidc.get_access_token())
+        print(oidc.get_refresh_token())
     facility_list = db.session.execute(db.select(Facility)).scalars()
     return facilitiesSchema.jsonify(facility_list)
 
-@main.route('/facilities/<int:id>', methods=['GET'])
+@main.route('/api/facilities/<int:id>', methods=['GET'])
 def get_facility_by_id(id):
     facility_one = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
     return facilitySchema.jsonify(facility_one)
 
-@main.route('/facilities', methods=['POST'])
+@main.route('/api/facilities', methods=['POST'])
 def create_facility():
     name = request.json["name"]
     try:
         facility = Facility(name)
         db.session.add(facility)
-        print(inspect(facility).pending)
-        print
         db.session.commit()
         db.session.flush()
         return jsonify({"message": "new facility created."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/facilities/<int:id>', methods=['PATCH'])
+@main.route('/api/facilities/<int:id>', methods=['PATCH'])
 def update_facility(id):
     try:
         name = request.json["name"]
@@ -102,7 +101,7 @@ def update_facility(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/facilities/<int:id>', methods=['DELETE'])
+@main.route('/api/facilities/<int:id>', methods=['DELETE'])
 def delete_facility(id):
     try:
         facility = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
@@ -112,7 +111,7 @@ def delete_facility(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/groups', methods=['POST'])
+@main.route('/api/groups', methods=['POST'])
 def create_group():
     try:
         name = request.json["name"]
@@ -124,7 +123,7 @@ def create_group():
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/groups/<int:id>', methods=['GET'])
+@main.route('/api/groups/<int:id>', methods=['GET'])
 def get_group_by_id(id):
     try:
         group = db.get_or_404(Group, id)
@@ -132,7 +131,7 @@ def get_group_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/groups', methods=['GET'])
+@main.route('/api/groups', methods=['GET'])
 def get_group_list():
     try:
         name_like = request.args.get("name_like")
@@ -146,7 +145,7 @@ def get_group_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/groups/<int:id>', methods=['PATCH'])
+@main.route('/api/groups/<int:id>', methods=['PATCH'])
 def update_group(id):
     try:
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
@@ -178,7 +177,7 @@ def update_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/groups/<int:id>', methods=['DELETE'])
+@main.route('/api/groups/<int:id>', methods=['DELETE'])
 def delete_group(id):
     try:
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
@@ -188,15 +187,19 @@ def delete_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/persons', methods=['POST'])
+@main.route('/api/persons', methods=['POST'])
 def create_person():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
-        first_name = request.json["first_name"]
-        last_name = request.json["last_name"]
-        net_id = request.json["net_id"]
-        email = request.json["email"]
-        person = Person(first_name=first_name, last_name=last_name, net_id=net_id, email=email)
+        person = Person()
+        if "first_name" in request.json:
+            person.first_name = request.json["first_name"]
+        if "last_name" in request.json:
+            person.last_name = request.json["last_name"]
+        if "net_id" in request.json:
+            person.net_id = request.json["net_id"]
+        if "email" in request.json:
+            person.email = request.json["email"]
         if "group_id" in request.json:
             person.group_id = request.json["group_id"]
         if "address1" in request.json:
@@ -221,7 +224,7 @@ def create_person():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/persons/<int:id>', methods=['GET'])
+@main.route('/api/persons/<int:id>', methods=['GET'])
 def get_person_by_id(id):
     try:
         person = db.get_or_404(Person, id)
@@ -229,7 +232,7 @@ def get_person_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/groups/<int:id>/persons', methods=['GET'])
+@main.route('/api/groups/<int:id>/persons', methods=['GET'])
 def get_person_by_group(id):
     try:
         group = Group.query.get_or_404(id)
@@ -248,7 +251,7 @@ def get_person_by_group(id):
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/persons', methods=['GET'])
+@main.route('/api/persons', methods=['GET'])
 def get_person_list():
     try:
         full_name_like = request.args.get("full_name_like")
@@ -281,7 +284,7 @@ def get_person_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/persons/<int:id>', methods=['PATCH'])
+@main.route('/api/persons/<int:id>', methods=['PATCH'])
 def update_person(id):
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -317,7 +320,7 @@ def update_person(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/persons/<int:id>', methods=['DELETE'])
+@main.route('/api/persons/<int:id>', methods=['DELETE'])
 def delete_person(id):
     try:
         person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()
@@ -328,7 +331,7 @@ def delete_person(id):
         return jsonify({"err": f"{err=}"})
     
 # instrument entries
-@main.route('/instruments', methods=['POST'])
+@main.route('/api/instruments', methods=['POST'])
 def create_instrument():
     try:
         instrument = Instrument()
@@ -344,7 +347,7 @@ def create_instrument():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instruments/<int:id>', methods=['GET'])
+@main.route('/api/instruments/<int:id>', methods=['GET'])
 def get_instrument_by_id(id):
     try:
         session = db.get_or_404(Instrument, id)
@@ -352,7 +355,7 @@ def get_instrument_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instruments', methods=['GET'])
+@main.route('/api/instruments', methods=['GET'])
 def get_instrument_list():
     try:
         instruments_list = db.session.execute(db.select(Instrument)).scalars()
@@ -360,7 +363,7 @@ def get_instrument_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
      
-@main.route('/instruments/<int:id>', methods=['PATCH'])
+@main.route('/api/instruments/<int:id>', methods=['PATCH'])
 def update_instrument(id):
     try:
         instrument = db.session.execute(db.select(Instrument).filter_by(id=id)).scalar_one()
@@ -376,7 +379,7 @@ def update_instrument(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/instruments/<int:id>', methods=['DELETE'])
+@main.route('/api/instruments/<int:id>', methods=['DELETE'])
 def delete_instrument(id):
     try:
         instrument = db.session.execute(db.select(Instrument).filter_by(id=id)).scalar_one()
@@ -388,7 +391,7 @@ def delete_instrument(id):
 
 # instrument entries end
     
-@main.route('/instrumentsession', methods=['POST'])
+@main.route('/api/instrumentsession', methods=['POST'])
 def create_session():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -407,7 +410,7 @@ def create_session():
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/instrumentsession/<int:id>', methods=['GET'])
+@main.route('/api/instrumentsession/<int:id>', methods=['GET'])
 def get_session_by_id(id):
     try:
         session = db.get_or_404(InstrumentSession, id)
@@ -415,7 +418,7 @@ def get_session_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentsession', methods=['GET'])
+@main.route('/api/instrumentsession', methods=['GET'])
 def get_session_list():
     try:
         session_list = db.session.execute(db.select(InstrumentSession)).scalars()
@@ -423,7 +426,7 @@ def get_session_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentsession/<int:id>', methods=['PATCH'])
+@main.route('/api/instrumentsession/<int:id>', methods=['PATCH'])
 def update_session(id):
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -436,12 +439,61 @@ def update_session(id):
             session.end_date = datetime.strptime(cleaned_end_date, date_format)
         if "instrument_id" in request.json:
             session.instrument_id = request.json["instrument_id"]
+
+        # Update persons in the session
+
+        if "persons" in request.json:
+            new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
+
+            # Get current person IDs linked to the session
+            current_person_ids = {
+                person_id for person_id, in db.session.query(session_person_link.c.person_id)
+                .filter_by(session_id=id)
+                .all()
+            }
+
+            # Process new persons list
+            for person_data in new_persons:
+                person_id = person_data["person_id"]
+                onsite = person_data.get("onsite", False)
+                role = person_data.get("role", "")
+                remote_access_level = person_data.get("remote_access_level", "")
+
+                if person_id in current_person_ids:
+                    # Update existing record
+                    db.session.execute(
+                        session_person_link.update()
+                        .where(session_person_link.c.session_id == id)
+                        .where(session_person_link.c.person_id == person_id)
+                        .values(onsite=onsite, role=role, remote_access_level=remote_access_level)
+                    )
+                    current_person_ids.remove(person_id)  # Mark as processed
+                else:
+                    # Insert new record
+                    db.session.execute(
+                        session_person_link.insert().values(
+                            session_id=id,
+                            person_id=person_id,
+                            onsite=onsite,
+                            role=role,
+                            remote_access_level=remote_access_level
+                        )
+                    )
+
+            # Remove persons that were not in the updated list
+            if current_person_ids:
+                db.session.execute(
+                    session_person_link.delete()
+                    .where(session_person_link.c.session_id == id)
+                    .where(session_person_link.c.person_id.in_(current_person_ids))
+                )
+
         db.session.commit()
         return jsonify({"message": f"{session} got updated"})
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/instrumentsession/<int:id>', methods=['DELETE'])
+@main.route('/api/instrumentsession/<int:id>', methods=['DELETE'])
 def delete_session(id):
     try:
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
@@ -453,7 +505,7 @@ def delete_session(id):
 
 # Stat of instrument issue routes
 
-@main.route('/instrumentissues', methods=['POST'])
+@main.route('/api/instrumentissues', methods=['POST'])
 def create_instrumentissue():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -473,7 +525,7 @@ def create_instrumentissue():
         return jsonify({"err": f"{err=}"})
 
 
-@main.route('/instrumentissues/<int:id>', methods=['GET'])
+@main.route('/api/instrumentissues/<int:id>', methods=['GET'])
 def get_instrumentissue_by_id(id):
     try:
         issue = db.get_or_404(InstrumentIssue, id)
@@ -481,7 +533,7 @@ def get_instrumentissue_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentissues', methods=['GET'])
+@main.route('/api/instrumentissues', methods=['GET'])
 def get_instrumentissue_list():
     try:
         issue_list = db.session.execute(db.select(InstrumentIssue)).scalars()
@@ -489,7 +541,7 @@ def get_instrumentissue_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@main.route('/instrumentissues/<int:id>', methods=['PATCH'])
+@main.route('/api/instrumentissues/<int:id>', methods=['PATCH'])
 def update_instrumentissue(id):
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -511,7 +563,7 @@ def update_instrumentissue(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})    
 
-@main.route('/instrumentissues/<int:id>', methods=['DELETE'])
+@main.route('/api/instrumentissues/<int:id>', methods=['DELETE'])
 def delete_instrumentissue(id):
     try:
         session = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()
@@ -521,66 +573,4 @@ def delete_instrumentissue(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-# ------------------------------    
-# API routes defined below here
-# ------------------------------
 
-from app.services.session_service import is_session_booked
-
-api_bp = Blueprint('session', __name__)
-CORS(api_bp)
-
-## Query to get a list of allowed users for an instrument.
-@api_bp.route('/api/sessions/get_session_persons', methods=['GET'])
-def get_session_persons():
-    """Check if a session is booked."""
-    instrument_id = request.args.get('instrument_id')
-    if not instrument_id:
-        return jsonify({"error": "Missing instrument_id"}), 400
-    
-    access_time = request.args.get('access_time')
-    if not access_time:
-        return jsonify({"error": "Missing access_time"}), 400
-    
-    # TODO: this should do a database query with a call from services to get a list of matching session_person_link records.
-    persons = []
-    return jsonify({"instrument_id": instrument_id, "datetime": datetime, "persons": persons})
-
-## Query to get ask if a particular user is currently authorized.
-@api_bp.route('/api/sessions/get_remote_session_allowed', methods=['GET'])
-def get_remote_allowed():
-    """Check if a session is booked."""
-    instrument_id = request.args.get('instrument_id')
-    if not instrument_id:
-        return jsonify({"error": "Missing instrument_id"}), 400
-    
-    access_time = request.args.get('access_time')
-    if not access_time:
-        return jsonify({"error": "Missing access_time"}), 400
-    
-    username = request.args.get('username')
-    if not username:
-        return jsonify({"error": "Missing username"}), 400
-    
-    # TODO: this should do a database query with a call from services to check find a matching session_person_link record.
-    authorized = False
-    return jsonify({"instrument_id": instrument_id, "datetime": datetime, "username": username, "authorized": authorized})
-
-@api_bp.route('/api/sessions/log_remote_access_connect', methods=['GET'])
-def log_remote_access_connect():
-    """ Create a log entry that an instrument was connected """
-    instrument_id = request.args.get('instrument_id')
-    if not instrument_id:
-        return jsonify({"error": "Missing instrument_id"}), 400
-    
-    access_time = request.args.get('access_time')
-    if not access_time:
-        return jsonify({"error": "Missing access_time"}), 400
-    
-    username = request.args.get('username')
-    if not username:
-        return jsonify({"error": "Missing username"}), 400
-    
-    # TODO: this api endpoint should make a new log record via a services call.
-
-    return jsonify({"instrument_id": instrument_id, "datetime": datetime, "username": username})

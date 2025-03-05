@@ -24,8 +24,8 @@ import { authProvider } from "./authProvider";
 import { Header } from "@/src/components";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { ForgotPassword } from "./pages/forgotPassword";
-import { Login } from "./pages/login";
-import { Register } from "./pages/register";
+// import { Login } from "./pages/login";
+// import { Register } from "./pages/register";
 import {resources} from "@/src/config/resources";
 import axios from "axios";
 import { FacilityCreate, FacilityList, FacilityShow, FacilityEdit } from "./pages/facilities";
@@ -35,20 +35,40 @@ import { InstrumentCreate, InstrumentEdit, InstrumentList, InstrumentShow } from
 import { InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow } from "./pages/instrumentsession";
 import { PersonList, PersonEdit, PersonCreate, PersonShow } from "./pages/persons";
 import { InstrumentIssueCreate, InstrumentIssueEdit, InstrumentIssueList, InstrumentIssueShow } from "./pages/instrumentissues";
+import {Unauthorized} from "./pages/Unauthorized"
 import { DashboardPage } from "@/src/pages/dashboard";
 import { BugOutlined } from "@ant-design/icons";
+import {useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
 
 const httpClient = axios.create();
 
 function App() {
+  const navigate = useNavigate();
+  const [loginFailed, setLoginFailed] = useState(false); // Prevent infinite loop
+
+  useEffect(() => {
+    if (!loginFailed) {
+      authProvider.check().then((res) => {
+        if (!res.authenticated) {
+          authProvider.login({});
+          setLoginFailed(true); // Mark login as failed, so we don't keep retrying
+        }
+      });
+    } else {
+      navigate("/unauthorized");
+    }
+  }, [loginFailed]);
+
   return (
-    <BrowserRouter> 
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                dataProvider={dataProvider("http://127.0.0.1:8080", httpClient)}
+                dataProvider={dataProvider(API_URL, httpClient)}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
@@ -69,7 +89,7 @@ function App() {
                     element={
                       <Authenticated
                         key="authenticated-inner"
-                        fallback={<CatchAllNavigate to="/login" />}
+                        fallback={<CatchAllNavigate to="/unauthorized" />}
                       >
                         <ThemedLayoutV2
                           Header={Header}
@@ -125,23 +145,8 @@ function App() {
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
-                  <Route
-                    element={
-                      <Authenticated
-                        key="authenticated-outer"
-                        fallback={<Outlet />}
-                      >
-                        <NavigateToResource />
-                      </Authenticated>
-                    }
-                  >
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route
-                      path="/forgot-password"
-                      element={<ForgotPassword />}
-                    />
-                  </Route>
+                  <Route path="/unauthorized" element={<Unauthorized />} />
+                  
                 </Routes>
 
                 <RefineKbar />
@@ -153,7 +158,6 @@ function App() {
           </AntdApp>
         </ColorModeContextProvider>
       </RefineKbarProvider>
-    </BrowserRouter>
   );
 }
 

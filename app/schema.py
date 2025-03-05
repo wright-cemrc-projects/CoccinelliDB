@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 from marshmallow import Schema, fields
+=======
+from marshmallow import fields, post_dump
+>>>>>>> development
 
 from . import ma
-from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue
+from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db
 
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
@@ -45,6 +49,27 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = InstrumentSession
         include_fk = True
+
+    @post_dump
+    def add_person_details(self, data, **kwargs):
+        """ Attach onsite, role, and remote_access_level from session_person_link """
+        session_id = data.get("id")
+        if session_id:
+            links = db.session.execute(
+                db.select(session_person_link).filter_by(session_id=session_id)
+            ).fetchall()
+
+            persons_data = []
+            for link in links:
+                persons_data.append({
+                    "person_id": link.person_id,  # Needed for frontend mapping
+                    "onsite": link.onsite,
+                    "role": link.role,
+                    "remote_access_level": link.remote_access_level
+                })
+            data["persons"] = persons_data  # ✅ Attach required fields only
+
+        return data
 instrumentSessionSchema = InstrumentSessionSchema()
 instrumentSessionsSchema = InstrumentSessionSchema(many=True)
 
