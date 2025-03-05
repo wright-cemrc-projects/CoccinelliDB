@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-from marshmallow import Schema, fields
-=======
-from marshmallow import fields, post_dump
->>>>>>> development
+from marshmallow import Schema, fields, post_dump
 
 from . import ma
 from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db

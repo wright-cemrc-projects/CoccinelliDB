@@ -56,18 +56,14 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     oidc = OpenIDConnect(app)
     
     CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
-    # Register routes (from routes.py)
-<<<<<<< HEAD
-    from .routes import main, remote_api_bp
+   
+    # Register routes (from routes/*)
+    from routes.main_routes import main 
+    from routes.remote_api_routes import remote_api_bp
+    from routes.login_routes import  login_bp
+
     app.register_blueprint(main)
     app.register_blueprint(remote_api_bp)
-    
-    from .models import Group, Facility, Person
-=======
-    from routes.main_routes import main
-    app.register_blueprint(main)
-
-    from routes.login_routes import login_bp
     app.register_blueprint(login_bp)
 
     from .models import Group, Facility, Person, Role
@@ -94,7 +90,6 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
         person = Person(first_name, last_name, email, net_id)
         db.session.add(person)
         db.session.commit()
->>>>>>> development
 
     @app.cli.command("create-facility")
     @click.argument("name")
