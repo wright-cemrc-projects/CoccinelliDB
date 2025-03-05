@@ -1,6 +1,6 @@
 import string
 
-from flask import Flask
+from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
@@ -8,9 +8,14 @@ import os
 from sqlalchemy import MetaData
 from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
-
+from flask_oidc import OpenIDConnect
+from flask_session import Session
+from flask_cors import CORS
 import config
 from tests.test_routes import test_group, test_person
+import secrets
+
+
 
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
@@ -29,11 +34,14 @@ config_map = {
 db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate()
 ma = Marshmallow()
+oidc = None
 
 def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
 
     app = Flask(__name__)
-
+    # secret key for signing the cookie and session
+    secret_key = secrets.token_hex(24)
+    app.config['SECRET_KEY'] = secret_key
     conf = config_map.get(config_name, config.DevelopmentConfig)
 
     app.config.from_object(conf)
@@ -42,12 +50,43 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
 
-    # Register routes (from routes.py)
-    from .routes import main
-    app.register_blueprint(main)
+    global oidc
+    oidc = OpenIDConnect(app)
     
-    from .models import Group, Facility, Person
+    CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+    # Register routes (from routes.py)
+    from routes.main_routes import main
+    app.register_blueprint(main)
+
+    from routes.login_routes import login_bp
+    app.register_blueprint(login_bp)
+
+    from .models import Group, Facility, Person, Role
+
+    """
+    Usage: flask create-role role1 role2 ....
+    """
+    @app.cli.command("create-role")
+    @click.argument("roles", nargs=-1)
+    def create_roles(roles):
+        for role_name in roles:
+            role = Role(name=role_name)
+            db.session.add(role)
+        db.session.commit()
+        print("Roles created successfully!")
+
+    @app.cli.command("create-user")
+    @click.argument("first_name")
+    @click.argument("last_name")
+    @click.argument("email")
+    @click.argument("net_id")
+    @click.argument("roles", nargs=-1)
+    def create_user(first_name, last_name, email, net_id, roles):
+        person = Person(first_name, last_name, email, net_id)
+        db.session.add(person)
+        db.session.commit()
 
     @app.cli.command("create-facility")
     @click.argument("name")

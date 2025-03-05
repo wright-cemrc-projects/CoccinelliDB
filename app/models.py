@@ -1,8 +1,10 @@
 from __future__ import annotations
+
+
 from . import db
 
 from typing import List
-
+from flask_security import RoleMixin
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
@@ -48,6 +50,16 @@ class Group(db.Model):
     def __repr__(self):
         return f"<Group(name={self.name})>"
 
+roles_users = db.Table('roles_users',
+                       db.Column('person_id', db.Integer(), db.ForeignKey('person.id')),
+                       db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+
+class Role(db.Model, RoleMixin):
+    __tablename__ = 'role'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+
+
 class Person(db.Model):
     """ Representation of an individual """
     __tablename__ = "person"
@@ -56,14 +68,15 @@ class Person(db.Model):
     last_name = db.Column(db.String(45))
     organization = db.Column(db.String(45), nullable=True)
     email = db.Column(db.String(45), unique=True)
-    address1 = db.Column(db.String(45), nullable=True) 
+    address1 = db.Column(db.String(45), nullable=True)
     address2 = db.Column(db.String(45), nullable=True)
     state = db.Column(db.String(45), nullable=True)
     country = db.Column(db.String(45), nullable=True)
     telephone = db.Column(db.String(45), nullable=True)
     net_id = db.Column(db.String(45 ), unique=True)
-    start_date = db.Column(db.DateTime, nullable=True) 
+    start_date = db.Column(db.DateTime, nullable=True)
     end_date = db.Column(db.DateTime, nullable=True)
+    roles = db.relationship('Role', secondary=roles_users, backref='person')
 
     def __init__(self, first_name, last_name, email, net_id):
         self.first_name = first_name
@@ -79,7 +92,9 @@ class Person(db.Model):
 
     def __repr__(self):
         return f"Person(name={self.first_name} {self.last_name}, email={self.email})"
-    
+
+
+
 # Entries below using SQLAlchemy ORM configuration style with Declarative mappings with Mapped.
 # https://docs.sqlalchemy.org/en/20/orm/basic_relationships.html
 # back_populates argument is to be used when we want data access in both directions from

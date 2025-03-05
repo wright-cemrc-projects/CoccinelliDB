@@ -1,27 +1,23 @@
-from flask import Blueprint, render_template, jsonify, request
-from flask_cors import CORS
+from flask import Blueprint, render_template, jsonify, request, session, redirect
 from sqlalchemy import or_, inspect
-
-from . import db
-from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
-from .schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
-
+from app import db, oidc
+from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
+from app.schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
 from datetime import datetime
+from flask_security import roles_accepted
 
 main = Blueprint('main', __name__)
-CORS(main)
 
-
-@main.route('/api/hello')
+@main.route('/')
 def index():
-    return "Hello, World!"
+    return redirect("http://localhost:5173")
 
 @main.route('/api/home', methods=['GET'])
 def hello_world():
     return jsonify({"message": "Hello World"})
 
-
 @main.route('/api/projects', methods=['GET'])
+# @roles_accepted('Admin')
 def get_project_list():
     project_list = db.session.execute(db.select(Project)).scalars()
     return projectsSchema.jsonify(project_list)
@@ -46,7 +42,6 @@ def create_project():
 
 @main.route('/api/projects/<int:id>', methods=['PATCH'])
 def update_project(id):
-    print("update_project")
     try:
         project_id = request.json["project_id"]
         facility_id = request.json["facility_id"]
@@ -70,6 +65,11 @@ def delete_project(id):
 
 @main.route('/api/facilities', methods=['GET'])
 def get_facility_list():
+    if oidc:
+        print(oidc)
+        print(oidc.user_loggedin)
+        print(oidc.get_access_token())
+        print(oidc.get_refresh_token())
     facility_list = db.session.execute(db.select(Facility)).scalars()
     return facilitiesSchema.jsonify(facility_list)
 
@@ -84,8 +84,6 @@ def create_facility():
     try:
         facility = Facility(name)
         db.session.add(facility)
-        print(inspect(facility).pending)
-        print
         db.session.commit()
         db.session.flush()
         return jsonify({"message": "new facility created."})
@@ -193,11 +191,15 @@ def delete_group(id):
 def create_person():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
-        first_name = request.json["first_name"]
-        last_name = request.json["last_name"]
-        net_id = request.json["net_id"]
-        email = request.json["email"]
-        person = Person(first_name=first_name, last_name=last_name, net_id=net_id, email=email)
+        person = Person()
+        if "first_name" in request.json:
+            person.first_name = request.json["first_name"]
+        if "last_name" in request.json:
+            person.last_name = request.json["last_name"]
+        if "net_id" in request.json:
+            person.net_id = request.json["net_id"]
+        if "email" in request.json:
+            person.email = request.json["email"]
         if "group_id" in request.json:
             person.group_id = request.json["group_id"]
         if "address1" in request.json:
@@ -570,4 +572,3 @@ def delete_instrumentissue(id):
         return jsonify({"message": f"{session} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
-    
