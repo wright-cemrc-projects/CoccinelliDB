@@ -25,7 +25,7 @@ import { Header } from "@/src/components";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { ForgotPassword } from "./pages/forgotPassword";
 // import { Login } from "./pages/login";
-import { Register } from "./pages/register";
+// import { Register } from "./pages/register";
 import {resources} from "@/src/config/resources";
 import axios from "axios";
 import { FacilityCreate, FacilityList, FacilityShow, FacilityEdit } from "./pages/facilities";
@@ -53,7 +53,7 @@ function App() {
     if (!loginFailed) {
       authProvider.check().then((res) => {
         if (!res.authenticated) {
-          authProvider.login();
+          authProvider.login({});
           setLoginFailed(true); // Mark login as failed, so we don't keep retrying
         }
       });
