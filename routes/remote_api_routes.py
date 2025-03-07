@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, session, redirect
 from datetime import datetime
-from app.services.session_service import is_session_booked
+from app.services.session_service import is_session_booked, get_matching_session_persons
 
 remote_api_bp = Blueprint('remoteapi', __name__)
 
@@ -12,13 +12,16 @@ def get_session_persons():
     if not instrument_id:
         return jsonify({"error": "Missing instrument_id"}), 400
     
-    access_time = request.args.get('access_time')
+    access_time = request.args.get('datetime')
     if not access_time:
         return jsonify({"error": "Missing access_time"}), 400
     
-    # TODO: this should do a database query with a call from services to get a list of matching session_person_link records.
     persons = []
-    return jsonify({"instrument_id": instrument_id, "datetime": datetime, "persons": persons})
+    session_persons = get_matching_session_persons(instrument_id = instrument_id, target_datetime = access_time)
+    if session_persons != None:
+        persons = session_persons
+
+    return jsonify(persons)
 
 ## Query to get ask if a particular user is currently authorized.
 @remote_api_bp.route('/api/remote/sessions/get_remote_session_allowed', methods=['GET'])
@@ -36,8 +39,16 @@ def get_remote_allowed():
     if not username:
         return jsonify({"error": "Missing username"}), 400
     
-    # TODO: this should do a database query with a call from services to check find a matching session_person_link record.
+    # This should do a database query with a call from services to check find a matching session_person_link record.
+    persons = []
+    session_persons = get_matching_session_persons(instrument_id = instrument_id, target_datetime = access_time)
+    if session_persons != None:
+        persons = session_persons
+    
     authorized = False
+    if persons != None:
+        ''' TODO: check through persons list to see if user present and allowed '''
+
     return jsonify({"instrument_id": instrument_id, "datetime": datetime, "username": username, "authorized": authorized})
 
 @remote_api_bp.route('/api/remote/sessions/log_remote_access_connect', methods=['GET'])
