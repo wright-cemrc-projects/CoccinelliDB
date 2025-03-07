@@ -68,3 +68,13 @@ def get_matching_session_persons(instrument_id: int, target_datetime: datetime):
     ]
 
     return session_persons
+
+def check_is_person_allowed(instrument_id: int, target_datetime: datetime, username: str):
+
+    session_persons = get_matching_session_persons(instrument_id, target_datetime)
+
+    for person in session_persons:
+        if person.net_id == username and person.remote_access_level == 'remote control':
+            return True
+
+    return False
