@@ -38,6 +38,13 @@ def get_matching_session_persons(instrument_id: int, target_datetime: datetime):
         .first()
     )
 
+    if not session_query:
+        print("No matching InstrumentSession found.")
+        return None
+
+    # We are joining the SessionPersonLink, with a Person object 
+    #  to include the Person field: first_name, last_name, email, netid
+
     # Define the join between session_person_link and person
     stmt = select(
         session_person_link.c.session_id,
@@ -54,13 +61,6 @@ def get_matching_session_persons(instrument_id: int, target_datetime: datetime):
         session_person_link.c.session_id == session_query.id
     )
 
-    if not session_query:
-        print("No matching InstrumentSession found.")
-        return None
-
-    # We are joining the SessionPersonLink, with a Person object 
-    #  to include the Person field: first_name, last_name, email, netid
-
     # Execute query and convert rows to dataclass objects
     session_persons = [
         SessionPersonLink(*row)
@@ -73,8 +73,9 @@ def check_is_person_allowed(instrument_id: int, target_datetime: datetime, usern
 
     session_persons = get_matching_session_persons(instrument_id, target_datetime)
 
-    for person in session_persons:
-        if person.net_id == username and person.remote_access_level == 'remote control':
-            return True
+    if session_persons:
+        for person in session_persons:
+            if person.net_id == username and person.remote_access_level == 'remote control':
+                return True
 
     return False
