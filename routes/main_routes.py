@@ -191,15 +191,26 @@ def delete_group(id):
 def create_person():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
-        person = Person()
+
+        # Get required arguments for initializer
+        first_name = None
         if "first_name" in request.json:
-            person.first_name = request.json["first_name"]
+            first_name = request.json["first_name"]
+        last_name = None
         if "last_name" in request.json:
-            person.last_name = request.json["last_name"]
+            last_name = request.json["last_name"]
+        net_id = None    
         if "net_id" in request.json:
-            person.net_id = request.json["net_id"]
+            net_id = request.json["net_id"]
+        email = None
         if "email" in request.json:
-            person.email = request.json["email"]
+            email = request.json["email"]
+
+        if (first_name and last_name and net_id and email) :
+            person = Person(first_name = first_name, last_name = last_name, net_id = net_id, email = email)
+        else:
+            raise Exception('Missing arguments: first_name, last_name, net_id, and email')
+
         if "group_id" in request.json:
             person.group_id = request.json["group_id"]
         if "address1" in request.json:
