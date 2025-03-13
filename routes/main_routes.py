@@ -411,7 +411,9 @@ def create_session():
         cleaned_end_date = request.json["end_date"].split(".")[0]
         end_date = datetime.strptime(cleaned_end_date, date_format)
         instrument_id = int(request.json["instrument_id"])
-        project_id = int(request.json["project_id"])
+        project_id = None
+        if "project_id" in request.json:
+            project_id = int(request.json["project_id"])
         facility_id = int(request.json["facility_id"])
         instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
         db.session.add(instrument_session)
