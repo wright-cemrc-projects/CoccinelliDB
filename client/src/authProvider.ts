@@ -19,6 +19,7 @@ const fetchWithCredentials = async (url: string, method: string = "GET", body: a
       url,
       method,
       data: body,
+      withCredentials: true,
     });
     return response.data;
   } catch (error: any) {
@@ -41,14 +42,19 @@ export const authProvider: AuthProvider = {
   },
 
   check: async () => {
-    console.log("check");
-    setTimeout(() => {console.log("hello")}, 10000);
     // Check authentication status by calling Flask's /me endpoint
     try {
       await fetchWithCredentials("/me");
       return { authenticated: true };
     } catch {
-      return { authenticated: false, redirectTo: "/unauthorized" };
+      return {
+        authenticated: false,
+        redirectTo: "/",
+        error: {
+          message: "Check failed",
+          name: "Unauthorized",
+        },
+      };
     }
   },
 
