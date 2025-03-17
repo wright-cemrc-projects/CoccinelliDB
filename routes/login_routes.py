@@ -50,7 +50,9 @@ def me():
     """
     :return: User info
     """
-    if "oidc_auth_profile" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    return jsonify(session["oidc_auth_profile"])
+    # if "oidc_auth_profile" not in session:
+    #     return jsonify({"error": "Unauthorized"}), 401
+    # return jsonify(session["oidc_auth_profile"])
 
+    # temp solution for login
+    return jsonify({"email": "zhyan0096@gmail.com"})
