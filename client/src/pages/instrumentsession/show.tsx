@@ -1,6 +1,7 @@
 import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
 import { Typography } from "antd";
+import { Calendar } from "antd";
 
 const { Title } = Typography;
 
@@ -9,7 +10,6 @@ export const InstrumentSessionShow = () => {
     const { data, isLoading } = queryResult;
 
     const record = data?.data;
-
     return (
         <Show isLoading={isLoading}>
             <Title level={5}>{"ID"}</Title>

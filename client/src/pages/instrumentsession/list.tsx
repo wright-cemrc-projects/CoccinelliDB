@@ -1,39 +1,45 @@
 import {
     DeleteButton,
     EditButton,
-    List,
+    List, Show,
     ShowButton,
     useTable,
 } from "@refinedev/antd";
-import type { BaseRecord } from "@refinedev/core";
-import { Space, Table } from "antd";
-
+import {BaseRecord, useList} from "@refinedev/core";
+import {Badge, BadgeProps, Calendar} from "antd";
+import {InstrumentSession} from "@/src/type";
+import dayjs from "dayjs";
 
 export const InstrumentSessionList = () => {
-    const { tableProps } = useTable({
-        syncWithLocation: true,
+    const { data } = useList<InstrumentSession>({
+        resource: "instrumentsession",
     });
+    console.log(data);
+    const panelChange = () => {
+        console.log("panel change")
+    }
+
+    const cellRender = (value: dayjs.Dayjs) => {
+        const listData = data?.data?.filter((p) =>
+            dayjs(p.start_date).isSame(value, "day"),
+        );
+        return (
+            <ul className="events">
+                {listData?.map((item) => (
+                    <li key={item.id}>
+                        {item.id}
+                    </li>
+                ))}
+            </ul>
+        );
+    }
+
     return (
-        <List>
-            <Table {...tableProps} rowKey="id">
-                <Table.Column dataIndex="id" title={"ID"} />
-                <Table.Column dataIndex="start_date" title={"Start Date"} />
-                <Table.Column dataIndex="end_date" title={"End Date"} />
-                <Table.Column dataIndex="facility_id" title={"Facility ID"} />
-                <Table.Column dataIndex="project_id" title={"Project ID"} />
-                <Table.Column dataIndex="instrument_id" title={"Instrument ID"} />
-                <Table.Column
-                    title={"Actions"}
-                    dataIndex="actions"
-                    render={(_, record: BaseRecord) => (
-                        <Space>
-                            <EditButton hideText size="small" recordItemId={record.id} />
-                            <ShowButton hideText size="small" recordItemId={record.id} />
-                            <DeleteButton hideText size="small" recordItemId={record.id} />
-                        </Space>
-                    )}
-                />
-            </Table>
-        </List>
+        <Show headerProps={{ extra: null }}>
+            <Calendar
+                onPanelChange={panelChange}
+                cellRender={cellRender}
+            />
+        </Show>
     );
 };
