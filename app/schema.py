@@ -46,6 +46,8 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
         model = InstrumentSession
         include_fk = True
 
+    instrument = fields.Nested("InstrumentSchema", only=["id", "name"])
+
     @post_dump
     def add_person_details(self, data, **kwargs):
         """ Attach onsite, role, and remote_access_level from session_person_link """
@@ -66,6 +68,7 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
             data["persons"] = persons_data  # ✅ Attach required fields only
 
         return data
+
 instrumentSessionSchema = InstrumentSessionSchema()
 instrumentSessionsSchema = InstrumentSessionSchema(many=True)
 
