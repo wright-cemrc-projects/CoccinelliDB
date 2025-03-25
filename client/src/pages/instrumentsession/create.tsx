@@ -1,6 +1,6 @@
 import {Create, useForm, useSelect} from "@refinedev/antd";
 import {Form, Input, DatePicker, Select} from "antd";
-import {Facility, Instrument, Person} from "@/src/type";
+import {Facility, Instrument, Person, Project} from "@/src/type";
 
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
@@ -47,6 +47,19 @@ export const InstrumentSessionCreate = () => {
 
         ],
     });
+    const { selectProps: projectSelectProps } = useSelect({
+        resource: "projects",
+        optionLabel: (item: Project) => `${item?.project_id}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "project_id",
+                operator: "contains",
+                value: value,
+            },
+
+        ],
+    });
     return (
         <Create saveButtonProps={saveButtonProps}>
             <Form {...formProps} layout="vertical">
@@ -79,7 +92,7 @@ export const InstrumentSessionCreate = () => {
                     />
                 </Form.Item>
                 <Form.Item
-                    label={"Facility ID"}
+                    label={"Facility"}
                     name={["facility_id"]}
                     rules={[
                         {
@@ -95,7 +108,7 @@ export const InstrumentSessionCreate = () => {
                     />
                 </Form.Item>
                 <Form.Item
-                    label={"Project ID"}
+                    label={"Project"}
                     name={["project_id"]}
                     rules={[
                         {
@@ -103,14 +116,19 @@ export const InstrumentSessionCreate = () => {
                         },
                     ]}
                 >
-                    <Input />
+                    <Select
+                        {...projectSelectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+
+                    />
                 </Form.Item>
                 <Form.Item
-                    label={"Instrument ID"}
+                    label={"Instrument"}
                     name={["instrument_id"]}
                     rules={[
                         {
-                            required: true,
+                            required: false,
                         },
                     ]}
                 >

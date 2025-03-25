@@ -1,7 +1,7 @@
 import {Edit, useForm, useSelect} from "@refinedev/antd";
 import {Form, Input, DatePicker, Select, Table, Switch, Button} from "antd";
 import dayjs from 'dayjs';
-import {Facility, Instrument, Person} from "@/src/type";
+import {Facility, Instrument, Person, Project} from "@/src/type";
 import {useEffect, useState} from "react";
 import {DeleteOutlined, PlusOutlined} from "@ant-design/icons";
 
@@ -34,7 +34,19 @@ export const InstrumentSessionEdit = () => {
 
         ],
     });
+    const { selectProps: projectSelectProps } = useSelect({
+        resource: "projects",
+        optionLabel: (item: Project) => `${item?.project_id}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "project_id",
+                operator: "contains",
+                value: value,
+            },
 
+        ],
+    });
     const { selectProps: personSelectProps } = useSelect({
         resource: "persons",
         optionLabel: (item: Person) => `${item?.first_name} ${item?.last_name}`,
@@ -116,7 +128,7 @@ export const InstrumentSessionEdit = () => {
                     />
                 </Form.Item>
                 <Form.Item
-                    label={"Facility ID"}
+                    label={"Facility"}
                     name={["facility_id"]}
                     rules={[
                         {
@@ -132,7 +144,7 @@ export const InstrumentSessionEdit = () => {
                     />
                 </Form.Item>
                 <Form.Item
-                    label={"Project ID"}
+                    label={"Project"}
                     name={["project_id"]}
                     rules={[
                         {
@@ -140,10 +152,15 @@ export const InstrumentSessionEdit = () => {
                         },
                     ]}
                 >
-                    <Input />
+                    <Select
+                        {...projectSelectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+
+                    />
                 </Form.Item>
                 <Form.Item
-                    label={"Instrument ID"}
+                    label={"Instrument"}
                     name={["instrument_id"]}
                     rules={[
                         {
