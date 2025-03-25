@@ -99,7 +99,6 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
 
     @app.cli.command("create-group")
     @click.argument("name")
-    @click.argument("facility_id")
     def create_group(name):
         group = Group(name=name)
         db.session.add(group)
@@ -119,7 +118,7 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
 
         # Create a new group_person record to match those or throw an error.
         if (a_person and a_group):
-            stmt = insert(group_person).values(group_id=a_group.id, person_id=a_person.id, primary_contact=primary_contact)
+            stmt = insert(group_person).values(group_id=a_group.id, person_id=a_person.id, primary_contact=bool(primary_contact))
             db.session.execute(stmt)
             db.session.commit()
         else:
