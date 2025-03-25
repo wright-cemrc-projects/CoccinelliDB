@@ -10,7 +10,7 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return redirect("http://localhost:5173")
+    return redirect("http://localhost:5173/")
 
 @main.route('/api/home', methods=['GET'])
 def hello_world():

@@ -1,6 +1,7 @@
 import string
 
 from flask import Flask, session
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
@@ -9,7 +10,6 @@ from sqlalchemy import MetaData
 from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
 from flask_oidc import OpenIDConnect
-from flask_session import Session
 from flask_cors import CORS
 import config
 from tests.test_routes import test_group, test_person
@@ -41,6 +41,7 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     app = Flask(__name__)
     # secret key for signing the cookie and session
     secret_key = secrets.token_hex(24)
+
     app.config['SECRET_KEY'] = secret_key
     conf = config_map.get(config_name, config.DevelopmentConfig)
 

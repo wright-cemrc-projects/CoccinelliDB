@@ -1,6 +1,6 @@
 import {Create, useForm, useSelect} from "@refinedev/antd";
 import {Form, Input, DatePicker, Select} from "antd";
-import {Facility, Instrument} from "@/src/type";
+import {Facility, Instrument, Person} from "@/src/type";
 
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
@@ -17,7 +17,23 @@ export const InstrumentSessionCreate = () => {
 
         ],
     });
-
+    const { selectProps: personSelectProps } = useSelect({
+        resource: "persons",
+        optionLabel: (item: Person) => `${item?.first_name} ${item?.last_name}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "first_name",
+                operator: "contains",
+                value: value,
+            },
+            {
+                field: "last_name",
+                operator: "contains",
+                value: value,
+            },
+        ],
+    });
     const { selectProps: instrumentSelectProps } = useSelect({
         resource: "instruments",
         optionLabel: (item: Instrument) => `${item?.name}`,
@@ -83,7 +99,7 @@ export const InstrumentSessionCreate = () => {
                     name={["project_id"]}
                     rules={[
                         {
-                            required: false,
+                            required: true,
                         },
                     ]}
                 >
@@ -102,6 +118,15 @@ export const InstrumentSessionCreate = () => {
                         {...instrumentSelectProps}
                         dropdownStyle={{ padding: "0px" }}
                         style={{ width: "100%" }}
+
+                    />
+                </Form.Item>
+                <Form.Item label={"Persons"} name="persons">
+                    <Select
+                        {...personSelectProps}
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+                        mode="multiple"
 
                     />
                 </Form.Item>

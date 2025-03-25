@@ -46,21 +46,17 @@ const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
 const httpClient = axios.create();
 
 function App() {
-  const navigate = useNavigate();
-  const [loginFailed, setLoginFailed] = useState(false); // Prevent infinite loop
-
+  const [isLogged, setIsLoggedIn] = useState(false);
   useEffect(() => {
-    if (!loginFailed) {
-      authProvider.check().then((res) => {
-        if (!res.authenticated) {
-          authProvider.login({});
-          setLoginFailed(true); // Mark login as failed, so we don't keep retrying
-        }
-      });
-    } else {
-      navigate("/unauthorized");
-    }
-  }, [loginFailed]);
+      if (!isLogged) {
+        authProvider.check().then((res) => {
+          if (!res.authenticated) {
+            authProvider.login({});
+            setIsLoggedIn(true);
+          }
+        });
+      }
+  }, []);
 
   return (
       <RefineKbarProvider>
@@ -89,7 +85,6 @@ function App() {
                     element={
                       <Authenticated
                         key="authenticated-inner"
-                        fallback={<CatchAllNavigate to="/unauthorized" />}
                       >
                         <ThemedLayoutV2
                           Header={Header}
@@ -145,7 +140,6 @@ function App() {
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
-                  <Route path="/unauthorized" element={<Unauthorized />} />
                   
                 </Routes>
 
