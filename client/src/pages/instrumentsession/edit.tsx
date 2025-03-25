@@ -211,7 +211,7 @@ export const InstrumentSessionEdit = () => {
                                     options={[
                                         { label: "No access", value: "no access" },
                                         { label: "Remote view", value: "remote view" },
-                                        { label: "Remote control", value: "remove control" },
+                                        { label: "Remote control", value: "remote control" },
                                     ]}
                                 />
                             )}

@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
 import os
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, insert
 from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
 from flask_oidc import OpenIDConnect
@@ -14,8 +14,6 @@ from flask_cors import CORS
 import config
 from tests.test_routes import test_group, test_person
 import secrets
-
-
 
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
@@ -57,14 +55,17 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     oidc = OpenIDConnect(app)
     
     CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
-    # Register routes (from routes.py)
-    from routes.main_routes import main
-    app.register_blueprint(main)
+   
+    # Register routes (from routes/*)
+    from routes.main_routes import main 
+    from routes.remote_api_routes import remote_api_bp
+    from routes.login_routes import  login_bp
 
-    from routes.login_routes import login_bp
+    app.register_blueprint(main)
+    app.register_blueprint(remote_api_bp)
     app.register_blueprint(login_bp)
 
-    from .models import Group, Facility, Person, Role
+    from .models import Group, Facility, Person, Role, group_person
 
     """
     Usage: flask create-role role1 role2 ....
@@ -103,6 +104,26 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
         group = Group(name=name)
         db.session.add(group)
         db.session.commit()
+
+    @app.cli.command("add-user-to-group")
+    @click.argument("email")
+    @click.argument("group")
+    @click.argument("primary_contact")
+    def add_user_to_group(email, group, primary_contact):
+        ''' Create a linking record that adds a Person to a Group '''
+        # Find the Person.id by email
+        a_person = Person.query.filter_by(email=email).first()
+
+        # Find the Group.id by 'group' name
+        a_group = Group.query.filter_by(name=group).first()
+
+        # Create a new group_person record to match those or throw an error.
+        if (a_person and a_group):
+            stmt = insert(group_person).values(group_id=a_group.id, person_id=a_person.id, primary_contact=primary_contact)
+            db.session.execute(stmt)
+            db.session.commit()
+        else:
+            print("Unable to find person or group")
 
     @app.cli.command("delete-group")
     @click.argument("id")

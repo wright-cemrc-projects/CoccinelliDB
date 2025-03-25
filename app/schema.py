@@ -1,4 +1,4 @@
-from marshmallow import fields, post_dump
+from marshmallow import Schema, fields, post_dump
 
 from . import ma
 from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db
@@ -85,3 +85,14 @@ class InstrumentIssueSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
 instrumentIssueSchema = InstrumentIssueSchema()
 instrumentIssuesSchema = InstrumentIssueSchema(many=True)
+
+## Simple JSON response schema that can be returned by an API.
+class SessionQuerySchema(Schema):
+    id = fields.Int()
+    start_time = fields.DateTime()
+    end_time = fields.DateTime()
+    netid = fields.String()
+    email = fields.String()
+    remote_access_allowed = fields.Bool()
+
+## TODO: get a list of above as well for a Schema.

@@ -585,3 +585,5 @@ def delete_instrumentissue(id):
         return jsonify({"message": f"{session} got deleted."})
     except Exception as err:
         return jsonify({"err": f"{err=}"})
+
+
