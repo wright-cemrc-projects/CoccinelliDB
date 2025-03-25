@@ -228,7 +228,7 @@ def create_person():
                 cleaned_start_date = request.json["start_date"].split(".")[0]
                 person.start_date = datetime.strptime(cleaned_start_date, date_format)
             else:
-                person.end_date = None
+                person.start_date = None
         if "end_date" in request.json:
             if request.json["end_date"]:
                 cleaned_end_date = request.json["end_date"].split(".")[0]
@@ -331,7 +331,7 @@ def update_person(id):
                 cleaned_start_date = request.json["start_date"].split(".")[0]
                 person.start_date = datetime.strptime(cleaned_start_date, date_format)
             else:
-                person.end_date = None
+                person.start_date = None
         if "end_date" in request.json:
             if request.json["end_date"]:
                 cleaned_end_date = request.json["end_date"].split(".")[0]
