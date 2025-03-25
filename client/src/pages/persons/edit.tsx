@@ -12,7 +12,7 @@ export const PersonEdit = () => {
                     name={["start_date"]}
                     rules={[
                         {
-                            required: true, message: "Start Date is required"
+                            required: false, message: "Start Date is required"
                         },
                     ]}
                     getValueProps={(value) => ({ value: value ? dayjs(value) : "", })}
@@ -28,7 +28,7 @@ export const PersonEdit = () => {
                     name={["end_date"]}
                     rules={[
                         {
-                            required: true, message: "End Date is required"
+                            required: false, message: "End Date is required"
                         },
                     ]}
                     getValueProps={(value) => ({ value: value ? dayjs(value) : "", })}
