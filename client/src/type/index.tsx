@@ -32,3 +32,8 @@ export interface InstrumentSession {
     end_date: Date;
     instrument: Instrument
 }
+
+export interface Project {
+    id: number;
+    project_id: string;
+}

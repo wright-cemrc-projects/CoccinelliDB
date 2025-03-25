@@ -19,7 +19,14 @@ def hello_world():
 @main.route('/api/projects', methods=['GET'])
 # @roles_accepted('Admin')
 def get_project_list():
-    project_list = db.session.execute(db.select(Project)).scalars()
+    search_query = request.args.get("project_id_like", "")
+
+    project_list = []
+    if search_query:
+        project_list = Project.query.filter(Project.project_id.ilike(f"%{search_query}%")).all()
+    else:
+        project_list = Project.query.all()
+
     return projectsSchema.jsonify(project_list)
 
 @main.route('/api/projects/<int:id>', methods=['GET'])
@@ -70,7 +77,13 @@ def get_facility_list():
         print(oidc.user_loggedin)
         print(oidc.get_access_token())
         print(oidc.get_refresh_token())
-    facility_list = db.session.execute(db.select(Facility)).scalars()
+    search_query = request.args.get("name_like", "")
+    facility_list = []
+    if search_query:
+        facility_list = Facility.query.filter(Facility.name.ilike(f"%{search_query}%")).all()
+    else:
+        facility_list = Facility.query.all()
+
     return facilitiesSchema.jsonify(facility_list)
 
 @main.route('/api/facilities/<int:id>', methods=['GET'])
@@ -381,7 +394,12 @@ def get_instrument_by_id(id):
 @main.route('/api/instruments', methods=['GET'])
 def get_instrument_list():
     try:
-        instruments_list = db.session.execute(db.select(Instrument)).scalars()
+        search_query = request.args.get("name_like", "")
+        instruments_list = []
+        if search_query:
+            instruments_list = Instrument.query.filter(Instrument.name.ilike(f"%{search_query}%")).all()
+        else:
+            instruments_list = Instrument.query.all()
         return instrumentsSchema.jsonify(instruments_list)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
