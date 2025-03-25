@@ -65,7 +65,7 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     app.register_blueprint(remote_api_bp)
     app.register_blueprint(login_bp)
 
-    from .models import Group, Facility, Person, Role, group_person
+    from .models import Group, Facility, Person, Role, Project, group_person
 
     """
     Usage: flask create-role role1 role2 ....
@@ -102,6 +102,15 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     def create_group(name):
         group = Group(name=name)
         db.session.add(group)
+        db.session.commit()
+
+    @app.cli.command("create-project")
+    @click.argument("project_id")
+    @click.argument("facility_id")
+    def create_project(project_id, facility_id):
+        project = Project(project_id)
+        project.facility_id = facility_id
+        db.session.add(project)
         db.session.commit()
 
     @app.cli.command("add-user-to-group")

@@ -224,11 +224,17 @@ def create_person():
         if "telephone" in request.json:
             person.telephone = request.json["telephone"]
         if "start_date" in request.json:
-            cleaned_start_date = request.json["start_date"].split(".")[0]
-            person.start_date = datetime.strptime(cleaned_start_date, date_format)
+            if request.json["start_date"]:
+                cleaned_start_date = request.json["start_date"].split(".")[0]
+                person.start_date = datetime.strptime(cleaned_start_date, date_format)
+            else:
+                person.end_date = None
         if "end_date" in request.json:
-            cleaned_end_date = request.json["end_date"].split(".")[0]
-            person.end_date = datetime.strptime(cleaned_end_date, date_format)
+            if request.json["end_date"]:
+                cleaned_end_date = request.json["end_date"].split(".")[0]
+                person.end_date = datetime.strptime(cleaned_end_date, date_format)
+            else:
+                person.end_date = None
         db.session.add(person)
         db.session.commit()
         return jsonify({"message": f"{person} created."})
@@ -321,11 +327,17 @@ def update_person(id):
         if "net_id" in request.json:
             person.net_id = request.json["net_id"]
         if "start_date" in request.json:
-            cleaned_start_date = request.json["start_date"].split(".")[0]
-            person.start_date = datetime.strptime(cleaned_start_date, date_format)
+            if request.json["start_date"]:
+                cleaned_start_date = request.json["start_date"].split(".")[0]
+                person.start_date = datetime.strptime(cleaned_start_date, date_format)
+            else:
+                person.end_date = None
         if "end_date" in request.json:
-            cleaned_end_date = request.json["end_date"].split(".")[0]
-            person.end_date = datetime.strptime(cleaned_end_date, date_format)
+            if request.json["end_date"]:
+                cleaned_end_date = request.json["end_date"].split(".")[0]
+                person.end_date = datetime.strptime(cleaned_end_date, date_format)
+            else:
+                person.end_date = None
         db.session.commit()
         return jsonify({"message": f"{person} got updated."})
     except Exception as err:
