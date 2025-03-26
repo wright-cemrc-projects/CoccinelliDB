@@ -20,7 +20,6 @@ export const ProjectList = () => {
     return (
         <List>
             <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">
-                <Table.Column dataIndex="id" title={"ID"} />
                 <Table.Column dataIndex="project_id" title="Project_ID"/>
                 <Table.Column
                     title={"Actions"}

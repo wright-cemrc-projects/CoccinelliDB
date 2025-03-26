@@ -534,13 +534,22 @@ def delete_session(id):
 def create_instrumentissue():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
-        cleaned_start_date = request.json["start_date"].split(".")[0]
-        start_date = datetime.strptime(cleaned_start_date, date_format)
-        cleaned_end_date = request.json["end_date"].split(".")[0]
-        end_date = datetime.strptime(cleaned_end_date, date_format)
         instrument_id = request.json["instrument_id"]
-        issue_title = request.json["issue_title"]
-        issue_description = request.json["issue_description"]
+        start_date = None
+        end_date = None
+        issue_title = ""
+        issue_description = ""
+
+        if "issue_title" in request.json:
+            issue_title = request.json["issue_title"]
+        if "issue_description" in request.json:
+            issue_description = request.json["issue_description"]
+        if "start_date" in request.json:
+            cleaned_start_date = request.json["start_date"].split(".")[0]
+            start_date = datetime.strptime(cleaned_start_date, date_format)
+        if "end_date" in request.json:
+            cleaned_end_date = request.json["end_date"].split(".")[0]
+            end_date = datetime.strptime(cleaned_end_date, date_format)
 
         issue = InstrumentIssue(issue_title=issue_title,issue_description=issue_description,start_date=start_date, end_date=end_date, instrument_id=instrument_id)
         db.session.add(issue)

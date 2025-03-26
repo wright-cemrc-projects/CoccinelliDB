@@ -22,7 +22,6 @@ export const InstrumentList = () => {
     return (
         <List>
             <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">
-                <Table.Column dataIndex="id" title={"ID"} />
                 <Table.Column dataIndex="name" title="Name"/>
                 <Table.Column dataIndex="model" title="Model"/>
                 <Table.Column dataIndex="facility_id" title="Facility_ID"/>
