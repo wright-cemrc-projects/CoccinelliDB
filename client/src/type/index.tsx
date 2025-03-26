@@ -39,4 +39,10 @@ export interface InstrumentIssue {
     end_date: Date;
     instrument: Instrument;
     issue_title: string;
+    instrument: Instrument
+}
+
+export interface Project {
+    id: number;
+    project_id: string;
 }
