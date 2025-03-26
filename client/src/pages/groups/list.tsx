@@ -36,7 +36,6 @@ export const GroupList = () => {
     return (
         <List>
             <Table {...tableProps} rowKey="id">
-                <Table.Column dataIndex="id" title={"ID"} />
                 <Table.Column
                     dataIndex="name"
                     title={"Name"}

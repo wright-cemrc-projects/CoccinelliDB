@@ -37,7 +37,6 @@ export const PersonList = () => {
     return (
         <List>
             <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">
-                <Table.Column dataIndex="id" title={"ID"} />
                 <Table.Column
                     dataIndex="full_name"
                     title="Full Name"
@@ -51,13 +50,7 @@ export const PersonList = () => {
                 />
                 <Table.Column dataIndex="net_id" title="Net ID"/>
                 <Table.Column dataIndex="email" title="Email"/>
-                <Table.Column dataIndex="start_date" title="Start Date"/>
-                <Table.Column dataIndex="end_date" title="End Date"/>
                 <Table.Column dataIndex="organization" title="Organization" />
-                <Table.Column dataIndex="address1" title="Address1"/>
-                <Table.Column dataIndex="address2" title="Address2"/>
-                <Table.Column dataIndex="state" title="State"/>
-                <Table.Column dataIndex="country" title="Country"/>
                 <Table.Column dataIndex="telephone" title="Telephone"/>
                 <Table.Column
                     title={"Actions"}
