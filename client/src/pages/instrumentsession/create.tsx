@@ -135,7 +135,11 @@ export const InstrumentSessionCreate = () => {
                 <Form.Item
                     label={"Project"}
                     name={["project_id"]}
-
+                    rules={[
+                        {
+                            required: false,
+                        },
+                    ]}
                 >
                     <Select
                         {...projectSelectProps}
