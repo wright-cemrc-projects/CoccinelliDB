@@ -1,9 +1,34 @@
 import {Create, useForm, useSelect} from "@refinedev/antd";
-import {Form, Input, DatePicker, Select} from "antd";
+import {Form, Input, DatePicker, Select, Table, Switch, Button} from "antd";
 import {Facility, Instrument, Person, Project} from "@/src/type";
+import {DeleteOutlined, PlusOutlined} from "@ant-design/icons";
+import {useState} from "react";
 
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
+    const [persons, setPersons] = useState<
+        { person_id: number; onsite: boolean; role: string; remote_access_level: string }[]
+    >([]);
+    const addPerson = () => {
+        setPersons([...persons, { person_id: 0, onsite: false, role: "", remote_access_level: "" }]);
+    };
+
+    const removePerson = (index: number) => {
+        setPersons(persons.filter((_, i) => i !== index));
+    };
+
+    const updatePerson = (index: number, key: string, value: any) => {
+        const updatedPersons = [...persons];
+        updatedPersons[index] = { ...updatedPersons[index], [key]: value };
+        setPersons(updatedPersons);
+    };
+    const handleFormSubmit = (values: any) => {
+        const payload = { ...values, persons };
+        console.log("Submitting payload:", JSON.stringify(payload, null, 2)); // 🔍 Debugging
+        formProps.onFinish?.(payload);
+        console.log(payload);
+        // debugger;
+    };
     const { selectProps: facilitySelectProps } = useSelect({
         resource: "facilities",
         optionLabel: (item: Facility) => `${item?.name}`,
@@ -62,7 +87,7 @@ export const InstrumentSessionCreate = () => {
     });
     return (
         <Create saveButtonProps={saveButtonProps}>
-            <Form {...formProps} layout="vertical">
+            <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
             <Form.Item
                     label={"Start Date"}
                     name={["start_date"]}
@@ -110,11 +135,7 @@ export const InstrumentSessionCreate = () => {
                 <Form.Item
                     label={"Project"}
                     name={["project_id"]}
-                    rules={[
-                        {
-                            required: true,
-                        },
-                    ]}
+
                 >
                     <Select
                         {...projectSelectProps}
@@ -128,7 +149,7 @@ export const InstrumentSessionCreate = () => {
                     name={["instrument_id"]}
                     rules={[
                         {
-                            required: false,
+                            required: true,
                         },
                     ]}
                 >
@@ -139,14 +160,74 @@ export const InstrumentSessionCreate = () => {
 
                     />
                 </Form.Item>
-                <Form.Item label={"Persons"} name="persons">
-                    <Select
-                        {...personSelectProps}
-                        dropdownStyle={{ padding: "0px" }}
-                        style={{ width: "100%" }}
-                        mode="multiple"
-
-                    />
+                <Form.Item label="Session Participants" name={["persons"]}>
+                    <Table dataSource={persons} rowKey="person_id" pagination={false} size="small">
+                        <Table.Column
+                            title="Person"
+                            dataIndex="person_id"
+                            render={(value, _, index) => (
+                                <Select
+                                    {...personSelectProps}
+                                    value={value}
+                                    onChange={(val) => updatePerson(index, "person_id", val)}
+                                    style={{ width: "100%" }}
+                                />
+                            )}
+                        />
+                        <Table.Column
+                            title="Onsite"
+                            dataIndex="onsite"
+                            render={(value, _, index) => (
+                                <Switch checked={value} onChange={(val) => updatePerson(index, "onsite", val)} />
+                            )}
+                        />
+                        <Table.Column
+                            title="Role"
+                            dataIndex="role"
+                            render={(value, _, index) => (
+                                <Select
+                                    value={value}
+                                    onChange={(selectedValue) => updatePerson(index, "role", selectedValue)}
+                                    placeholder="Select a role"
+                                    style={{ width: "100%" }}
+                                    options={[
+                                        { label: "Staff", value: "staff" },
+                                        { label: "Trainee", value: "trainee" },
+                                        { label: "Independent Operator", value: "operator" },
+                                        { label: "Client", value: "client" },
+                                        { label: "Observer", value: "observer" },
+                                        { label: "Other", value: "other" },
+                                    ]}
+                                />
+                            )}
+                        />
+                        <Table.Column
+                            title="Remote Access Level"
+                            dataIndex="remote_access_level"
+                            render={(value, _, index) => (
+                                <Select
+                                    value={value}
+                                    onChange={(selectedValue) => updatePerson(index, "remote_access_level", selectedValue)}
+                                    placeholder="Select remote access level"
+                                    style={{ width: "100%" }}
+                                    options={[
+                                        { label: "No access", value: "no access" },
+                                        { label: "Remote view", value: "remote view" },
+                                        { label: "Remote control", value: "remote control" },
+                                    ]}
+                                />
+                            )}
+                        />
+                        <Table.Column
+                            title="Action"
+                            render={(_, __, index) => (
+                                <Button danger icon={<DeleteOutlined />} onClick={() => removePerson(index)} />
+                            )}
+                        />
+                    </Table>
+                    <Button type="dashed" icon={<PlusOutlined />} onClick={addPerson} style={{ marginTop: 10 }}>
+                        Add Person
+                    </Button>
                 </Form.Item>
             </Form>
         </Create>

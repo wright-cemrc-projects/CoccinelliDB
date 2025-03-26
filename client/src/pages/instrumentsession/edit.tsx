@@ -87,6 +87,7 @@ export const InstrumentSessionEdit = () => {
             setPersons(persons || []);
             formProps.form?.setFieldsValue({ persons: persons?.map((p: { person_id: number }) => p.person_id) || [] });
         }
+        console.log(queryResult);
     }, [queryResult?.data]);
 
     const handleFormSubmit = (values: any) => {

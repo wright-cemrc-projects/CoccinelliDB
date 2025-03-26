@@ -447,6 +447,24 @@ def create_session():
         facility_id = int(request.json["facility_id"])
         instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
         db.session.add(instrument_session)
+        if "persons" in request.json:
+            new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
+            # Process new persons list
+            for person_data in new_persons:
+                person_id = person_data["person_id"]
+                onsite = person_data.get("onsite", False)
+                role = person_data.get("role", "")
+                remote_access_level = person_data.get("remote_access_level", "")
+                    # Insert new record
+                db.session.execute(
+                    session_person_link.insert().values(
+                        session_id=id,
+                        person_id=person_id,
+                        onsite=onsite,
+                        role=role,
+                        remote_access_level=remote_access_level
+                    )
+                )
         db.session.commit()
         return jsonify({"message": f"new instrument session {start_date} created."})
     except Exception as err:
