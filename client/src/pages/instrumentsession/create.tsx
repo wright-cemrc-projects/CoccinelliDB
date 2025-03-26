@@ -112,7 +112,7 @@ export const InstrumentSessionCreate = () => {
                     name={["project_id"]}
                     rules={[
                         {
-                            required: true,
+                            required: false,
                         },
                     ]}
                 >
@@ -128,7 +128,7 @@ export const InstrumentSessionCreate = () => {
                     name={["instrument_id"]}
                     rules={[
                         {
-                            required: false,
+                            required: true,
                         },
                     ]}
                 >
