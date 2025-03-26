@@ -1,45 +1,49 @@
-import {
-    DeleteButton,
-    EditButton, 
-    List,
-    ShowButton,
-    useTable,
-} from "@refinedev/antd";
-import {BaseRecord} from "@refinedev/core";
-import {Space, Table} from "antd";
+import React from "react";
+import { List, Show } from "@refinedev/antd";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import moment from "moment";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { InstrumentIssue } from "@/src/type";
+import {useList} from "@refinedev/core";
+import {useNavigate} from "react-router-dom";
+
+const localizer = momentLocalizer(moment);
 
 export const InstrumentIssueList = () => {
-    const { tableProps, filters } = useTable({
-        syncWithLocation: true,
-        filters: {
-        },
+    const { data } = useList<InstrumentIssue>({
+        resource: "instrumentissues",
     });
-    console.log(tableProps.dataSource);
-    const transformedDataSource = tableProps.dataSource?.map((record) => ({
-        ...record,
-    }));
-    console.log(transformedDataSource)
+    const navigate = useNavigate();
+
+    const events = data?.data.map((issue) => ({
+        id: issue.id,
+        title: issue.issue_title, // Adjust this to display the appropriate event title
+        start: new Date(issue.start_date),
+        end: new Date(issue.end_date),
+    })) || [];
+
     return (
         <List>
-            <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">
-                <Table.Column dataIndex="id" title={"ID"} />
-                <Table.Column dataIndex="instrument_id" title="Instrument_ID"/>
-                <Table.Column dataIndex="start_date" title="Start Date"/>
-                <Table.Column dataIndex="end_date" title="End Date"/>
-                <Table.Column dataIndex="issue_title" title="Issue Title"/>
-                <Table.Column dataIndex="issue_description" title="Issue Description"/>
-                <Table.Column
-                    title={"Actions"}
-                    dataIndex="actions"
-                    render={(_, record: BaseRecord) => (
-                        <Space>
-                            <EditButton hideText size="small" recordItemId={record.id} />
-                            <ShowButton hideText size="small" recordItemId={record.id} />
-                            <DeleteButton hideText size="small" recordItemId={record.id} />
-                        </Space>
-                    )}
+            <Show headerProps={{ extra: null }}>
+                <Calendar
+                    localizer={localizer}
+                    events={events}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: 500 }}
+                    defaultView="month"
+                    eventPropGetter={(event) => ({
+                        style: {
+                            backgroundColor: "#1890ff",
+                            color: "white",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                        },
+                    })}
+                    onSelectEvent={(event) => navigate(`/instrumentissues/edit/${event.id}`)}
                 />
-            </Table>
+            </Show>
         </List>
     );
 };
