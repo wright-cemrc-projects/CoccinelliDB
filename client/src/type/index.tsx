@@ -37,7 +37,6 @@ export interface InstrumentIssue {
     id: number;
     start_date: Date;
     end_date: Date;
-    instrument: Instrument;
     issue_title: string;
     instrument: Instrument
 }
