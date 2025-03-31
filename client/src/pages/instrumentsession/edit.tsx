@@ -91,8 +91,18 @@ export const InstrumentSessionEdit = () => {
     }, [queryResult?.data]);
 
     const handleFormSubmit = (values: any) => {
-        const payload = { ...values, persons };
-        console.log("Submitting payload:", JSON.stringify(payload, null, 2)); // 🔍 Debugging
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        const payload = {
+            ...values,
+            start_date: values.start_date
+                ? dayjs(values.start_date).tz(userTimezone).format("YYYY-MM-DDTHH:mm:ss")
+                : null,
+            end_date: values.end_date
+                ? dayjs(values.end_date).tz(userTimezone).format("YYYY-MM-DDTHH:mm:ss")
+                : null,
+            persons,
+        };
         formProps.onFinish?.(payload);
     };
     return (

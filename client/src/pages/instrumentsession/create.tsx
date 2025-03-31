@@ -3,6 +3,15 @@ import {Form, Input, DatePicker, Select, Table, Switch, Button} from "antd";
 import {Facility, Instrument, Person, Project} from "@/src/type";
 import {DeleteOutlined, PlusOutlined} from "@ant-design/icons";
 import {useState} from "react";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone"
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+
+const timezoneSetting = "America/Chicago";
 
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
@@ -23,11 +32,19 @@ export const InstrumentSessionCreate = () => {
         setPersons(updatedPersons);
     };
     const handleFormSubmit = (values: any) => {
-        const payload = { ...values, persons };
-        console.log("Submitting payload:", JSON.stringify(payload, null, 2)); // 🔍 Debugging
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        const payload = {
+            ...values,
+            start_date: values.start_date
+                ? dayjs(values.start_date).tz(userTimezone).format("YYYY-MM-DDTHH:mm:ss")
+                : null,
+            end_date: values.end_date
+                ? dayjs(values.end_date).tz(userTimezone).format("YYYY-MM-DDTHH:mm:ss")
+                : null,
+            persons,
+        };
         formProps.onFinish?.(payload);
-        console.log(payload);
-        // debugger;
     };
     const { selectProps: facilitySelectProps } = useSelect({
         resource: "facilities",
