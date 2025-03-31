@@ -440,6 +440,8 @@ def create_session():
         start_date = datetime.strptime(cleaned_start_date, date_format)
         cleaned_end_date = request.json["end_date"].split(".")[0]
         end_date = datetime.strptime(cleaned_end_date, date_format)
+        print("start_date", start_date)
+        print("end_date", end_date)
         instrument_id = int(request.json["instrument_id"])
         project_id = None
         if "project_id" in request.json:
@@ -447,6 +449,7 @@ def create_session():
         facility_id = int(request.json["facility_id"])
         instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
         db.session.add(instrument_session)
+        db.session.flush()
         if "persons" in request.json:
             new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
             # Process new persons list
@@ -458,7 +461,7 @@ def create_session():
                     # Insert new record
                 db.session.execute(
                     session_person_link.insert().values(
-                        session_id=id,
+                        session_id=instrument_session.id,
                         person_id=person_id,
                         onsite=onsite,
                         role=role,
