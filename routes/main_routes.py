@@ -440,8 +440,6 @@ def create_session():
         start_date = datetime.strptime(cleaned_start_date, date_format)
         cleaned_end_date = request.json["end_date"].split(".")[0]
         end_date = datetime.strptime(cleaned_end_date, date_format)
-        print("start_date", start_date)
-        print("end_date", end_date)
         instrument_id = int(request.json["instrument_id"])
         project_id = None
         if "project_id" in request.json:
