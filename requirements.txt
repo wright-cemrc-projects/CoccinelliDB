@@ -26,4 +26,3 @@ flask-security==5.6.0
 gunicorn==23.0.0
 pymysql==1.1.1
 cryptography==44.0.1
-pytz
