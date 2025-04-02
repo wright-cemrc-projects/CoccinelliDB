@@ -14,7 +14,7 @@ export const InstrumentSessionList = () => {
         resource: "instrumentsession",
     });
     const navigate = useNavigate();
-
+    console.log(data);
     const events = data?.data.map((session) => ({
         id: session.id,
         title: `${session.instrument.name}`, // Adjust this to display the appropriate event title

@@ -166,7 +166,7 @@ class InstrumentSession(db.Model):
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
     facility : Mapped["Facility"] = relationship(back_populates="sessions")
     # Linked table [one Project-> many InstrumentSession(s)]
-    project_id : Mapped[int] = mapped_column(ForeignKey("project.id"), nullable=True)
+    project_id : Mapped[int] = mapped_column(ForeignKey("project.id"))
     project : Mapped["Project"] = relationship(back_populates="sessions")
     # Linked table [one Instrument-> many InstrumentSession(s)]
     instrument_id : Mapped[int] = mapped_column(ForeignKey("instrument.id"))

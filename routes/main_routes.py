@@ -435,7 +435,6 @@ def delete_instrument(id):
 @main.route('/api/instrumentsession', methods=['POST'])
 def create_session():
     try:
-        print(request.json)
         date_format = "%Y-%m-%dT%H:%M:%S"
         cleaned_start_date = request.json["start_date"].split(".")[0]
         start_date = datetime.strptime(cleaned_start_date, date_format)
@@ -448,7 +447,13 @@ def create_session():
         facility_id = int(request.json["facility_id"])
         instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
         db.session.add(instrument_session)
-        db.session.flush()
+
+        try:
+            db.session.flush()
+        except Exception as e:
+            db.session.rollback()  # Rollback to avoid session corruption
+            print(f"Flush failed: {e}")
+            return jsonify({"error": f"Flush failed: {str(e)}"}), 400
         if "persons" in request.json and request.json["persons"]:
             new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
             # Process new persons list
@@ -467,6 +472,7 @@ def create_session():
                         remote_access_level=remote_access_level
                     )
                 )
+        
         db.session.commit()
         return jsonify({"message": f"new instrument session {start_date} created."})
     except Exception as err:
