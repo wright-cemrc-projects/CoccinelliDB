@@ -10,16 +10,6 @@ import timezone from "dayjs/plugin/timezone"
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-
-const timezoneSetting = "America/Chicago";
-
-import dayjs from 'dayjs';
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone"
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
     const [persons, setPersons] = useState<
@@ -37,14 +27,6 @@ export const InstrumentSessionCreate = () => {
         const updatedPersons = [...persons];
         updatedPersons[index] = { ...updatedPersons[index], [key]: value };
         setPersons(updatedPersons);
-    };
-    const handleFormSubmit = (values: any) => {
-        const payload = {
-            ...values,
-            persons
-        }
-
-        formProps.onFinish?.(payload);
     };
     const { selectProps: facilitySelectProps } = useSelect({
         resource: "facilities",
@@ -112,7 +94,6 @@ export const InstrumentSessionCreate = () => {
                 ? dayjs(values.end_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
                 : null,
         }
-        console.log("Submitting payload:", JSON.stringify(payload, null, 2)); // 🔍 Debugging
         formProps.onFinish?.(payload);
     };
 

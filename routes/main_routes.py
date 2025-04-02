@@ -575,10 +575,7 @@ def delete_session(id):
 @main.route('/api/instrumentissues', methods=['POST'])
 def create_instrumentissue():
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
         instrument_id = request.json["instrument_id"]
-        start_date = None
-        end_date = None
         issue_title = ""
         issue_description = ""
 
@@ -586,12 +583,12 @@ def create_instrumentissue():
             issue_title = request.json["issue_title"]
         if "issue_description" in request.json:
             issue_description = request.json["issue_description"]
+        start_date = None
         if "start_date" in request.json:
-            cleaned_start_date = request.json["start_date"].split(".")[0]
-            start_date = datetime.strptime(cleaned_start_date, date_format)
+            start_date = datetime.fromisoformat(request.json["start_date"])
+        end_date = None
         if "end_date" in request.json:
-            cleaned_end_date = request.json["end_date"].split(".")[0]
-            end_date = datetime.strptime(cleaned_end_date, date_format)
+            end_date = datetime.fromisoformat(request.json["end_date"])
 
         issue = InstrumentIssue(issue_title=issue_title,issue_description=issue_description,start_date=start_date, end_date=end_date, instrument_id=instrument_id)
         db.session.add(issue)
@@ -620,7 +617,6 @@ def get_instrumentissue_list():
 @main.route('/api/instrumentissues/<int:id>', methods=['PATCH'])
 def update_instrumentissue(id):
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
         issue = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()
         if "issue_title" in request.json:
             issue.issue_title = request.json["issue_title"]
@@ -629,11 +625,9 @@ def update_instrumentissue(id):
         if "instrument_id" in request.json:
             issue.instrument_id = request.json["instrument_id"]
         if "start_date" in request.json:
-            cleaned_start_date = request.json["start_date"].split(".")[0]
-            issue.start_date = datetime.strptime(cleaned_start_date, date_format)
+            issue.start_date = datetime.fromisoformat(request.json["start_date"])
         if "end_date" in request.json:
-            cleaned_end_date = request.json["end_date"].split(".")[0]
-            issue.end_date = datetime.strptime(cleaned_end_date, date_format)
+            issue.end_date = datetime.fromisoformat(request.json["end_date"])
         db.session.commit()
         return jsonify({"message": f"{issue} got updated"})
     except Exception as err:

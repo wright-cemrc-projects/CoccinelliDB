@@ -3,8 +3,6 @@ from marshmallow import Schema, fields, post_dump
 from . import ma
 from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db
 from datetime import timezone, datetime
-import pytz
-
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -68,27 +66,6 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
                     "remote_access_level": link.remote_access_level
                 })
             data["persons"] = persons_data  
-
-        return data
-
-    @post_dump
-    def convert_dates_to_local(self, data, **kwargs):
-        """ Convert start_date and end_date to user's local timezone """
-        user_timezone = pytz.timezone("America/Chicago") 
-
-        for key in ["start_date", "end_date"]:
-            if data.get(key):
-                try:
-                    
-                    if isinstance(data[key], str):
-                        data[key] = datetime.fromisoformat(data[key])  
-                    
-                    utc_dt = data[key].replace(tzinfo=timezone.utc)  
-                    local_dt = utc_dt.astimezone(user_timezone) 
-                    data[key] = local_dt.strftime("%Y-%m-%d %H:%M:%S")  
-
-                except ValueError as e:
-                    print(f"Date conversion error: {e}")
 
         return data
 

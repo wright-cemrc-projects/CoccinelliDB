@@ -1,7 +1,14 @@
 import {Edit, useForm, useSelect} from "@refinedev/antd";
 import {Form, Input, DatePicker, Select} from "antd";
-import dayjs from 'dayjs';
 import {Instrument} from "@/src/type";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone"
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export const InstrumentIssueEdit = () => {
     const { formProps, saveButtonProps } = useForm({});
     const { selectProps: instrumentSelectProps } = useSelect({
@@ -17,9 +24,22 @@ export const InstrumentIssueEdit = () => {
 
         ],
     });
+
+    const handleFormSubmit = (values: any) => {
+        const payload = { ...values,
+            start_date: values.start_date
+                ? dayjs(values.start_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+            end_date: values.end_date
+                ? dayjs(values.end_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+        }
+        formProps.onFinish?.(payload);
+    };
+
     return (
         <Edit saveButtonProps={saveButtonProps}>
-            <Form {...formProps} layout="vertical">
+            <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
                 <Form.Item
                     label={"Instrument_ID"}
                     name={["instrument_id"]}
