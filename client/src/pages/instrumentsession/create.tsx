@@ -2,6 +2,13 @@ import {Create, useForm, useSelect} from "@refinedev/antd";
 import {Form, Input, DatePicker, Select} from "antd";
 import {Facility, Instrument, Person, Project} from "@/src/type";
 
+import dayjs from 'dayjs';
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone"
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
     const { selectProps: facilitySelectProps } = useSelect({
@@ -60,9 +67,23 @@ export const InstrumentSessionCreate = () => {
 
         ],
     });
+
+    const handleFormSubmit = (values: any) => {
+        const payload = { ...values,
+            start_date: values.start_date
+                ? dayjs(values.start_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+            end_date: values.end_date
+                ? dayjs(values.end_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+        }
+        console.log("Submitting payload:", JSON.stringify(payload, null, 2)); // 🔍 Debugging
+        formProps.onFinish?.(payload);
+    };
+
     return (
         <Create saveButtonProps={saveButtonProps}>
-            <Form {...formProps} layout="vertical">
+            <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
             <Form.Item
                     label={"Start Date"}
                     name={["start_date"]}

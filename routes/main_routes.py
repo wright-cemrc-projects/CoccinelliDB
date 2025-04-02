@@ -435,11 +435,12 @@ def delete_instrument(id):
 @main.route('/api/instrumentsession', methods=['POST'])
 def create_session():
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
-        cleaned_start_date = request.json["start_date"].split(".")[0]
-        start_date = datetime.strptime(cleaned_start_date, date_format)
-        cleaned_end_date = request.json["end_date"].split(".")[0]
-        end_date = datetime.strptime(cleaned_end_date, date_format)
+        start_date = None
+        if "start_date" in request.json:
+            start_date = datetime.fromisoformat(request.json["start_date"])
+        end_date = None
+        if "end_date" in request.json:
+            end_date = datetime.fromisoformat(request.json["end_date"])
         instrument_id = int(request.json["instrument_id"])
         project_id = None
         if "project_id" in request.json:
@@ -472,14 +473,11 @@ def get_session_list():
 @main.route('/api/instrumentsession/<int:id>', methods=['PATCH'])
 def update_session(id):
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
         if "start_date" in request.json:
-            cleaned_start_date = request.json["start_date"].split(".")[0]
-            session.start_date = datetime.strptime(cleaned_start_date, date_format)
+            session.start_date = datetime.fromisoformat(request.json["start_date"])
         if "end_date" in request.json:
-            cleaned_end_date = request.json["end_date"].split(".")[0]
-            session.end_date = datetime.strptime(cleaned_end_date, date_format)
+            session.end_date = datetime.fromisoformat(request.json["end_date"])
         if "instrument_id" in request.json:
             session.instrument_id = request.json["instrument_id"]
 
