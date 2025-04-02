@@ -1,9 +1,15 @@
 import {Edit, useForm, useSelect} from "@refinedev/antd";
 import {Form, Input, DatePicker, Select, Table, Switch, Button} from "antd";
-import dayjs from 'dayjs';
 import {Facility, Instrument, Person, Project} from "@/src/type";
 import {useEffect, useState} from "react";
 import {DeleteOutlined, PlusOutlined} from "@ant-design/icons";
+
+import dayjs from 'dayjs';
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone"
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const InstrumentSessionEdit = () => {
 
@@ -90,12 +96,17 @@ export const InstrumentSessionEdit = () => {
     }, [queryResult?.data]);
 
     const handleFormSubmit = (values: any) => {
-        const payload = {
-            ...values,
-            persons
+        const payload = { ...values, persons,
+            start_date: values.start_date
+                ? dayjs(values.start_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+            end_date: values.end_date
+                ? dayjs(values.end_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
         }
         formProps.onFinish?.(payload);
     };
+
     return (
         <Edit saveButtonProps={saveButtonProps} >
             <Form {...formProps} layout="vertical" onFinish={handleFormSubmit} >
