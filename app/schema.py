@@ -2,7 +2,8 @@ from marshmallow import Schema, fields, post_dump
 
 from . import ma
 from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db
-
+from datetime import timezone
+import pytz
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -47,27 +48,73 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
 
     instrument = fields.Nested("InstrumentSchema", only=["id", "name"])
-
     @post_dump
-    def add_person_details(self, data, **kwargs):
-        """ Attach onsite, role, and remote_access_level from session_person_link """
+    def process_data(self, data, **kwargs):
+        """ Attach person details and convert dates to local timezone """
+        print("✅ process_data executed - Initial Data:", data)
+
+        # Convert dates to local timezone
+        user_timezone = pytz.timezone("America/Chicago")
+        for key in ["start_date", "end_date"]:
+            if key in data and data[key]:
+                utc_dt = data[key].replace(tzinfo=timezone.utc)
+                local_dt = utc_dt.astimezone(user_timezone)
+                data[key] = local_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+        # Add person details
         session_id = data.get("id")
         if session_id:
             links = db.session.execute(
                 db.select(session_person_link).filter_by(session_id=session_id)
             ).fetchall()
 
-            persons_data = []
-            for link in links:
-                persons_data.append({
-                    "person_id": link.person_id,  # Needed for frontend mapping
+            persons_data = [
+                {
+                    "person_id": link.person_id,
                     "onsite": link.onsite,
                     "role": link.role,
-                    "remote_access_level": link.remote_access_level
-                })
-            data["persons"] = persons_data  # ✅ Attach required fields only
+                    "remote_access_level": link.remote_access_level,
+                }
+                for link in links
+            ]
+            data["persons"] = persons_data
 
+        print("✅ process_data executed - Modified Data:", data)
         return data
+        
+    # @post_dump
+    # def add_person_details(self, data, **kwargs):
+    #     """ Attach onsite, role, and remote_access_level from session_person_link """
+    #     session_id = data.get("id")
+    #     if session_id:
+    #         links = db.session.execute(
+    #             db.select(session_person_link).filter_by(session_id=session_id)
+    #         ).fetchall()
+
+    #         persons_data = []
+    #         for link in links:
+    #             persons_data.append({
+    #                 "person_id": link.person_id,  # Needed for frontend mapping
+    #                 "onsite": link.onsite,
+    #                 "role": link.role,
+    #                 "remote_access_level": link.remote_access_level
+    #             })
+    #         data["persons"] = persons_data  # ✅ Attach required fields only
+
+    #     return data
+
+    # @post_dump
+    # def convert_dates_to_local(self, data, **kwargs):
+    #     """ Convert start_date and end_date to user's local timezone """
+    #     user_timezone = pytz.timezone("America/Chicago")  
+    #     print("hahaahah")
+    #     for key in ["start_date", "end_date"]:
+    #         if data.get(key):
+    #             utc_dt = data[key].replace(tzinfo=timezone.utc)  
+    #             local_dt = utc_dt.astimezone(user_timezone)  
+    #             data[key] = local_dt.strftime("%Y-%m-%d %H:%M:%S")  
+    #     print(data)
+    #     return data
 
 instrumentSessionSchema = InstrumentSessionSchema()
 instrumentSessionsSchema = InstrumentSessionSchema(many=True)
