@@ -2,7 +2,7 @@ from marshmallow import Schema, fields, post_dump
 
 from . import ma
 from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db
-
+from datetime import timezone, datetime
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -60,12 +60,12 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
             persons_data = []
             for link in links:
                 persons_data.append({
-                    "person_id": link.person_id,  # Needed for frontend mapping
+                    "person_id": link.person_id, 
                     "onsite": link.onsite,
                     "role": link.role,
                     "remote_access_level": link.remote_access_level
                 })
-            data["persons"] = persons_data  # ✅ Attach required fields only
+            data["persons"] = persons_data  
 
         return data
 

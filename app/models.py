@@ -152,7 +152,8 @@ session_person_link = db.Table(
     db.Column('person_id', db.Integer, db.ForeignKey('person.id')),
     db.Column('onsite', db.Boolean),
     db.Column('role', db.String(45)),
-    db.Column('remote_access_level', db.String(45))
+    db.Column('remote_access_level', db.String(45)),
+    db.UniqueConstraint("session_id", "person_id", name="uq_session_person")
 )
 
 class InstrumentSession(db.Model):
@@ -173,7 +174,14 @@ class InstrumentSession(db.Model):
     # Linked table [one InstrumentSession-> many InstrumentCollection(s)]
     collections: Mapped[List["Collection"]] = relationship(back_populates="instrument_session")
     # Linked table [many FacilityInstrumentSession-> many FacilityPersons]
-    persons = db.relationship("Person", backref="instrument_session", lazy="dynamic", secondary=session_person_link)
+    persons = db.relationship("Person", backref="instrument_session", lazy="dynamic", secondary=session_person_link, cascade="all, delete")
+
+    @validates("end_date")
+    def validate_end_date(self, key, end_date):
+        """ Ensure end_date is after start_date """
+        if self.start_date and end_date <= self.start_date:
+            raise ValueError("End date must be after start date.")
+        return end_date
 
     def __repr__(self):
         return f"<InstrumentSession(id={self.id},facility_id={self.facility_id},project_id={self.project_id},instrument_id={self.instrument_id},start_date={self.start_date},end_date={self.end_date})>"

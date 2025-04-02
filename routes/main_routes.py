@@ -435,11 +435,12 @@ def delete_instrument(id):
 @main.route('/api/instrumentsession', methods=['POST'])
 def create_session():
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
-        cleaned_start_date = request.json["start_date"].split(".")[0]
-        start_date = datetime.strptime(cleaned_start_date, date_format)
-        cleaned_end_date = request.json["end_date"].split(".")[0]
-        end_date = datetime.strptime(cleaned_end_date, date_format)
+        start_date = None
+        if "start_date" in request.json:
+            start_date = datetime.fromisoformat(request.json["start_date"])
+        end_date = None
+        if "end_date" in request.json:
+            end_date = datetime.fromisoformat(request.json["end_date"])
         instrument_id = int(request.json["instrument_id"])
         project_id = None
         if "project_id" in request.json:
@@ -447,6 +448,32 @@ def create_session():
         facility_id = int(request.json["facility_id"])
         instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
         db.session.add(instrument_session)
+
+        try:
+            db.session.flush()
+        except Exception as e:
+            db.session.rollback()  # Rollback to avoid session corruption
+            print(f"Flush failed: {e}")
+            return jsonify({"error": f"Flush failed: {str(e)}"}), 400
+        if "persons" in request.json and request.json["persons"]:
+            new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
+            # Process new persons list
+            for person_data in new_persons:
+                person_id = person_data["person_id"]
+                onsite = person_data.get("onsite", False)
+                role = person_data.get("role", "")
+                remote_access_level = person_data.get("remote_access_level", "")
+                    # Insert new record
+                db.session.execute(
+                    session_person_link.insert().values(
+                        session_id=instrument_session.id,
+                        person_id=person_id,
+                        onsite=onsite,
+                        role=role,
+                        remote_access_level=remote_access_level
+                    )
+                )
+        
         db.session.commit()
         return jsonify({"message": f"new instrument session {start_date} created."})
     except Exception as err:
@@ -472,14 +499,11 @@ def get_session_list():
 @main.route('/api/instrumentsession/<int:id>', methods=['PATCH'])
 def update_session(id):
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
         if "start_date" in request.json:
-            cleaned_start_date = request.json["start_date"].split(".")[0]
-            session.start_date = datetime.strptime(cleaned_start_date, date_format)
+            session.start_date = datetime.fromisoformat(request.json["start_date"])
         if "end_date" in request.json:
-            cleaned_end_date = request.json["end_date"].split(".")[0]
-            session.end_date = datetime.strptime(cleaned_end_date, date_format)
+            session.end_date = datetime.fromisoformat(request.json["end_date"])
         if "instrument_id" in request.json:
             session.instrument_id = request.json["instrument_id"]
 
@@ -551,10 +575,7 @@ def delete_session(id):
 @main.route('/api/instrumentissues', methods=['POST'])
 def create_instrumentissue():
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
         instrument_id = request.json["instrument_id"]
-        start_date = None
-        end_date = None
         issue_title = ""
         issue_description = ""
 
@@ -562,12 +583,12 @@ def create_instrumentissue():
             issue_title = request.json["issue_title"]
         if "issue_description" in request.json:
             issue_description = request.json["issue_description"]
+        start_date = None
         if "start_date" in request.json:
-            cleaned_start_date = request.json["start_date"].split(".")[0]
-            start_date = datetime.strptime(cleaned_start_date, date_format)
+            start_date = datetime.fromisoformat(request.json["start_date"])
+        end_date = None
         if "end_date" in request.json:
-            cleaned_end_date = request.json["end_date"].split(".")[0]
-            end_date = datetime.strptime(cleaned_end_date, date_format)
+            end_date = datetime.fromisoformat(request.json["end_date"])
 
         issue = InstrumentIssue(issue_title=issue_title,issue_description=issue_description,start_date=start_date, end_date=end_date, instrument_id=instrument_id)
         db.session.add(issue)
@@ -596,7 +617,6 @@ def get_instrumentissue_list():
 @main.route('/api/instrumentissues/<int:id>', methods=['PATCH'])
 def update_instrumentissue(id):
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
         issue = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()
         if "issue_title" in request.json:
             issue.issue_title = request.json["issue_title"]
@@ -605,11 +625,9 @@ def update_instrumentissue(id):
         if "instrument_id" in request.json:
             issue.instrument_id = request.json["instrument_id"]
         if "start_date" in request.json:
-            cleaned_start_date = request.json["start_date"].split(".")[0]
-            issue.start_date = datetime.strptime(cleaned_start_date, date_format)
+            issue.start_date = datetime.fromisoformat(request.json["start_date"])
         if "end_date" in request.json:
-            cleaned_end_date = request.json["end_date"].split(".")[0]
-            issue.end_date = datetime.strptime(cleaned_end_date, date_format)
+            issue.end_date = datetime.fromisoformat(request.json["end_date"])
         db.session.commit()
         return jsonify({"message": f"{issue} got updated"})
     except Exception as err:
