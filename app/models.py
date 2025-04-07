@@ -62,6 +62,7 @@ class Role(db.Model, RoleMixin):
 
 class Person(db.Model):
     """ Representation of an individual """
+    # TODO: ADD rule creation and role checking, fix timezone problem on person creation.
     __tablename__ = "person"
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(45))
