@@ -510,9 +510,10 @@ def update_session(id):
             session.end_date = datetime.fromisoformat(request.json["end_date"])
         if "instrument_id" in request.json:
             session.instrument_id = request.json["instrument_id"]
+        if "project_id" in request.json:
+            session.project_id = int(request.json["project_id"])
 
         # Update persons in the session
-
         if "persons" in request.json:
             new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
 
@@ -561,9 +562,11 @@ def update_session(id):
                     .where(session_person_link.c.person_id.in_(current_person_ids))
                 )
 
+        print(f"Updating InstrumentSession: {session}", file=sys.stderr)
         db.session.commit()
         return jsonify({"message": f"{session} got updated"})
     except Exception as err:
+        print(err, file=sys.stderr)
         return jsonify({"err": f"{err=}"})    
 
 @main.route('/api/instrumentsession/<int:id>', methods=['DELETE'])
