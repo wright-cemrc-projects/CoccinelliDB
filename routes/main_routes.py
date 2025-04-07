@@ -6,6 +6,8 @@ from app.schema import facilitySchema, facilitiesSchema, projectSchema, projects
 from datetime import datetime
 from flask_security import roles_accepted
 
+import sys
+
 main = Blueprint('main', __name__)
 
 @main.route('/')
@@ -435,6 +437,7 @@ def delete_instrument(id):
 @main.route('/api/instrumentsession', methods=['POST'])
 def create_session():
     try:
+        print(request.json, file=sys.stderr)
         start_date = None
         if "start_date" in request.json:
             start_date = datetime.fromisoformat(request.json["start_date"])
@@ -453,7 +456,7 @@ def create_session():
             db.session.flush()
         except Exception as e:
             db.session.rollback()  # Rollback to avoid session corruption
-            print(f"Flush failed: {e}")
+            print(f"Flush failed: {e}", file=sys.stderr)
             return jsonify({"error": f"Flush failed: {str(e)}"}), 400
         if "persons" in request.json and request.json["persons"]:
             new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
@@ -477,6 +480,7 @@ def create_session():
         db.session.commit()
         return jsonify({"message": f"new instrument session {start_date} created."})
     except Exception as err:
+        print(err, file=sys.stderr)
         return jsonify({"err": f"{err=}"})
 
 
@@ -525,6 +529,8 @@ def update_session(id):
                 onsite = person_data.get("onsite", False)
                 role = person_data.get("role", "")
                 remote_access_level = person_data.get("remote_access_level", "")
+
+                print(f"Adding person: {person_data}", file=sys.stderr)
 
                 if person_id in current_person_ids:
                     # Update existing record
