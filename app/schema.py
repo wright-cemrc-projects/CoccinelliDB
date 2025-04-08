@@ -1,7 +1,8 @@
+
 from marshmallow import Schema, fields, post_dump
 
 from . import ma
-from .models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db
+from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db
 from datetime import timezone, datetime
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
@@ -33,6 +34,13 @@ class FacilityPersonSchema(ma.SQLAlchemyAutoSchema):
 
 facilityPersonSchema = FacilityPersonSchema()
 facilityPersonsSchema = FacilityPersonSchema(many=True)
+
+class RoleSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Role
+
+roleSchema = RoleSchema()
+rolesSchema= RoleSchema(many=True)
 
 class InstrumentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

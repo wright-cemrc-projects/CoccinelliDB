@@ -1,9 +1,14 @@
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
+import {Create, useForm, useSelect} from "@refinedev/antd";
+import {Form, Input, DatePicker, Select} from "antd";
 
 export const PersonCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
-
+    const { selectProps: roleSelectProps } = useSelect({
+        resource: "roles", // assuming your resource is named "roles"
+        optionLabel: "name",
+        optionValue: "id",
+    });
+    console.log(roleSelectProps);
     return (
         <Create saveButtonProps={saveButtonProps}>
             <Form {...formProps} layout="vertical">
@@ -78,6 +83,17 @@ export const PersonCreate = () => {
                     ]}
                 >
                     <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Roles"
+                    name={["roles"]}
+                    rules={[{ required: false }]}
+                >
+                    <Select
+                        {...roleSelectProps}
+                        mode="multiple"
+                        placeholder="Select roles"
+                    />
                 </Form.Item>
                 <Form.Item
                     label={"Organization"}

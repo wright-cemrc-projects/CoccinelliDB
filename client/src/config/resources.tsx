@@ -4,6 +4,9 @@ import {DashboardOutlined, GroupOutlined, UserOutlined, ProjectOutlined, Calenda
 
 export const resources: IResourceItem[] = [
     {
+      name: "roles"
+    },
+    {
       name: "dashboard",
       list: "/",
       meta: {

@@ -1,8 +1,11 @@
 from flask import Blueprint, render_template, jsonify, request, session, redirect
 from sqlalchemy import or_, inspect
 from app import db, oidc
-from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link
-from app.schema import facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema
+from app.models import Project, Facility, Group, Person, Instrument, InstrumentSession, InstrumentIssue, group_person, session_person_link, Role
+from app.schema import roleSchema, rolesSchema, facilitySchema, facilitiesSchema, projectSchema, projectsSchema, facilityGroupSchema, \
+    facilityGroupsSchema, facilityPersonSchema, facilityPersonsSchema, instrumentSessionSchema, \
+    instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema, \
+    RoleSchema
 from datetime import datetime
 from flask_security import roles_accepted
 
@@ -202,6 +205,11 @@ def delete_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
+@main.route("/api/roles", methods=["GET"])
+def get_roles():
+    roles = Role.query.all()
+    return rolesSchema.jsonify(roles)
+
 @main.route('/api/persons', methods=['POST'])
 def create_person():
     try:
@@ -250,6 +258,10 @@ def create_person():
                 person.end_date = datetime.strptime(cleaned_end_date, date_format)
             else:
                 person.end_date = None
+        role_ids = request.json.get("roles", [])
+        if role_ids:
+            roles = Role.query.filter(Role.id.in_(role_ids)).all()
+            person.roles = roles
         db.session.add(person)
         db.session.commit()
         return jsonify({"message": f"{person} created."})
