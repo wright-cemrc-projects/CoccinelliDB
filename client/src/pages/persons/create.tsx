@@ -1,5 +1,6 @@
 import {Create, useForm, useSelect} from "@refinedev/antd";
 import {Form, Input, DatePicker, Select} from "antd";
+import dayjs from "dayjs";
 
 export const PersonCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
@@ -8,10 +9,21 @@ export const PersonCreate = () => {
         optionLabel: "name",
         optionValue: "id",
     });
-    console.log(roleSelectProps);
+    const handleFormSubmit = (values: any) => {
+        const payload = { ...values,
+            start_date: values.start_date
+                ? dayjs(values.start_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+            end_date: values.end_date
+                ? dayjs(values.end_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+        }
+        formProps.onFinish?.(payload);
+    };
+
     return (
         <Create saveButtonProps={saveButtonProps}>
-            <Form {...formProps} layout="vertical">
+            <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
                 <Form.Item
                     label={"Start Date"}
                     name={["start_date"]}
