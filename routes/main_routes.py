@@ -20,7 +20,7 @@ def hello_world():
     return jsonify({"message": "Hello World"})
 
 @main.route('/api/projects', methods=['GET'])
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 def get_project_list():
     search_query = request.args.get("project_id_like", "")
 
@@ -32,13 +32,13 @@ def get_project_list():
 
     return projectsSchema.jsonify(project_list)
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>', methods=['GET'])
 def get_project_by_id(id):
     project_one = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
     return projectSchema.jsonify(project_one)
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects', methods=['POST'])
 def create_project():
     project_id = request.json["project_id"]
@@ -52,7 +52,7 @@ def create_project():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>', methods=['PATCH'])
 def update_project(id):
     try:
@@ -66,7 +66,7 @@ def update_project(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>', methods=['DELETE'])
 def delete_project(id):
     try:
@@ -79,7 +79,7 @@ def delete_project(id):
 
 
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments', methods=['POST'])
 def create_instrument():
     try:
@@ -96,7 +96,7 @@ def create_instrument():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments/<int:id>', methods=['GET'])
 def get_instrument_by_id(id):
     try:
@@ -105,7 +105,7 @@ def get_instrument_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments', methods=['GET'])
 def get_instrument_list():
     try:
@@ -119,7 +119,7 @@ def get_instrument_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments/<int:id>', methods=['PATCH'])
 def update_instrument(id):
     try:
@@ -136,7 +136,7 @@ def update_instrument(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments/<int:id>', methods=['DELETE'])
 def delete_instrument(id):
     try:
@@ -147,7 +147,7 @@ def delete_instrument(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession', methods=['POST'])
 def create_session():
     try:
@@ -197,7 +197,7 @@ def create_session():
         print(err, file=sys.stderr)
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['GET'])
 def get_session_by_id(id):
     try:
@@ -206,7 +206,7 @@ def get_session_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession', methods=['GET'])
 def get_session_list():
     try:
@@ -215,7 +215,7 @@ def get_session_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['PATCH'])
 def update_session(id):
     try:
@@ -285,7 +285,7 @@ def update_session(id):
         print(err, file=sys.stderr)
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['DELETE'])
 def delete_session(id):
     try:
@@ -296,7 +296,7 @@ def delete_session(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues', methods=['POST'])
 def create_instrumentissue():
     try:
@@ -322,7 +322,7 @@ def create_instrumentissue():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues/<int:id>', methods=['GET'])
 def get_instrumentissue_by_id(id):
     try:
@@ -331,6 +331,7 @@ def get_instrumentissue_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues', methods=['GET'])
 def get_instrumentissue_list():
     try:
@@ -339,6 +340,7 @@ def get_instrumentissue_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues/<int:id>', methods=['PATCH'])
 def update_instrumentissue(id):
     try:
@@ -358,7 +360,7 @@ def update_instrumentissue(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
+@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues/<int:id>', methods=['DELETE'])
 def delete_instrumentissue(id):
     try:

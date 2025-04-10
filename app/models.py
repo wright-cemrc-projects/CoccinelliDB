@@ -6,10 +6,8 @@ from . import db
 from typing import List
 from flask_security import RoleMixin
 from sqlalchemy import ForeignKey
-from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 from pyisemail import is_email
@@ -58,11 +56,11 @@ class Role(db.Model, RoleMixin):
     __tablename__ = 'role'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(100))
 
 
 class Person(db.Model):
     """ Representation of an individual """
-    # TODO: ADD rule creation and role checking, fix timezone problem on person creation.
     __tablename__ = "person"
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(45))
