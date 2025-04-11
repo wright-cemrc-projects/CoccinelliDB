@@ -6,6 +6,7 @@ from flask_oidc import OpenIDConnect, signals
 from functools import wraps
 import requests
 import sys
+import hashlib
 
 login_bp = Blueprint('login', __name__)
 
@@ -56,7 +57,7 @@ def me():
 
     user_dict = {
         "email": user_info['email'], 
-        # "name": user_info['name']
+        "emailmd5": hashlib.md5(user_info['email'].encode('utf-8')).hexdigest()
     }
 
     return jsonify(user_dict)

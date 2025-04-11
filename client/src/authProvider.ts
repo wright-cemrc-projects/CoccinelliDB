@@ -66,7 +66,7 @@ export const authProvider: AuthProvider = {
         id: user.id,
         name: user.email,
         email: user.email,
-        avatar: "https://i.pravatar.cc/300",
+        avatar: `https://www.gravatar.com/avatar/${user.emailmd5}?s=400&d=identicon`,
       };
     } catch {
       return null;
