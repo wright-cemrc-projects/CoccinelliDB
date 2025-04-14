@@ -5,6 +5,8 @@ from app.models import Person
 from flask_oidc import OpenIDConnect, signals
 from functools import wraps
 import requests
+import sys
+import hashlib
 
 login_bp = Blueprint('login', __name__)
 
@@ -28,20 +30,19 @@ def logout():
     :return:
     """
 
-    domain = "dev-flo54hw1p0ohwfvo.us.auth0.com"
-    idToken = session["oidc_auth_token"]["id_token"]
-
-    # Clear session cookie holding token.
-    session.clear()
-
     # TODO: remove these FQDN from the code
     callbackURL = "http://localhost:5173"
     environment = os.getenv('FLASK_ENV', 'development')
     if environment == 'production':
        callbackURL = "https://cryo-db.biochem.wisc.edu"
+       oidc.logout()
        return redirect(callbackURL)
 
     # For Auth0, but not CILogon
+    domain = "dev-flo54hw1p0ohwfvo.us.auth0.com"
+    idToken = session["oidc_auth_token"]["id_token"]
+    session.clear()
+
     return redirect(f"https://{domain}/oidc/logout?id_token_hint={idToken}&post_logout_redirect_uri={callbackURL}")
 
 # User Info Route
@@ -50,9 +51,13 @@ def me():
     """
     :return: User info
     """
-    # if "oidc_auth_profile" not in session:
-    #     return jsonify({"error": "Unauthorized"}), 401
-    # return jsonify(session["oidc_auth_profile"])
 
-    # temp solution for login
-    return jsonify({"email": "zhyan0096@gmail.com"})
+    user_info = oidc.user_getinfo(['email', 'sub', 'name'])
+    print(user_info, file=sys.stderr)
+
+    user_dict = {
+        "email": user_info['email'], 
+        "emailmd5": hashlib.md5(user_info['email'].encode('utf-8')).hexdigest()
+    }
+
+    return jsonify(user_dict)
