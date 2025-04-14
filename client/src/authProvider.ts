@@ -64,10 +64,10 @@ export const authProvider: AuthProvider = {
       const user = await fetchWithCredentials("/me");
       return {
         id: user.id,
-        name: `${user.given_name} ${user.family_name}`,
+        name: user.email,
         email: user.email,
-        avatar: "https://i.pravatar.cc/300",
-        roles: user.roles
+        roles: user.roles,
+        avatar: `https://www.gravatar.com/avatar/${user.emailmd5}?s=400&d=identicon`,
       };
     } catch {
       return null;
