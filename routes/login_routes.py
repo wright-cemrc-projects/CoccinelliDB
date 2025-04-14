@@ -61,7 +61,7 @@ def me():
     roles = [role.name for role in person.roles]
     user_dict = {
         "email": user_info['email'], 
-        "emailmd5": hashlib.md5(user_info['email'].encode('utf-8')).hexdigest()
+        "emailmd5": hashlib.md5(user_info['email'].encode('utf-8')).hexdigest(),
         "roles": roles
     }
 
