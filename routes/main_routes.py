@@ -19,8 +19,8 @@ def index():
 def hello_world():
     return jsonify({"message": "Hello World"})
 
-@main.route('/api/projects', methods=['GET'])
 @roles_accepted('Admin', 'Editor')
+@main.route('/api/projects', methods=['GET'])
 def get_project_list():
     search_query = request.args.get("project_id_like", "")
 

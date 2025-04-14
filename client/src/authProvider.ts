@@ -67,6 +67,7 @@ export const authProvider: AuthProvider = {
         name: `${user.given_name} ${user.family_name}`,
         email: user.email,
         avatar: "https://i.pravatar.cc/300",
+        roles: user.roles
       };
     } catch {
       return null;

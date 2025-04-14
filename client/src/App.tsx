@@ -1,4 +1,4 @@
-import { Authenticated, Refine } from "@refinedev/core";
+import {Authenticated, IResourceItem, Refine} from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -26,7 +26,7 @@ import { ColorModeContextProvider } from "./contexts/color-mode";
 import { ForgotPassword } from "./pages/forgotPassword";
 // import { Login } from "./pages/login";
 // import { Register } from "./pages/register";
-import {resources} from "@/src/config/resources";
+import {filterResourcesByRoles, resources} from "@/src/config/resources";
 import axios from "axios";
 import { FacilityCreate, FacilityList, FacilityShow, FacilityEdit } from "./pages/facilities";
 import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/projects";
@@ -47,6 +47,8 @@ const httpClient = axios.create();
 
 function App() {
   const [isLogged, setIsLoggedIn] = useState(false);
+  const [filteredResources, setFilteredResources] = useState<IResourceItem[]>([]);
+
   useEffect(() => {
       if (!isLogged) {
         authProvider.check().then((res) => {
@@ -56,6 +58,13 @@ function App() {
           }
         });
       }
+
+    authProvider.getIdentity().then((identity: any) => {
+      const roles = identity?.roles || []; // e.g. ["editor", "user"]
+      const allowedResources = filterResourcesByRoles(roles);
+      setFilteredResources(allowedResources);
+      console.log(identity.roles);
+    });
   }, []);
 
   return (
@@ -68,7 +77,7 @@ function App() {
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
-                resources={resources}
+                resources={filteredResources}
                 options={{
                   syncWithLocation: true,
                   warnWhenUnsavedChanges: true,

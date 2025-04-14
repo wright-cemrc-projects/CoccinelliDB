@@ -100,3 +100,33 @@ export const resources: IResourceItem[] = [
     },
 
 ];
+
+const roleAccessMap: Record<string, string[]> = {
+    admin: [], // access to everything
+    editor: ["roles", "facilities", "groups", "persons"], // deny user related routes
+    user: [
+        "roles",
+        "facilities",
+        "groups",
+        "persons",
+        "projects",
+        "instruments",
+        "instrumentsession",
+        "instrumentissues"
+    ], // allow only dashboard
+};
+
+export const filterResourcesByRoles = (roles: string[]): IResourceItem[] => {
+    roles = roles.map((e) => e.toLowerCase());
+    if (roles.includes("admin")) {
+        return resources; // full access
+    }
+
+    // Collect denied resources from all roles (union)
+    const denied = new Set<string>();
+    roles.forEach(role => {
+        roleAccessMap[role]?.forEach(resource => denied.add(resource));
+    });
+    console.log(denied);
+    return resources.filter(resource => !denied.has(resource.name));
+};
