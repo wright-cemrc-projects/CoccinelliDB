@@ -84,11 +84,53 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     @click.argument("last_name")
     @click.argument("email")
     @click.argument("net_id")
-    @click.argument("roles", nargs=-1)
-    def create_user(first_name, last_name, email, net_id, roles):
+    def create_user(first_name, last_name, email, net_id):
         person = Person(first_name, last_name, email, net_id)
         db.session.add(person)
         db.session.commit()
+
+    @app.cli.command("assign-role")
+    @click.argument("email")
+    @click.argument("role_name")
+    def assign_role(email, role_name):
+        """Assign a role to a person by ID and role name."""
+        person = Person.query.filter_by(email=email).first()
+        if not person:
+            click.echo(f" No person found with that email {email}.")
+            return
+
+        role = Role.query.filter_by(name=role_name).first()
+        if not role:
+            click.echo(f" Role '{role_name}' not found.")
+            return
+
+        if role in person.roles:
+            click.echo(f" Person already has role '{role_name}'.")
+        else:
+            person.roles.append(role)
+            db.session.commit()
+            click.echo(f" Added role '{role_name}' to person ID {person.id}.")
+
+    @app.cli.command("remove-role")
+    @click.argument("email")
+    @click.argument("role_name")
+    def remove_role(email, role_name):
+        person = Person.query.filter_by(email=email).first()
+        if not person:
+            click.echo(f" No person found with that email {email}.")
+            return
+        
+        role = Role.query.filter_by(name=role_name).first()
+        if not role:
+            click.echo(f" Role '{role_name}' not found.")
+            return
+        
+        if role in person.roles:
+            person.roles.remove(role)
+            db.session.commit()
+            click.echo(f" Role '{role_name}' remove from '{email}'.")
+        else:
+            click.echo(f"'{email}' does not have the role '{role_name}'.")
 
     @app.cli.command("create-facility")
     @click.argument("name")
@@ -176,6 +218,7 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
                 db.session.add(person)
             db.session.commit()
             print("test person data successfully loaded.")
+
 
 
     return app
