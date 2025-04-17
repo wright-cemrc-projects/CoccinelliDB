@@ -40,6 +40,7 @@ import { DashboardPage } from "@/src/pages/dashboard";
 import { BugOutlined } from "@ant-design/icons";
 import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
+import {RoleList, RoleShow, RoleEdit, RoleCreate} from "@/src/pages/roles";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
 
@@ -63,7 +64,6 @@ function App() {
       const roles = identity?.roles || []; // e.g. ["editor", "user"]
       const allowedResources = filterResourcesByRoles(roles);
       setFilteredResources(allowedResources);
-      console.log(identity.roles);
     });
   }, []);
 
@@ -110,6 +110,12 @@ function App() {
                       <Route path="create" element={<FacilityCreate/>}/>
                       <Route path="edit/:id" element={<FacilityEdit/>}/>
                       <Route path="show/:id" element={<FacilityShow/>}/>
+                    </Route>
+                    <Route path="roles">
+                      <Route index element={<RoleList/>}/>
+                      <Route path="create" element={<RoleCreate/>}/>
+                      <Route path="edit/:id" element={<RoleEdit/>}/>
+                      <Route path="show/:id" element={<RoleShow/>}/>
                     </Route>
                     <Route path="/groups">
                       <Route index element={<GroupList />}/>

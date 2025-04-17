@@ -1,7 +1,7 @@
 import string
 
-from flask import Flask, session
-from flask_session import Session
+from flask import Flask, g
+from flask_security import Security, SQLAlchemyUserDatastore
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import click
@@ -60,17 +60,28 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     from routes.main_routes import main 
     from routes.remote_api_routes import remote_api_bp
     from routes.login_routes import  login_bp
+    from routes.user_routes import user
 
     app.register_blueprint(main)
     app.register_blueprint(remote_api_bp)
     app.register_blueprint(login_bp)
+    app.register_blueprint(user)
 
     from .models import Group, Facility, Person, Role, Project, group_person
-
+    user_datastore = SQLAlchemyUserDatastore(db, Person, Role)
+    security = Security(app, user_datastore)
     """
     Usage: flask create-role role1 role2 ....
     """
-    @app.cli.command("create-role")
+    @app.before_request
+    def attach_current_user():
+        if oidc.user_loggedin:
+            email = oidc.user_getfield("email")
+            person = Person.query.filter_by(email=email).first()
+            if person:
+                g.person = person
+
+    @app.cli.command("create-roles")
     @click.argument("roles", nargs=-1)
     def create_roles(roles):
         for role_name in roles:

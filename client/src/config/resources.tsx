@@ -1,11 +1,17 @@
 import type { IResourceItem } from "@refinedev/core";
-import {DashboardOutlined, GroupOutlined, UserOutlined, ProjectOutlined, CalendarOutlined, AlertOutlined} from "@ant-design/icons";
+import {
+    DashboardOutlined,
+    GroupOutlined,
+    UserOutlined,
+    ProjectOutlined,
+    CalendarOutlined,
+    AlertOutlined,
+    UsergroupAddOutlined
+} from "@ant-design/icons";
 
 
 export const resources: IResourceItem[] = [
-    {
-      name: "roles"
-    },
+
     {
       name: "dashboard",
       list: "/",
@@ -13,6 +19,18 @@ export const resources: IResourceItem[] = [
           label: "Dashboard",
           icon: <DashboardOutlined />,
       }
+    },
+    {
+        name: "roles",
+        list: "/roles",
+        create: "/facilities/create",
+        edit: "/facilities/edit/:id",
+        show: "/facilities/show/:id",
+        meta: {
+            label: "Roles",
+            canDelete: true,
+            icon: <UsergroupAddOutlined />
+        }
     },
     {
         name: "facilities",
@@ -127,6 +145,5 @@ export const filterResourcesByRoles = (roles: string[]): IResourceItem[] => {
     roles.forEach(role => {
         roleAccessMap[role]?.forEach(resource => denied.add(resource));
     });
-    console.log(denied);
     return resources.filter(resource => !denied.has(resource.name));
 };

@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify, request, redirect
+from flask_login import current_user
+
 from app import db
 from app.models import Project, Instrument, InstrumentSession, InstrumentIssue, session_person_link
 from app.schema import projectSchema, projectsSchema,  \
@@ -13,6 +15,7 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
+    print(current_user)
     return redirect("http://localhost:5173/")
 
 @main.route('/api/home', methods=['GET'])

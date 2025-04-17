@@ -1,6 +1,6 @@
 import {
     DeleteButton,
-    EditButton, 
+    EditButton,
     List,
     ShowButton,
     useTable,
@@ -8,7 +8,7 @@ import {
 import {BaseRecord} from "@refinedev/core";
 import {Space, Table} from "antd";
 
-export const InstrumentList = () => {
+export const RoleList = () => {
     const { tableProps, filters } = useTable({
         syncWithLocation: true,
         filters: {
@@ -16,13 +16,12 @@ export const InstrumentList = () => {
     });
     const transformedDataSource = tableProps.dataSource?.map((record) => ({
         ...record,
+        name: record.name,
     }));
     return (
         <List>
             <Table {...tableProps} dataSource={transformedDataSource} rowKey="id">
                 <Table.Column dataIndex="name" title="Name"/>
-                <Table.Column dataIndex="model" title="Model"/>
-                <Table.Column dataIndex="facility_id" title="Facility_ID"/>
                 <Table.Column
                     title={"Actions"}
                     dataIndex="actions"

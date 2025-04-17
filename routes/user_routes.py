@@ -5,7 +5,7 @@ from sqlalchemy import or_
 
 from app import db
 from app.models import Facility, Group, Person, group_person, Role
-from app.schema import facilitiesSchema, facilitySchema, facilityGroupSchema, facilityGroupsSchema, rolesSchema, \
+from app.schema import facilitiesSchema, facilitySchema, facilityGroupSchema, facilityGroupsSchema, roleSchema, rolesSchema, \
     facilityPersonSchema, facilityPersonsSchema
 
 user = Blueprint('user', __name__)
@@ -149,6 +149,40 @@ def delete_group(id):
 def get_roles():
     roles = Role.query.all()
     return rolesSchema.jsonify(roles)
+
+@roles_accepted('Admin')
+@user.route("/api/roles/<int:id>")
+def get_role_by_id(id):
+    try:
+        role = db.get_or_404(Role, id)
+        return roleSchema.jsonify(role)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@roles_accepted('Admin')
+@user.route('/api/roles/<int:id>', methods=['PATCH'])
+def update_role(id):
+    try:
+        name = request.json["name"]
+        description = request.json["description"]
+        role = db.session.execute(db.select(Role).filter_by(id=id)).scalar_one()
+        role.name = name
+        role.description = description
+        db.session.commit()
+        return jsonify({"message": f"{role} got updated"})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@roles_accepted('Admin')
+@user.route('/api/roles/<int:id>', methods=['DELETE'])
+def delete_role(id):
+    try:
+        role = db.session.execute(db.select(Role).filter_by(id=id)).scalar_one()
+        db.session.delete(role)
+        db.session.commit()
+        return jsonify({"message": f"{role} got deleted."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
 
 @roles_accepted('Admin')
 @user.route('/api/persons', methods=['POST'])
