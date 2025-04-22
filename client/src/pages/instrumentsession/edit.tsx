@@ -81,7 +81,6 @@ export const InstrumentSessionEdit = () => {
         mutationMode: "pessimistic",
         metaData: {
             onSubmit: (values: any) => {
-                console.log(persons);
                 return { ...values, persons };
             },
         },

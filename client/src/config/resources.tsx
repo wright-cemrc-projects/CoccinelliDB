@@ -1,8 +1,17 @@
 import type { IResourceItem } from "@refinedev/core";
-import {DashboardOutlined, GroupOutlined, UserOutlined, ProjectOutlined, CalendarOutlined, AlertOutlined} from "@ant-design/icons";
+import {
+    DashboardOutlined,
+    GroupOutlined,
+    UserOutlined,
+    ProjectOutlined,
+    CalendarOutlined,
+    AlertOutlined,
+    UsergroupAddOutlined
+} from "@ant-design/icons";
 
 
 export const resources: IResourceItem[] = [
+
     {
       name: "dashboard",
       list: "/",
@@ -10,6 +19,18 @@ export const resources: IResourceItem[] = [
           label: "Dashboard",
           icon: <DashboardOutlined />,
       }
+    },
+    {
+        name: "roles",
+        list: "/roles",
+        create: "/facilities/create",
+        edit: "/facilities/edit/:id",
+        show: "/facilities/show/:id",
+        meta: {
+            label: "Roles",
+            canDelete: true,
+            icon: <UsergroupAddOutlined />
+        }
     },
     {
         name: "facilities",
@@ -97,3 +118,32 @@ export const resources: IResourceItem[] = [
     },
 
 ];
+
+const roleAccessMap: Record<string, string[]> = {
+    admin: [], // access to everything
+    editor: ["roles", "facilities", "groups", "persons"], // deny user related routes
+    user: [
+        "roles",
+        "facilities",
+        "groups",
+        "persons",
+        "projects",
+        "instruments",
+        "instrumentsession",
+        "instrumentissues"
+    ], // allow only dashboard
+};
+
+export const filterResourcesByRoles = (roles: string[]): IResourceItem[] => {
+    roles = roles.map((e) => e.toLowerCase());
+    if (roles.includes("admin")) {
+        return resources; // full access
+    }
+
+    // Collect denied resources from all roles (union)
+    const denied = new Set<string>();
+    roles.forEach(role => {
+        roleAccessMap[role]?.forEach(resource => denied.add(resource));
+    });
+    return resources.filter(resource => !denied.has(resource.name));
+};

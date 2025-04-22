@@ -1,4 +1,4 @@
-import { Authenticated, Refine } from "@refinedev/core";
+import {Authenticated, IResourceItem, Refine} from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -26,7 +26,7 @@ import { ColorModeContextProvider } from "./contexts/color-mode";
 import { ForgotPassword } from "./pages/forgotPassword";
 // import { Login } from "./pages/login";
 // import { Register } from "./pages/register";
-import {resources} from "@/src/config/resources";
+import {filterResourcesByRoles, resources} from "@/src/config/resources";
 import axios from "axios";
 import { FacilityCreate, FacilityList, FacilityShow, FacilityEdit } from "./pages/facilities";
 import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/projects";
@@ -40,6 +40,7 @@ import { DashboardPage } from "@/src/pages/dashboard";
 import { BugOutlined } from "@ant-design/icons";
 import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
+import {RoleList, RoleShow, RoleEdit, RoleCreate} from "@/src/pages/roles";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
 
@@ -47,6 +48,8 @@ const httpClient = axios.create();
 
 function App() {
   const [isLogged, setIsLoggedIn] = useState(false);
+  const [filteredResources, setFilteredResources] = useState<IResourceItem[]>([]);
+
   useEffect(() => {
       if (!isLogged) {
         authProvider.check().then((res) => {
@@ -56,6 +59,12 @@ function App() {
           }
         });
       }
+
+    authProvider.getIdentity().then((identity: any) => {
+      const roles = identity?.roles || []; // e.g. ["editor", "user"]
+      const allowedResources = filterResourcesByRoles(roles);
+      setFilteredResources(allowedResources);
+    });
   }, []);
 
   return (
@@ -68,7 +77,7 @@ function App() {
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
-                resources={resources}
+                resources={filteredResources}
                 options={{
                   syncWithLocation: true,
                   warnWhenUnsavedChanges: true,
@@ -101,6 +110,12 @@ function App() {
                       <Route path="create" element={<FacilityCreate/>}/>
                       <Route path="edit/:id" element={<FacilityEdit/>}/>
                       <Route path="show/:id" element={<FacilityShow/>}/>
+                    </Route>
+                    <Route path="roles">
+                      <Route index element={<RoleList/>}/>
+                      <Route path="create" element={<RoleCreate/>}/>
+                      <Route path="edit/:id" element={<RoleEdit/>}/>
+                      <Route path="show/:id" element={<RoleShow/>}/>
                     </Route>
                     <Route path="/groups">
                       <Route index element={<GroupList />}/>

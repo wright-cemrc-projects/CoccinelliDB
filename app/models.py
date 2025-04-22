@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-
 from . import db
-
+import uuid
 from typing import List
-from flask_security import RoleMixin
+from flask_security import UserMixin, RoleMixin
 from sqlalchemy import ForeignKey
-from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 from pyisemail import is_email
@@ -58,12 +55,14 @@ class Role(db.Model, RoleMixin):
     __tablename__ = 'role'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(100))
 
 
-class Person(db.Model):
+class Person(db.Model, UserMixin):
     """ Representation of an individual """
     __tablename__ = "person"
     id = db.Column(db.Integer, primary_key=True)
+    fs_uniquifier = db.Column(db.String(64), unique=True, nullable=True, default=lambda: str(uuid.uuid4()))
     first_name = db.Column(db.String(45))
     last_name = db.Column(db.String(45))
     organization = db.Column(db.String(45), nullable=True)
@@ -93,6 +92,23 @@ class Person(db.Model):
     def __repr__(self):
         return f"Person(name={self.first_name} {self.last_name}, email={self.email})"
 
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
+
+    def has_role(self, role):
+        return role in [r.name for r in self.roles]
 
 
 # Entries below using SQLAlchemy ORM configuration style with Declarative mappings with Mapped.

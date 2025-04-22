@@ -1,12 +1,29 @@
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
+import {Create, useForm, useSelect} from "@refinedev/antd";
+import {Form, Input, DatePicker, Select} from "antd";
+import dayjs from "dayjs";
 
 export const PersonCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
+    const { selectProps: roleSelectProps } = useSelect({
+        resource: "roles", // assuming your resource is named "roles"
+        optionLabel: "name",
+        optionValue: "id",
+    });
+    const handleFormSubmit = (values: any) => {
+        const payload = { ...values,
+            start_date: values.start_date
+                ? dayjs(values.start_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+            end_date: values.end_date
+                ? dayjs(values.end_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+        }
+        formProps.onFinish?.(payload);
+    };
 
     return (
         <Create saveButtonProps={saveButtonProps}>
-            <Form {...formProps} layout="vertical">
+            <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
                 <Form.Item
                     label={"Start Date"}
                     name={["start_date"]}
@@ -78,6 +95,17 @@ export const PersonCreate = () => {
                     ]}
                 >
                     <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Roles"
+                    name={["roles"]}
+                    rules={[{ required: false }]}
+                >
+                    <Select
+                        {...roleSelectProps}
+                        mode="multiple"
+                        placeholder="Select roles"
+                    />
                 </Form.Item>
                 <Form.Item
                     label={"Organization"}
