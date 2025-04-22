@@ -62,7 +62,7 @@ class Person(db.Model, UserMixin):
     """ Representation of an individual """
     __tablename__ = "person"
     id = db.Column(db.Integer, primary_key=True)
-    fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    fs_uniquifier = db.Column(db.String(64), unique=True, nullable=True, default=lambda: str(uuid.uuid4()))
     first_name = db.Column(db.String(45))
     last_name = db.Column(db.String(45))
     organization = db.Column(db.String(45), nullable=True)
