@@ -59,11 +59,12 @@ function App() {
           }
         });
       }
-
-    authProvider.getIdentity().then((identity: any) => {
+    authProvider.getIdentity?.().then((identity: any) => {
       const roles = identity?.roles || []; // e.g. ["editor", "user"]
       const allowedResources = filterResourcesByRoles(roles);
       setFilteredResources(allowedResources);
+    }).catch((err) => {
+      console.error("Error retrieving identity:", err);
     });
   }, []);
 

@@ -70,9 +70,7 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     from .models import Group, Facility, Person, Role, Project, group_person
     user_datastore = SQLAlchemyUserDatastore(db, Person, Role)
     security = Security(app, user_datastore)
-    """
-    Usage: flask create-role role1 role2 ....
-    """
+
     @app.before_request
     def attach_current_user():
         if oidc.user_loggedin:
