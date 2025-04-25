@@ -52,20 +52,19 @@ def me():
     :return: User info
     """
 
-    # user_info = oidc.user_getinfo(['email', 'sub', 'name'])
-    # print(user_info, file=sys.stderr)
-    # person = Person.query.filter_by(email=user_info["email"]).first()
-    # if not person:
-    #      # print(f"{user_info['name']} with {user_info['email']} not registered", file=sys.stderr)
-    #      return jsonify({"error": "Person not found"}), 404
-    # roles = [role.name for role in person.roles]
-    # # print(roles)
-    # user_dict = {
-    #     "email": user_info['email'],
-    #     "emailmd5": hashlib.md5(user_info['email'].encode('utf-8')).hexdigest(),
-    #     "roles": roles
-    # }
-    #
-    # return jsonify(user_dict)
-    return jsonify({"email": "zhyan0096@gmail.com", "roles": ["Admin"]})
+    user_info = oidc.user_getinfo(['email', 'sub', 'name'])
+    print(user_info, file=sys.stderr)
+    person = Person.query.filter_by(email=user_info["email"]).first()
+    if not person:
+         # print(f"{user_info['name']} with {user_info['email']} not registered", file=sys.stderr)
+         return jsonify({"error": "Person not found"}), 404
+    roles = [role.name for role in person.roles]
+    # print(roles)
+    user_dict = {
+        "email": user_info['email'],
+        "emailmd5": hashlib.md5(user_info['email'].encode('utf-8')).hexdigest(),
+        "roles": roles
+    }
+   
+    return jsonify(user_dict)
 
