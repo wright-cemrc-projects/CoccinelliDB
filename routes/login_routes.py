@@ -65,7 +65,6 @@ def me():
         "emailmd5": hashlib.md5(user_info['email'].encode('utf-8')).hexdigest(),
         "roles": roles
     }
-    
+   
     return jsonify(user_dict)
-    # return jsonify({"email": "zhyan0096@gmail.com", "roles": ["Admin"]})
 
