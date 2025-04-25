@@ -67,5 +67,5 @@ def me():
     # }
     #
     # return jsonify(user_dict)
-    return jsonify({"email": "zhyan0096@gmail.com", "roles": []})
+    return jsonify({"email": "zhyan0096@gmail.com", "roles": ["Admin"]})
 

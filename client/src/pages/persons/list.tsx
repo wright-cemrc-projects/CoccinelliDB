@@ -21,7 +21,16 @@ export const PersonList = () => {
                 },
             ],
         },
+        sorters: {
+            initial: [
+                {
+                    field: "last_name",
+                    order: "asc", // or "desc" for descending
+                },
+            ],
+        },
     });
+    console.log(tableProps);
     const transformedDataSource = tableProps.dataSource?.map((record) => ({
         ...record,
         full_name: `${record.first_name} ${record.last_name}`, 

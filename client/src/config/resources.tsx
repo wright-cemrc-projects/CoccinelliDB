@@ -23,9 +23,9 @@ export const resources: IResourceItem[] = [
     {
         name: "roles",
         list: "/roles",
-        create: "/facilities/create",
-        edit: "/facilities/edit/:id",
-        show: "/facilities/show/:id",
+        create: "/roles/create",
+        edit: "/roles/edit/:id",
+        show: "/roles/show/:id",
         meta: {
             label: "Roles",
             canDelete: true,
