@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_security import roles_accepted
 from sqlalchemy import or_
-
+from sqlalchemy import func, asc, desc
 from app import db
 from app.models import Facility, Group, Person, group_person, Role
 from app.schema import facilitiesSchema, facilitySchema, facilityGroupSchema, facilityGroupsSchema, roleSchema, rolesSchema, \
@@ -145,6 +145,20 @@ def delete_group(id):
         return jsonify({"err": f"{err=}"})
 
 @roles_accepted('Admin')
+@user.route('/api/roles', methods=['POST'])
+def create_roles():
+    try:
+        name = request.json["name"]
+        if "description" in request.json:
+            description = request.json["description"]
+        role = Group(name=name, description=description)
+        db.session.add(role)
+        db.session.commit()
+        return jsonify({"message": f"new role {name} created."})
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@roles_accepted('Admin')
 @user.route("/api/roles", methods=["GET"])
 def get_roles():
     roles = Role.query.all()
@@ -268,33 +282,26 @@ def get_person_by_group(id):
 @user.route('/api/persons', methods=['GET'])
 def get_person_list():
     try:
+        query = Person.query
         full_name_like = request.args.get("full_name_like")
-        first_name_like = request.args.get("first_name_like")
-        last_name_like = request.args.get("last_name_like")
-        if full_name_like is not None:
-            name_parse = full_name_like.split(" ")
-            if len(name_parse) >= 2:
-                last_name_like = name_parse[1]
-            first_name_like = name_parse[0]
 
-        query = db.session.query(Person)
-        if first_name_like or last_name_like:
-            if not first_name_like:
-                first_name_like = ""
-            if not last_name_like:
-                last_name_like = ""
-            query = query.filter(
-                or_(
-                    Person.first_name.ilike(first_name_like),
-                    Person.last_name.ilike(last_name_like)
-                )
-            )
+        sorter_field = request.args.get("_sort")
+        sorter_order = request.args.get("_order", "asc")
+        if full_name_like:
+            filter_value = ''.join(full_name_like.lower().split())
 
+            full_name_expr = func.lower(func.replace(Person.first_name + Person.last_name, " ", ""))
+
+            query = query.filter(full_name_expr.contains(filter_value))
+
+        if sorter_field in ["first_name", "last_name", "email", "net_id"]:
+            sort_column = getattr(Person, sorter_field)
+            query = query.order_by(asc(sort_column) if sorter_order == "asc" else desc(sort_column))
         persons = query.all()
-
         return facilityPersonsSchema.jsonify(persons)
 
     except Exception as err:
+        print(err)
         return jsonify({"err": f"{err=}"})
 
 @roles_accepted('Admin')
