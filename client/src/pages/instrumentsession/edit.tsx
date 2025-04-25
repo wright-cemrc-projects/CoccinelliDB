@@ -229,6 +229,13 @@ export const InstrumentSessionEdit = () => {
                             )}
                         />
                         <Table.Column
+                            title="Hours"
+                            dataIndex="Hours"
+                            render={(value, _, index) => (
+                                <Switch checked={value} onChange={(val) => updatePerson(index, "hours", val)} />
+                            )}
+                        />
+                        <Table.Column
                             title="Remote Access Level"
                             dataIndex="remote_access_level"
                             render={(value, _, index) => (

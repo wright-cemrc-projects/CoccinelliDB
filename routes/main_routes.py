@@ -248,6 +248,7 @@ def update_session(id):
                 person_id = person_data["person_id"]
                 onsite = person_data.get("onsite", False)
                 role = person_data.get("role", "")
+                hours = person_data.get("hours", "")
                 remote_access_level = person_data.get("remote_access_level", "")
 
                 print(f"Adding person: {person_data}", file=sys.stderr)
@@ -269,6 +270,7 @@ def update_session(id):
                             person_id=person_id,
                             onsite=onsite,
                             role=role,
+                            hours=hours,
                             remote_access_level=remote_access_level
                         )
                     )

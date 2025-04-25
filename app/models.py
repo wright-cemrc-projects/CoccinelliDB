@@ -169,6 +169,7 @@ session_person_link = db.Table(
     db.Column('onsite', db.Boolean),
     db.Column('role', db.String(45)),
     db.Column('remote_access_level', db.String(45)),
+    db.Column('hours', db.Float),
     db.UniqueConstraint("session_id", "person_id", name="uq_session_person")
 )
 
