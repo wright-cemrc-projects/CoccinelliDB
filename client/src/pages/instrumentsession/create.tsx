@@ -218,6 +218,13 @@ export const InstrumentSessionCreate = () => {
                             )}
                         />
                         <Table.Column
+                            title="Hours"
+                            dataIndex="Hours"
+                            render={(value, _, index) => (
+                                <input type="number" value={value} onChange={(v) => updatePerson(index, "hours", value)} />
+                            )}
+                        />
+                        <Table.Column
                             title="Remote Access Level"
                             dataIndex="remote_access_level"
                             render={(value, _, index) => (

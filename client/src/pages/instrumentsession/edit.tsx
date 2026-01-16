@@ -230,9 +230,9 @@ export const InstrumentSessionEdit = () => {
                         />
                         <Table.Column
                             title="Hours"
-                            dataIndex="Hours"
+                            dataIndex="hours"
                             render={(value, _, index) => (
-                                <Switch checked={value} onChange={(val) => updatePerson(index, "hours", val)} />
+                                <input type="number" value={value} onChange={(v) => updatePerson(index, "hours", value)} />
                             )}
                         />
                         <Table.Column
