@@ -60,11 +60,11 @@ export const InstrumentSessionEdit = () => {
     });
 
     const [persons, setPersons] = useState<
-        { person_id: number; onsite: boolean; role: string; remote_access_level: string }[]
+        { person_id: number; onsite: boolean; role: string; hours: number; remote_access_level: string }[]
     >([]);
 
     const addPerson = () => {
-        setPersons([...persons, { person_id: 0, onsite: false, role: "", remote_access_level: "" }]);
+        setPersons([...persons, { person_id: 0, onsite: false, role: "", hours: 0, remote_access_level: "" }]);
     };
 
     const removePerson = (index: number) => {
@@ -232,7 +232,7 @@ export const InstrumentSessionEdit = () => {
                             title="Hours"
                             dataIndex="hours"
                             render={(value, _, index) => (
-                                <input type="number" value={value} onChange={(v) => updatePerson(index, "hours", value)} />
+                                <input type="number" value={value} onChange={(v) => updatePerson(index, "hours", v.target.value)} />
                             )}
                         />
                         <Table.Column
