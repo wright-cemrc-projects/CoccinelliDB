@@ -2,7 +2,7 @@ import {Edit, useForm, useSelect, useTable} from "@refinedev/antd";
 import {Form, Input, Select, Tag} from "antd";
 import {Person} from "@/src/type";
 import {useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
+import {useParams} from "react-router";
 
 
 export const GroupEdit = () => {

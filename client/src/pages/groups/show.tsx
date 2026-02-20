@@ -2,7 +2,7 @@ import { Show, TextField } from "@refinedev/antd";
 import { useShow} from "@refinedev/core";
 import { Divider, Typography } from "antd";
 import { Person } from "@/src/type";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { Text } from "@/src/components";
 import { FilterDropdown, useTable } from "@refinedev/antd";
 

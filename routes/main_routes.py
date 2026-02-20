@@ -248,6 +248,7 @@ def update_session(id):
                 person_id = person_data["person_id"]
                 onsite = person_data.get("onsite", False)
                 role = person_data.get("role", "")
+                hours = person_data.get("hours", 0)
                 remote_access_level = person_data.get("remote_access_level", "")
 
                 print(f"Adding person: {person_data}", file=sys.stderr)
@@ -258,7 +259,7 @@ def update_session(id):
                         session_person_link.update()
                         .where(session_person_link.c.session_id == id)
                         .where(session_person_link.c.person_id == person_id)
-                        .values(onsite=onsite, role=role, remote_access_level=remote_access_level)
+                        .values(onsite=onsite, role=role, hours=hours, remote_access_level=remote_access_level)
                     )
                     current_person_ids.remove(person_id)  # Mark as processed
                 else:
@@ -269,6 +270,7 @@ def update_session(id):
                             person_id=person_id,
                             onsite=onsite,
                             role=role,
+                            hours=hours,
                             remote_access_level=remote_access_level
                         )
                     )

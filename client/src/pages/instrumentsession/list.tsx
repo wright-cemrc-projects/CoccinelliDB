@@ -5,7 +5,7 @@ import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { InstrumentSession } from "@/src/type";
 import {useList} from "@refinedev/core";
-import {useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router";
 
 const localizer = momentLocalizer(moment);
 

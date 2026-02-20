@@ -68,9 +68,10 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
             persons_data = []
             for link in links:
                 persons_data.append({
-                    "person_id": link.person_id, 
+                    "person_id": link.person_id,
                     "onsite": link.onsite,
                     "role": link.role,
+                    "hours": link.hours,
                     "remote_access_level": link.remote_access_level
                 })
             data["persons"] = persons_data  
