@@ -39,7 +39,7 @@ import {Unauthorized} from "./pages/Unauthorized"
 import { DashboardPage } from "@/src/pages/dashboard";
 import { BugOutlined } from "@ant-design/icons";
 import {useEffect, useState} from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import {RoleList, RoleShow, RoleEdit, RoleCreate} from "@/src/pages/roles";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
