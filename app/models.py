@@ -214,7 +214,7 @@ class Collection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
-    data_location = db.Column(db.String(45))
+    data_location = db.Column(db.String(512))
     # Linked table [one FacilityInstrumentSession-> many FacilityInstrumentCollection(s)]
     instrument_session_id : Mapped[int] = mapped_column(ForeignKey("instrument_session.id"))
     instrument_session : Mapped["InstrumentSession"] = relationship(back_populates="collections")

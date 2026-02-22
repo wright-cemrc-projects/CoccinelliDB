@@ -5,13 +5,13 @@ import { Typography } from "antd";
 const { Title } = Typography;
 
 export const InstrumentIssueShow = () => {
-    const { queryResult } = useShow({});
-    const { data, isLoading } = queryResult;
+    const { query } = useShow({});
+    const { data, isLoading } = query;
 
     const record = data?.data;
 
     return (
-        <Show isLoading={isLoading}>
+        <Show isLoading={isLoading} headerProps={{ title: false }}>
             <Title level={5}>{"ID"}</Title>
             <TextField value={record?.id} />
 
