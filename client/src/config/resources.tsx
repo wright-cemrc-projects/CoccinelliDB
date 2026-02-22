@@ -119,20 +119,24 @@ export const resources: IResourceItem[] = [
 
 ];
 
+// Resources each role is allowed to access (admin = all, use [] as sentinel)
 const roleAccessMap: Record<string, string[]> = {
-    admin: [], // access to everything
-    editor: ["roles", "facilities", "groups", "persons"], // deny user related routes
-    user: [
-        "roles",
-        "facilities",
-        "groups",
-        "persons",
-        "projects",
-        "instruments",
-        "instrumentsession",
-        "instrumentissues"
-    ], // allow only dashboard
+    admin:  [], // sentinel: allow everything
+    editor: ["dashboard", "projects", "instruments", "instrumentsession", "instrumentissues"],
+    user:   ["dashboard", "projects", "instrumentsession"],
 };
+
+// Resources each role can only view (list + show) — no create, edit, or delete.
+// Admin and Editor always get full write access regardless of this map.
+const readOnlyAccessMap: Record<string, string[]> = {
+    user: ["projects", "instrumentsession"],
+};
+
+function stripWriteAccess(resource: IResourceItem): IResourceItem {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { create, edit, ...rest } = resource;
+    return { ...rest, meta: { ...rest.meta, canDelete: false } };
+}
 
 export const filterResourcesByRoles = (roles: string[]): IResourceItem[] => {
     if (roles.length === 0) {
@@ -140,13 +144,31 @@ export const filterResourcesByRoles = (roles: string[]): IResourceItem[] => {
     }
     roles = roles.map((e) => e.toLowerCase());
     if (roles.includes("admin")) {
-        return resources; // full access
+        return resources; // full access to all resources
     }
 
-    // Collect denied resources from all roles (union)
-    const denied = new Set<string>();
+    // Collect all allowed resource names (union across all of the user's roles)
+    const allowed = new Set<string>();
     roles.forEach(role => {
-        roleAccessMap[role]?.forEach(resource => denied.add(resource));
+        roleAccessMap[role]?.forEach(resource => allowed.add(resource));
     });
-    return resources.filter(resource => !denied.has(resource.name));
+
+    const filtered = resources.filter(resource => allowed.has(resource.name));
+
+    // Apply read-only restrictions for roles that have them,
+    // unless the user also holds a role with full write access (editor/admin).
+    const hasWriteAccess = roles.includes("editor");
+    if (hasWriteAccess) {
+        return filtered;
+    }
+
+    // Collect read-only resource names across all of the user's roles
+    const readOnly = new Set<string>();
+    roles.forEach(role => {
+        readOnlyAccessMap[role]?.forEach(resource => readOnly.add(resource));
+    });
+
+    return filtered.map(resource =>
+        readOnly.has(resource.name) ? stripWriteAccess(resource) : resource
+    );
 };

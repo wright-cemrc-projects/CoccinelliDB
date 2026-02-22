@@ -57,15 +57,17 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
    
     # Register routes (from routes/*)
-    from routes.main_routes import main 
+    from routes.main_routes import main
     from routes.remote_api_routes import remote_api_bp
     from routes.login_routes import  login_bp
     from routes.user_routes import user
+    from routes.dashboard_routes import dashboard_bp
 
     app.register_blueprint(main)
     app.register_blueprint(remote_api_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(user)
+    app.register_blueprint(dashboard_bp)
 
     from .models import Group, Facility, Person, Role, Project, group_person
     user_datastore = SQLAlchemyUserDatastore(db, Person, Role)
