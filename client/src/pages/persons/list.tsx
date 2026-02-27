@@ -25,7 +25,11 @@ export const PersonList = () => {
             initial: [
                 {
                     field: "last_name",
-                    order: "asc", // or "desc" for descending
+                    order: "asc",
+                },
+                {
+                    field: "first_name",
+                    order: "asc",
                 },
             ],
         },

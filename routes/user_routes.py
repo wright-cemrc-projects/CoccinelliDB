@@ -285,8 +285,8 @@ def get_person_list():
         query = Person.query
         full_name_like = request.args.get("full_name_like")
 
-        sorter_field = request.args.get("_sort")
-        sorter_order = request.args.get("_order", "asc")
+        sorter_fields = request.args.get("_sort", "").split(",")
+        sorter_orders = request.args.get("_order", "asc").split(",")
         if full_name_like:
             filter_value = ''.join(full_name_like.lower().split())
 
@@ -294,9 +294,13 @@ def get_person_list():
 
             query = query.filter(full_name_expr.contains(filter_value))
 
-        if sorter_field in ["first_name", "last_name", "email", "net_id"]:
-            sort_column = getattr(Person, sorter_field)
-            query = query.order_by(asc(sort_column) if sorter_order == "asc" else desc(sort_column))
+        allowed_fields = {"first_name", "last_name", "email", "net_id"}
+        for i, field in enumerate(sorter_fields):
+            field = field.strip()
+            order = sorter_orders[i].strip() if i < len(sorter_orders) else "asc"
+            if field in allowed_fields:
+                sort_column = getattr(Person, field)
+                query = query.order_by(asc(sort_column) if order == "asc" else desc(sort_column))
         persons = query.all()
         return facilityPersonsSchema.jsonify(persons)
 
