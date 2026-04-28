@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, session, redirect
 from datetime import datetime
-from app.services.session_service import is_session_booked, get_matching_session_persons, check_is_person_allowed
+from app.services.session_service import is_session_booked, get_matching_session_persons, check_is_person_allowed, create_remote_session_log
 from dataclasses import dataclass
 
 remote_api_bp = Blueprint('remoteapi', __name__)
@@ -81,6 +81,13 @@ def log_remote_access_connect():
     if not username:
         return jsonify({"error": "Missing username"}), 400
     
-    # TODO: this api endpoint should make a new log record via a services call.
+    try:
+        access_dt = datetime.fromisoformat(access_time)
+    except ValueError:
+        return jsonify({"error": "Invalid access_time format, expected ISO 8601"}), 400
 
-    return jsonify({"instrument_id": instrument_id, "datetime": datetime, "username": username})
+    log = create_remote_session_log(instrument_id=instrument_id, access_time=access_dt, username=username)
+    if not log:
+        return jsonify({"error": f"No person found with username '{username}'"}), 404
+
+    return jsonify({"instrument_id": instrument_id, "datetime": access_time, "username": username})
