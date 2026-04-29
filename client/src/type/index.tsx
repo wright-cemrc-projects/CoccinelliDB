@@ -45,3 +45,14 @@ export interface Project {
     id: number;
     project_id: string;
 }
+
+export interface RemoteSessionLog {
+    id: number;
+    start_date: Date;
+    end_date: Date | null;
+    user_id: number;
+    instrument_id: number;
+    notes: string | null;
+    user?: Pick<Person, "id" | "first_name" | "last_name">;
+    instrument?: Pick<Instrument, "id" | "name">;
+}

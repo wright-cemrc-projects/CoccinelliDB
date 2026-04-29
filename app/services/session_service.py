@@ -1,4 +1,4 @@
-from app.models import InstrumentSession, session_person_link, Person
+from app.models import InstrumentSession, session_person_link, Person, RemoteSessionLog
 from app import db
 from sqlalchemy import select, join
 
@@ -79,3 +79,16 @@ def check_is_person_allowed(instrument_id: int, target_datetime: datetime, usern
                 return True
 
     return False
+
+def create_remote_session_log(instrument_id: int, access_time: datetime, username: str) -> RemoteSessionLog | None:
+    person = Person.query.filter_by(net_id=username).first()
+    if not person:
+        return None
+    log = RemoteSessionLog(
+        start_date=access_time,
+        user_id=person.id,
+        instrument_id=int(instrument_id)
+    )
+    db.session.add(log)
+    db.session.commit()
+    return log

@@ -22,3 +22,6 @@ npm install
 # start client
 npx run dev
 ```
+
+# Updating the database
+`flask db migrate -m "Added a table"`

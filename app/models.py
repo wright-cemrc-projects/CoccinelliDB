@@ -208,6 +208,19 @@ class InstrumentSession(db.Model):
     def __repr__(self):
         return f"<InstrumentSession(id={self.id},facility_id={self.facility_id},project_id={self.project_id},instrument_id={self.instrument_id},start_date={self.start_date},end_date={self.end_date})>"
 
+# Related to the above to be a table of logged events.
+class RemoteSessionLog(db.Model):
+    """ Representation of a remote access session log """
+    __tablename__ = "remotesessionlog"
+    id = db.Column(db.Integer, primary_key=True)
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)
+    user_id: Mapped[int] = mapped_column(ForeignKey("person.id"))
+    instrument_id: Mapped[int] = mapped_column(ForeignKey("instrument.id"))
+    notes = db.Column(db.Text, nullable=True)
+    user: Mapped["Person"] = relationship()
+    instrument: Mapped["Instrument"] = relationship()
+
 class Collection(db.Model):
     """ Representation of a data collection that occurred duing an instrument session """
     __tablename__ = "collection"
