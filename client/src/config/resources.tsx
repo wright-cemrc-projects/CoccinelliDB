@@ -6,7 +6,8 @@ import {
     ProjectOutlined,
     CalendarOutlined,
     AlertOutlined,
-    UsergroupAddOutlined
+    UsergroupAddOutlined,
+    AuditOutlined,
 } from "@ant-design/icons";
 
 
@@ -114,6 +115,14 @@ export const resources: IResourceItem[] = [
             label: "Instrument Issues",
             canDelete: true,
             icon: <AlertOutlined />
+        }
+    },
+    {
+        name: "remotelogs",
+        list: "/remotelogs",
+        meta: {
+            label: "Remote Access Logs",
+            icon: <AuditOutlined />
         }
     },
 

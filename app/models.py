@@ -218,6 +218,8 @@ class RemoteSessionLog(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("person.id"))
     instrument_id: Mapped[int] = mapped_column(ForeignKey("instrument.id"))
     notes = db.Column(db.Text, nullable=True)
+    user: Mapped["Person"] = relationship()
+    instrument: Mapped["Instrument"] = relationship()
 
 class Collection(db.Model):
     """ Representation of a data collection that occurred duing an instrument session """

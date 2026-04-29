@@ -34,7 +34,8 @@ import { GroupList, GroupEdit, GroupCreate, GroupShow } from "./pages/groups";
 import { InstrumentCreate, InstrumentEdit, InstrumentList, InstrumentShow } from "./pages/instruments";
 import { InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow } from "./pages/instrumentsession";
 import { PersonList, PersonEdit, PersonCreate, PersonShow } from "./pages/persons";
-import { InstrumentIssueCreate, InstrumentIssueEdit, InstrumentIssueList, InstrumentIssueShow } from "./pages/instrumentissues";
+import { InstrumentIssueCreate, InstrumentIssueEdit, InstrumentIssueList, InstrumentIssueShow } from "./pages/instrumentissues"
+import { RemoteSessionLogList } from "./pages/remotelogs";
 import {Unauthorized} from "./pages/Unauthorized"
 import { DashboardPage } from "@/src/pages/dashboard";
 import { BugOutlined } from "@ant-design/icons";
@@ -153,6 +154,9 @@ function App() {
                       <Route path="create" element={<InstrumentIssueCreate />}/>
                       <Route path="edit/:id" element={<InstrumentIssueEdit />}/>
                       <Route path="show/:id" element={<InstrumentIssueShow />}/>
+                    </Route>
+                    <Route path="/remotelogs">
+                      <Route index element={<RemoteSessionLogList />}/>
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>

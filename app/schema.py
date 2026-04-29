@@ -2,7 +2,7 @@
 from marshmallow import Schema, fields, post_dump
 
 from . import ma
-from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db
+from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db, RemoteSessionLog
 from datetime import timezone, datetime
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
@@ -94,6 +94,24 @@ class InstrumentIssueSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
 instrumentIssueSchema = InstrumentIssueSchema()
 instrumentIssuesSchema = InstrumentIssueSchema(many=True)
+
+class PersonSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Person
+
+personSchema = PersonSchema()
+personsSchema = PersonSchema(many=True)
+
+class RemoteSessionLogSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = RemoteSessionLog
+        include_fk = True
+
+    user = fields.Nested("PersonSchema", only=["id", "first_name", "last_name"])
+    instrument = fields.Nested("InstrumentSchema", only=["id", "name"])
+
+remoteSessionLogSchema = RemoteSessionLogSchema()
+remoteSessionLogsSchema = RemoteSessionLogSchema(many=True)
 
 ## Simple JSON response schema that can be returned by an API.
 class SessionQuerySchema(Schema):
