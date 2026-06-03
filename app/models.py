@@ -114,7 +114,7 @@ class Person(db.Model, UserMixin):
 project_person_link = db.Table('project_person',
                         db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
                         db.Column('person_id', db.Integer, db.ForeignKey('person.id')),
-                        db.Column('role', db.String))
+                        db.Column('role', db.String(45)))
 
 # Entries below using SQLAlchemy ORM configuration style with Declarative mappings with Mapped.
 # https://docs.sqlalchemy.org/en/20/orm/basic_relationships.html

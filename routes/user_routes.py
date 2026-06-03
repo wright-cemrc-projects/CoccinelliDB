@@ -1,5 +1,8 @@
 from datetime import datetime
+import logging
 from flask import Blueprint, request, jsonify
+
+logger = logging.getLogger(__name__)
 from flask_security import roles_accepted
 from sqlalchemy import or_
 from sqlalchemy import func, asc, desc
@@ -248,7 +251,9 @@ def create_person():
         db.session.commit()
         return jsonify({"message": f"{person} created."})
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        logger.error("create_person failed: %s", err, exc_info=True)
+        return jsonify({"err": str(err)}), 400
 
 @roles_accepted('Admin')
 @user.route('/api/persons/<int:id>', methods=['GET'])
