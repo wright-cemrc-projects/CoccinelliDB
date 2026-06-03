@@ -28,7 +28,7 @@ def upgrade():
     op.create_table('project_person',
     sa.Column('project_id', sa.Integer(), nullable=True),
     sa.Column('person_id', sa.Integer(), nullable=True),
-    sa.Column('role', sa.String(45), nullable=True),
+    sa.Column('role', sa.String(length=45), nullable=True),
     sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_project_person_person_id_person')),
     sa.ForeignKeyConstraint(['project_id'], ['project.id'], name=op.f('fk_project_person_project_id_project'))
     )
