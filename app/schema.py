@@ -2,7 +2,7 @@
 from marshmallow import Schema, fields, post_dump
 
 from . import ma
-from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db, RemoteSessionLog
+from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db, RemoteSessionLog, Collection
 from datetime import timezone, datetime
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
@@ -112,6 +112,14 @@ class RemoteSessionLogSchema(ma.SQLAlchemyAutoSchema):
 
 remoteSessionLogSchema = RemoteSessionLogSchema()
 remoteSessionLogsSchema = RemoteSessionLogSchema(many=True)
+
+class CollectionSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Collection
+        include_fk = True
+
+collectionSchema = CollectionSchema()
+collectionsSchema = CollectionSchema(many=True)
 
 ## Simple JSON response schema that can be returned by an API.
 class SessionQuerySchema(Schema):

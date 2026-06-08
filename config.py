@@ -5,6 +5,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'no key set'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    INSTRUMENT_API_KEY = os.environ.get('INSTRUMENT_API_KEY') or 'dev-instrument-api-key'
 
 class DevelopmentConfig(Config):
     # SQLite database for development
