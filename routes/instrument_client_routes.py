@@ -4,7 +4,7 @@ from datetime import datetime
 
 from app import db
 from app.models import Collection, Instrument, InstrumentSession, Project
-from app.schema import collectionSchema, collectionsSchema, instrumentSessionSchema, instrumentSessionsSchema
+from app.schema import collectionSchema, collectionsSchema, instrumentSessionSchema, instrumentSessionsSchema, projectSchema
 
 import sys
 
@@ -21,7 +21,7 @@ def resolve_project_id(payload):
     """
     if 'project_string_id' in payload:
         project_string_id = payload['project_string_id']
-        project = Project.query.filter_by(project_id=project_string_id).first()
+        project = Project.query.filter(Project.project_id.ilike(project_string_id)).first()
         if not project:
             return None, (jsonify({"error": f"Project with project_id '{project_string_id}' not found"}), 404)
         return project.id, None
@@ -111,6 +111,25 @@ def list_collections():
             results = Collection.query.all()
         return collectionsSchema.jsonify(results)
     except Exception as err:
+        return jsonify({"error": str(err)}), 400
+
+
+@instrument_client_bp.route('/api/client/projects', methods=['GET'])
+@require_api_key
+def get_project_by_string_id():
+    """Look up a Project by its string project_id, returning its integer id."""
+    try:
+        project_string_id = request.args.get('project_id')
+        if not project_string_id:
+            return jsonify({"error": "project_id is required"}), 400
+
+        project = Project.query.filter(Project.project_id.ilike(project_string_id)).first()
+        if not project:
+            return jsonify(None), 404
+
+        return projectSchema.jsonify(project)
+    except Exception as err:
+        print(err, file=sys.stderr)
         return jsonify({"error": str(err)}), 400
 
 
