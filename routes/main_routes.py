@@ -2,11 +2,11 @@ from flask import Blueprint, jsonify, request, redirect
 from flask_login import current_user
 
 from app import db
-from app.models import Project, Instrument, InstrumentSession, InstrumentIssue, session_person_link, RemoteSessionLog
+from app.models import Project, Instrument, InstrumentSession, InstrumentIssue, session_person_link, RemoteSessionLog, Collection
 from app.schema import projectSchema, projectsSchema,  \
     instrumentSessionSchema, \
     instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema, \
-    remoteSessionLogsSchema
+    remoteSessionLogsSchema, collectionSchema, collectionsSchema
 from datetime import datetime
 from flask_security import roles_accepted
 
@@ -377,6 +377,24 @@ def delete_instrumentissue(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
+
+@roles_accepted('Admin', 'Editor')
+@main.route('/api/collection', methods=['GET'])
+def get_collection_list():
+    try:
+        collection_list = db.session.execute(db.select(Collection)).scalars()
+        return collectionsSchema.jsonify(collection_list)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@roles_accepted('Admin', 'Editor')
+@main.route('/api/collection/<int:id>', methods=['GET'])
+def get_collection_by_id(id):
+    try:
+        collection = db.get_or_404(Collection, id)
+        return collectionSchema.jsonify(collection)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
 
 @roles_accepted('Admin')
 @main.route('/api/remotelogs', methods=['GET'])

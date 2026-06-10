@@ -118,6 +118,15 @@ export const resources: IResourceItem[] = [
         }
     },
     {
+        name: "collection",
+        list: "/collection",
+        show: "/collection/show/:id",
+        meta: {
+            label: "Collections",
+            icon: <ProjectOutlined />
+        }
+    },
+    {
         name: "remotelogs",
         list: "/remotelogs",
         meta: {
@@ -131,7 +140,7 @@ export const resources: IResourceItem[] = [
 // Resources each role is allowed to access (admin = all, use [] as sentinel)
 const roleAccessMap: Record<string, string[]> = {
     admin:  [], // sentinel: allow everything
-    editor: ["dashboard", "projects", "instruments", "instrumentsession", "instrumentissues"],
+    editor: ["dashboard", "projects", "instruments", "instrumentsession", "instrumentissues", "collection"],
     user:   ["dashboard", "projects", "instrumentsession"],
 };
 
