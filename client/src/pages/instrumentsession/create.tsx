@@ -86,7 +86,7 @@ export const InstrumentSessionCreate = () => {
     });
 
     const handleFormSubmit = (values: any) => {
-        const payload = { ...values,
+        const payload = { ...values, persons,
             start_date: values.start_date
                 ? dayjs(values.start_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
                 : null,
@@ -221,7 +221,7 @@ export const InstrumentSessionCreate = () => {
                             title="Hours"
                             dataIndex="Hours"
                             render={(value, _, index) => (
-                                <input type="number" value={value} onChange={(v) => updatePerson(index, "hours", value)} />
+                                <input type="number" value={value} onChange={(v) => updatePerson(index, "hours", v.target.value)} />
                             )}
                         />
                         <Table.Column

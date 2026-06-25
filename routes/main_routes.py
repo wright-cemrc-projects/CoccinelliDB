@@ -198,8 +198,9 @@ def create_session():
         db.session.commit()
         return jsonify({"message": f"new instrument session {start_date} created."})
     except Exception as err:
+        db.session.rollback()
         print(err, file=sys.stderr)
-        return jsonify({"err": f"{err=}"})
+        return jsonify({"error": str(err)}), 400
 
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['GET'])
@@ -288,8 +289,9 @@ def update_session(id):
         db.session.commit()
         return jsonify({"message": f"{session} got updated"})
     except Exception as err:
+        db.session.rollback()
         print(err, file=sys.stderr)
-        return jsonify({"err": f"{err=}"})
+        return jsonify({"error": str(err)}), 400
 
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['DELETE'])
