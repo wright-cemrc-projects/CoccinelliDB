@@ -46,6 +46,16 @@ export interface Project {
     project_id: string;
 }
 
+export interface Collection {
+    id: number;
+    data_location: string;
+    collection_type: string | null;
+    start_date: Date | null;
+    end_date: Date | null;
+    total_image_count: number | null;
+    instrument_session_id: number;
+}
+
 export interface RemoteSessionLog {
     id: number;
     start_date: Date;

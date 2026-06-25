@@ -25,3 +25,6 @@ npx run dev
 
 # Updating the database
 `flask db migrate -m "Added a table"`
+
+# API documentation
+- [Instrument Client API](doc/instrument_client_api.md) - API for instrument-side scripts to log collections and instrument sessions.
