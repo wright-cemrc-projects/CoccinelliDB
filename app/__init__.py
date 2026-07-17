@@ -4,6 +4,7 @@ from flask import Flask, g
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import login_user, current_user
 import click
 import os
 from sqlalchemy import MetaData, insert
@@ -34,6 +35,70 @@ migrate = Migrate()
 ma = Marshmallow()
 oidc = None
 
+
+class _DevOidcStub:
+    """
+    Stand-in for flask_oidc's OpenIDConnect, used when OIDC_ENABLED is False.
+    Lets routes written against the real oidc object (@oidc.require_login,
+    oidc.user_getinfo, etc.) keep working while OAuth is skipped locally.
+    """
+
+    def __init__(self, dev_email):
+        self.dev_email = dev_email
+        self.user_loggedin = True
+
+    def require_login(self, view_func):
+        return view_func
+
+    def user_getfield(self, field):
+        from .models import Person
+        person = Person.query.filter_by(email=self.dev_email).first()
+        return getattr(person, field, None) if person else None
+
+    def user_getinfo(self, fields):
+        from .models import Person
+        person = Person.query.filter_by(email=self.dev_email).first()
+        info = {
+            "email": self.dev_email,
+            "sub": "dev-local",
+            "name": f"{person.first_name} {person.last_name}" if person else "Dev User",
+        }
+        return {field: info.get(field) for field in fields}
+
+    def logout(self):
+        pass
+
+
+def _seed_dev_user(app, email):
+    """
+    Ensure a local Admin-rights Person exists for `email` so the OAuth
+    bypass (OIDC_ENABLED=False) has a real, fully-authorized user to run
+    requests as.
+    """
+    from .models import Person, Role
+
+    with app.app_context():
+        try:
+            person = Person.query.filter_by(email=email).first()
+            if not person:
+                person = Person("Dev", "User", email, "dev-local")
+                db.session.add(person)
+                db.session.commit()
+
+            admin_role = Role.query.filter_by(name="Admin").first()
+            if not admin_role:
+                admin_role = Role(name="Admin")
+                db.session.add(admin_role)
+                db.session.commit()
+
+            if admin_role not in person.roles:
+                person.roles.append(admin_role)
+                db.session.commit()
+        except Exception as exc:
+            db.session.rollback()
+            print(f"Skipping dev user seeding ({exc}); has `flask db upgrade` been run?")
+
+
 def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
 
     app = Flask(__name__)
@@ -49,11 +114,16 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
 
     global oidc
-    oidc = OpenIDConnect(app)
-    
+    if app.config.get("OIDC_ENABLED", True):
+        app.config["OIDC_CLIENT_SECRETS"] = "./client_secrets.json"
+        oidc = OpenIDConnect(app)
+    else:
+        dev_email = app.config.get("DEV_USER_EMAIL")
+        _seed_dev_user(app, dev_email)
+        oidc = _DevOidcStub(dev_email)
+
     CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
    
     # Register routes (from routes/*)
@@ -77,6 +147,14 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
 
     @app.before_request
     def attach_current_user():
+        if not app.config.get("OIDC_ENABLED", True):
+            person = Person.query.filter_by(email=app.config.get("DEV_USER_EMAIL")).first()
+            if person:
+                g.person = person
+                if not current_user.is_authenticated:
+                    login_user(person)
+            return
+
         if oidc.user_loggedin:
             email = oidc.user_getfield("email")
             person = Person.query.filter_by(email=email).first()
