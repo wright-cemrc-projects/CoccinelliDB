@@ -36,7 +36,7 @@ import { InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, 
 import { PersonList, PersonEdit, PersonCreate, PersonShow } from "./pages/persons";
 import { InstrumentIssueCreate, InstrumentIssueEdit, InstrumentIssueList, InstrumentIssueShow } from "./pages/instrumentissues"
 import { RemoteSessionLogList } from "./pages/remotelogs";
-import { CollectionList } from "./pages/collections";
+import { CollectionList, CollectionShow } from "./pages/collections";
 import {Unauthorized} from "./pages/Unauthorized"
 import { DashboardPage } from "@/src/pages/dashboard";
 import { BugOutlined } from "@ant-design/icons";
@@ -158,6 +158,7 @@ function App() {
                     </Route>
                     <Route path="/collection">
                       <Route index element={<CollectionList />}/>
+                      <Route path="show/:id" element={<CollectionShow />}/>
                     </Route>
                     <Route path="/remotelogs">
                       <Route index element={<RemoteSessionLogList />}/>

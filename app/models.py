@@ -201,7 +201,7 @@ class InstrumentSession(db.Model):
     @validates("end_date")
     def validate_end_date(self, key, end_date):
         """ Ensure end_date is after start_date """
-        if self.start_date and end_date <= self.start_date:
+        if self.start_date and end_date and end_date <= self.start_date:
             raise ValueError("End date must be after start date.")
         return end_date
 

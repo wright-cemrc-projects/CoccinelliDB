@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 from flask_login import login_user, current_user
 import click
 import os
+from datetime import datetime
 from sqlalchemy import MetaData, insert
 from flask_marshmallow import Marshmallow
 from sqlalchemy.testing.plugin.plugin_base import config
@@ -245,6 +246,46 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
         project.facility_id = facility_id
         db.session.add(project)
         db.session.commit()
+
+    @app.cli.command("create-instrument-session")
+    @click.argument("facility_id")
+    @click.argument("instrument_id")
+    @click.option("--project-id", default=None, help="Optional Project.id to link.")
+    @click.option("--start-date", default=None, help="ISO 8601, defaults to now.")
+    @click.option("--end-date", default=None, help="ISO 8601, defaults to unset.")
+    def create_instrument_session(facility_id, instrument_id, project_id, start_date, end_date):
+        from .models import InstrumentSession
+        session = InstrumentSession(
+            facility_id=facility_id,
+            instrument_id=instrument_id,
+            project_id=project_id,
+            start_date=datetime.fromisoformat(start_date) if start_date else datetime.utcnow(),
+            end_date=datetime.fromisoformat(end_date) if end_date else None,
+        )
+        db.session.add(session)
+        db.session.commit()
+        click.echo(f"Created InstrumentSession id={session.id}")
+
+    @app.cli.command("create-collection")
+    @click.argument("instrument_session_id")
+    @click.option("--collection-type", default="Screening", help="Screening, SPA, or CryoET.")
+    @click.option("--data-location", default=None, help="Path scanned for thumbnails/images.")
+    @click.option("--start-date", default=None, help="ISO 8601, defaults to now.")
+    @click.option("--end-date", default=None, help="ISO 8601, defaults to unset.")
+    @click.option("--total-image-count", default=0, type=int)
+    def create_collection(instrument_session_id, collection_type, data_location, start_date, end_date, total_image_count):
+        from .models import Collection
+        collection = Collection(
+            instrument_session_id=instrument_session_id,
+            collection_type=collection_type,
+            data_location=data_location,
+            start_date=datetime.fromisoformat(start_date) if start_date else datetime.utcnow(),
+            end_date=datetime.fromisoformat(end_date) if end_date else None,
+            total_image_count=total_image_count,
+        )
+        db.session.add(collection)
+        db.session.commit()
+        click.echo(f"Created Collection id={collection.id} linked to InstrumentSession id={instrument_session_id}")
 
     @app.cli.command("add-user-to-group")
     @click.argument("email")

@@ -1,6 +1,7 @@
 import {Edit, useForm, useSelect} from "@refinedev/antd";
-import {Form, Input, DatePicker, Select, Table, Switch, Button} from "antd";
-import {Facility, Instrument, Person, Project} from "@/src/type";
+import {useNavigation} from "@refinedev/core";
+import {Form, Input, DatePicker, Select, Table, Switch, Button, Typography} from "antd";
+import {Collection, Facility, Instrument, Person, Project} from "@/src/type";
 import {useEffect, useState} from "react";
 import {DeleteOutlined, PlusOutlined} from "@ant-design/icons";
 
@@ -76,6 +77,8 @@ export const InstrumentSessionEdit = () => {
         updatedPersons[index] = { ...updatedPersons[index], [key]: value };
         setPersons(updatedPersons);
     };
+
+    const { show } = useNavigation();
 
     const { formProps, saveButtonProps, queryResult } = useForm({
         mutationMode: "pessimistic",
@@ -262,6 +265,37 @@ export const InstrumentSessionEdit = () => {
                     <Button type="dashed" icon={<PlusOutlined />} onClick={addPerson} style={{ marginTop: 10 }}>
                         Add Person
                     </Button>
+                </Form.Item>
+                <Form.Item label="Associated Collections">
+                    <Table
+                        dataSource={queryResult?.data?.data?.collections ?? []}
+                        rowKey="id"
+                        pagination={false}
+                        size="small"
+                    >
+                        <Table.Column dataIndex="id" title="ID" />
+                        <Table.Column
+                            dataIndex="collection_type"
+                            title="Type"
+                            render={(value: string | null) => value ?? "—"}
+                        />
+                        <Table.Column
+                            dataIndex="start_date"
+                            title="Start"
+                            render={(value: string | null) =>
+                                value ? dayjs(value).format("YYYY-MM-DD HH:mm") : "—"
+                            }
+                        />
+                        <Table.Column dataIndex="total_image_count" title="Image Count" />
+                        <Table.Column
+                            title="Action"
+                            render={(_, record: Collection) => (
+                                <Typography.Link onClick={() => show("collection", record.id)}>
+                                    View
+                                </Typography.Link>
+                            )}
+                        />
+                    </Table>
                 </Form.Item>
             </Form>
         </Edit>
