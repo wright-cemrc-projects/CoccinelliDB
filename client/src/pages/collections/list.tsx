@@ -1,12 +1,13 @@
-import { List, ShowButton, useTable } from "@refinedev/antd";
-import { BaseRecord } from "@refinedev/core";
-import { Space, Table, Tag } from "antd";
+import { EditButton, List, ShowButton, useTable } from "@refinedev/antd";
+import { BaseRecord, useNavigation } from "@refinedev/core";
+import { Space, Table, Tag, Typography } from "antd";
 import { Collection } from "@/src/type";
 
 export const CollectionList = () => {
     const { tableProps } = useTable<Collection>({
         syncWithLocation: true,
     });
+    const { show } = useNavigation();
 
     return (
         <List canCreate={false}>
@@ -35,13 +36,22 @@ export const CollectionList = () => {
                     }
                 />
                 <Table.Column dataIndex="total_image_count" title="Image Count" />
-                <Table.Column dataIndex="instrument_session_id" title="Session ID" />
+                <Table.Column
+                    dataIndex="instrument_session_id"
+                    title="Session ID"
+                    render={(sessionId: number) => (
+                        <Typography.Link onClick={() => show("instrumentsession", sessionId)}>
+                            {sessionId}
+                        </Typography.Link>
+                    )}
+                />
                 <Table.Column
                     title="Actions"
                     dataIndex="actions"
                     render={(_, record: BaseRecord) => (
                         <Space>
                             <ShowButton hideText size="small" recordItemId={record.id} />
+                            <EditButton hideText size="small" recordItemId={record.id} />
                         </Space>
                     )}
                 />

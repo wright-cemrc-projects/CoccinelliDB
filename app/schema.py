@@ -55,6 +55,7 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
 
     instrument = fields.Nested("InstrumentSchema", only=["id", "name"])
+    collections = fields.Nested("CollectionSchema", many=True)
 
     @post_dump
     def add_person_details(self, data, **kwargs):
@@ -117,6 +118,13 @@ class CollectionSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Collection
         include_fk = True
+
+    # Restricted to flat fields only, so this doesn't recurse back into
+    # InstrumentSessionSchema.collections -> CollectionSchema.instrument_session -> ...
+    instrument_session = fields.Nested(
+        "InstrumentSessionSchema",
+        only=["id", "start_date", "end_date", "instrument", "project_id", "facility_id"]
+    )
 
 collectionSchema = CollectionSchema()
 collectionsSchema = CollectionSchema(many=True)

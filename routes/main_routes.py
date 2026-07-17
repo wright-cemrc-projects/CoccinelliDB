@@ -398,6 +398,29 @@ def get_collection_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
+@roles_accepted('Admin', 'Editor')
+@main.route('/api/collection/<int:id>', methods=['PATCH'])
+def update_collection(id):
+    try:
+        collection = db.session.execute(db.select(Collection).filter_by(id=id)).scalar_one()
+        if "instrument_session_id" in request.json:
+            collection.instrument_session_id = request.json["instrument_session_id"]
+        if "collection_type" in request.json:
+            collection.collection_type = request.json["collection_type"]
+        if "data_location" in request.json:
+            collection.data_location = request.json["data_location"]
+        if "total_image_count" in request.json:
+            collection.total_image_count = request.json["total_image_count"]
+        if "start_date" in request.json:
+            collection.start_date = datetime.fromisoformat(request.json["start_date"]) if request.json["start_date"] else None
+        if "end_date" in request.json:
+            collection.end_date = datetime.fromisoformat(request.json["end_date"]) if request.json["end_date"] else None
+        db.session.commit()
+        return jsonify({"message": f"Collection {id} got updated"})
+    except Exception as err:
+        db.session.rollback()
+        return jsonify({"err": f"{err=}"}), 400
+
 @roles_accepted('Admin')
 @main.route('/api/remotelogs', methods=['GET'])
 def get_remotelog_list():
