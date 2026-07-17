@@ -1,4 +1,4 @@
-import { List, ShowButton, useTable } from "@refinedev/antd";
+import { EditButton, List, ShowButton, useTable } from "@refinedev/antd";
 import { BaseRecord, useNavigation } from "@refinedev/core";
 import { Space, Table, Tag, Typography } from "antd";
 import { Collection } from "@/src/type";
@@ -51,6 +51,7 @@ export const CollectionList = () => {
                     render={(_, record: BaseRecord) => (
                         <Space>
                             <ShowButton hideText size="small" recordItemId={record.id} />
+                            <EditButton hideText size="small" recordItemId={record.id} />
                         </Space>
                     )}
                 />

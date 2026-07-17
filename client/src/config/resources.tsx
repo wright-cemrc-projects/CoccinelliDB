@@ -121,6 +121,7 @@ export const resources: IResourceItem[] = [
         name: "collection",
         list: "/collection",
         show: "/collection/show/:id",
+        edit: "/collection/edit/:id",
         meta: {
             label: "Collections",
             icon: <ProjectOutlined />
