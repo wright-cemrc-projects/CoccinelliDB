@@ -151,6 +151,35 @@ def delete_instrument(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
+def _normalize_person_entry(person_data):
+    """Validate and coerce one 'persons' entry from the instrument session form.
+
+    Blank fields (e.g. an Hours input the user cleared) arrive as "" rather
+    than being omitted, so a plain dict.get(key, default) doesn't catch them
+    and the DB driver ends up raising on the bad type instead. Coerce those
+    cases here so failures produce a clear message rather than a raw
+    SQLAlchemy/db-driver error.
+    """
+    person_id = person_data.get("person_id")
+    if not person_id:
+        raise ValueError("Each session participant must have a person selected.")
+
+    hours = person_data.get("hours", 0)
+    if hours in (None, ""):
+        hours = 0
+    try:
+        hours = float(hours)
+    except (TypeError, ValueError):
+        raise ValueError(f"Hours must be a number, got {hours!r}.")
+
+    return {
+        "person_id": int(person_id),
+        "onsite": bool(person_data.get("onsite", False)),
+        "role": person_data.get("role") or "",
+        "hours": hours,
+        "remote_access_level": person_data.get("remote_access_level") or "",
+    }
+
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession', methods=['POST'])
 def create_session():
@@ -164,7 +193,7 @@ def create_session():
             end_date = datetime.fromisoformat(request.json["end_date"])
         instrument_id = int(request.json["instrument_id"])
         project_id = None
-        if "project_id" in request.json:
+        if request.json.get("project_id") is not None:
             project_id = int(request.json["project_id"])
         facility_id = int(request.json["facility_id"])
         instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
@@ -177,30 +206,23 @@ def create_session():
             print(f"Flush failed: {e}", file=sys.stderr)
             return jsonify({"error": f"Flush failed: {str(e)}"}), 400
         if "persons" in request.json and request.json["persons"]:
-            new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, remote_access_level
+            new_persons = request.json["persons"]  # List of dicts with person_id, onsite, role, hours, remote_access_level
             # Process new persons list
             for person_data in new_persons:
-                person_id = person_data["person_id"]
-                onsite = person_data.get("onsite", False)
-                role = person_data.get("role", "")
-                remote_access_level = person_data.get("remote_access_level", "")
-                    # Insert new record
+                entry = _normalize_person_entry(person_data)
                 db.session.execute(
                     session_person_link.insert().values(
                         session_id=instrument_session.id,
-                        person_id=person_id,
-                        onsite=onsite,
-                        role=role,
-                        remote_access_level=remote_access_level
+                        **entry
                     )
                 )
-        
+
         db.session.commit()
         return jsonify({"message": f"new instrument session {start_date} created."})
     except Exception as err:
         db.session.rollback()
         print(err, file=sys.stderr)
-        return jsonify({"error": str(err)}), 400
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['GET'])
@@ -229,10 +251,10 @@ def update_session(id):
             session.start_date = datetime.fromisoformat(request.json["start_date"])
         if "end_date" in request.json:
             session.end_date = datetime.fromisoformat(request.json["end_date"])
-        if "instrument_id" in request.json:
+        if request.json.get("instrument_id") is not None:
             session.instrument_id = request.json["instrument_id"]
         if "project_id" in request.json:
-            session.project_id = int(request.json["project_id"])
+            session.project_id = int(request.json["project_id"]) if request.json["project_id"] is not None else None
 
         # Update persons in the session
         if "persons" in request.json:
@@ -247,13 +269,10 @@ def update_session(id):
 
             # Process new persons list
             for person_data in new_persons:
-                person_id = person_data["person_id"]
-                onsite = person_data.get("onsite", False)
-                role = person_data.get("role", "")
-                hours = person_data.get("hours", 0)
-                remote_access_level = person_data.get("remote_access_level", "")
+                entry = _normalize_person_entry(person_data)
+                person_id = entry["person_id"]
 
-                print(f"Adding person: {person_data}", file=sys.stderr)
+                print(f"Adding person: {entry}", file=sys.stderr)
 
                 if person_id in current_person_ids:
                     # Update existing record
@@ -261,7 +280,7 @@ def update_session(id):
                         session_person_link.update()
                         .where(session_person_link.c.session_id == id)
                         .where(session_person_link.c.person_id == person_id)
-                        .values(onsite=onsite, role=role, hours=hours, remote_access_level=remote_access_level)
+                        .values(onsite=entry["onsite"], role=entry["role"], hours=entry["hours"], remote_access_level=entry["remote_access_level"])
                     )
                     current_person_ids.remove(person_id)  # Mark as processed
                 else:
@@ -269,11 +288,7 @@ def update_session(id):
                     db.session.execute(
                         session_person_link.insert().values(
                             session_id=id,
-                            person_id=person_id,
-                            onsite=onsite,
-                            role=role,
-                            hours=hours,
-                            remote_access_level=remote_access_level
+                            **entry
                         )
                     )
 
@@ -291,7 +306,7 @@ def update_session(id):
     except Exception as err:
         db.session.rollback()
         print(err, file=sys.stderr)
-        return jsonify({"error": str(err)}), 400
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['DELETE'])

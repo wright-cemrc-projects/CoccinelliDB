@@ -1,6 +1,6 @@
 import {Edit, useForm, useSelect} from "@refinedev/antd";
 import {useNavigation} from "@refinedev/core";
-import {Form, Input, DatePicker, Select, Table, Switch, Button, Typography} from "antd";
+import {Form, Input, InputNumber, DatePicker, Select, Table, Switch, Button, Typography} from "antd";
 import {Collection, Facility, Instrument, Person, Project} from "@/src/type";
 import {useEffect, useState} from "react";
 import {DeleteOutlined, PlusOutlined} from "@ant-design/icons";
@@ -235,7 +235,11 @@ export const InstrumentSessionEdit = () => {
                             title="Hours"
                             dataIndex="hours"
                             render={(value, _, index) => (
-                                <input type="number" value={value} onChange={(v) => updatePerson(index, "hours", v.target.value)} />
+                                <InputNumber
+                                    min={0}
+                                    value={value}
+                                    onChange={(val) => updatePerson(index, "hours", val ?? 0)}
+                                />
                             )}
                         />
                         <Table.Column

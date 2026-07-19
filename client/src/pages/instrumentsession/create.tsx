@@ -1,5 +1,5 @@
 import {Create, useForm, useSelect} from "@refinedev/antd";
-import {Form, Input, DatePicker, Select, Table, Switch, Button} from "antd";
+import {Form, Input, InputNumber, DatePicker, Select, Table, Switch, Button} from "antd";
 import {Facility, Instrument, Person, Project} from "@/src/type";
 import {DeleteOutlined, PlusOutlined} from "@ant-design/icons";
 import {useState} from "react";
@@ -13,10 +13,10 @@ dayjs.extend(timezone);
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
     const [persons, setPersons] = useState<
-        { person_id: number; onsite: boolean; role: string; remote_access_level: string }[]
+        { person_id: number; onsite: boolean; role: string; hours: number; remote_access_level: string }[]
     >([]);
     const addPerson = () => {
-        setPersons([...persons, { person_id: 0, onsite: false, role: "", remote_access_level: "" }]);
+        setPersons([...persons, { person_id: 0, onsite: false, role: "", hours: 0, remote_access_level: "" }]);
     };
 
     const removePerson = (index: number) => {
@@ -219,9 +219,13 @@ export const InstrumentSessionCreate = () => {
                         />
                         <Table.Column
                             title="Hours"
-                            dataIndex="Hours"
+                            dataIndex="hours"
                             render={(value, _, index) => (
-                                <input type="number" value={value} onChange={(v) => updatePerson(index, "hours", v.target.value)} />
+                                <InputNumber
+                                    min={0}
+                                    value={value}
+                                    onChange={(val) => updatePerson(index, "hours", val ?? 0)}
+                                />
                             )}
                         />
                         <Table.Column
