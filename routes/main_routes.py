@@ -193,7 +193,7 @@ def create_session():
             end_date = datetime.fromisoformat(request.json["end_date"])
         instrument_id = int(request.json["instrument_id"])
         project_id = None
-        if "project_id" in request.json:
+        if request.json.get("project_id") is not None:
             project_id = int(request.json["project_id"])
         facility_id = int(request.json["facility_id"])
         instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
@@ -251,10 +251,10 @@ def update_session(id):
             session.start_date = datetime.fromisoformat(request.json["start_date"])
         if "end_date" in request.json:
             session.end_date = datetime.fromisoformat(request.json["end_date"])
-        if "instrument_id" in request.json:
+        if request.json.get("instrument_id") is not None:
             session.instrument_id = request.json["instrument_id"]
         if "project_id" in request.json:
-            session.project_id = int(request.json["project_id"])
+            session.project_id = int(request.json["project_id"]) if request.json["project_id"] is not None else None
 
         # Update persons in the session
         if "persons" in request.json:
