@@ -13,10 +13,10 @@ dayjs.extend(timezone);
 export const InstrumentSessionCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
     const [persons, setPersons] = useState<
-        { person_id: number; onsite: boolean; role: string; hours: number; remote_access_level: string }[]
+        { person_id: number | undefined; onsite: boolean; role: string; hours: number; remote_access_level: string }[]
     >([]);
     const addPerson = () => {
-        setPersons([...persons, { person_id: 0, onsite: false, role: "", hours: 0, remote_access_level: "" }]);
+        setPersons([...persons, { person_id: undefined, onsite: false, role: "", hours: 0, remote_access_level: "" }]);
     };
 
     const removePerson = (index: number) => {
@@ -45,14 +45,15 @@ export const InstrumentSessionCreate = () => {
         resource: "persons",
         optionLabel: (item: Person) => `${item?.first_name} ${item?.last_name}`,
         optionValue: "id",
-        onSearch: (value) => [
-            {
-                field: "first_name",
-                operator: "contains",
-                value: value,
-            },
+        sorters: [
             {
                 field: "last_name",
+                order: "asc",
+            },
+        ],
+        onSearch: (value) => [
+            {
+                field: "full_name",
                 operator: "contains",
                 value: value,
             },
@@ -177,7 +178,7 @@ export const InstrumentSessionCreate = () => {
                     />
                 </Form.Item>
                 <Form.Item label="Session Participants" name={["persons"]}>
-                    <Table dataSource={persons} rowKey="person_id" pagination={false} size="small">
+                    <Table dataSource={persons} rowKey={(_, index) => index!} pagination={false} size="small">
                         <Table.Column
                             title="Person"
                             dataIndex="person_id"
@@ -185,6 +186,7 @@ export const InstrumentSessionCreate = () => {
                                 <Select
                                     {...personSelectProps}
                                     value={value}
+                                    placeholder="Select a person"
                                     onChange={(val) => updatePerson(index, "person_id", val)}
                                     style={{ width: "100%" }}
                                 />
