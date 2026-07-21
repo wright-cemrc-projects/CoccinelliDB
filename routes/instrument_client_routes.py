@@ -93,6 +93,32 @@ def get_collection(id):
         return jsonify({"error": str(err)}), 404
 
 
+@instrument_client_bp.route('/api/client/collections/<int:id>', methods=['PATCH'])
+@require_api_key
+def update_collection(id):
+    """Update an existing Collection (e.g. to extend end_date/total_image_count for an ongoing scan)."""
+    try:
+        collection = db.session.get(Collection, id)
+        if not collection:
+            return jsonify({"error": f"Collection {id} not found"}), 404
+
+        if 'start_date' in request.json:
+            collection.start_date = datetime.fromisoformat(request.json['start_date'])
+        if 'end_date' in request.json:
+            collection.end_date = datetime.fromisoformat(request.json['end_date'])
+        if 'total_image_count' in request.json:
+            collection.total_image_count = int(request.json['total_image_count'])
+        if 'collection_type' in request.json:
+            collection.collection_type = request.json['collection_type']
+
+        db.session.commit()
+        return collectionSchema.jsonify(collection)
+    except Exception as err:
+        print(err, file=sys.stderr)
+        db.session.rollback()
+        return jsonify({"error": str(err)}), 400
+
+
 @instrument_client_bp.route('/api/client/collections', methods=['GET'])
 @require_api_key
 def list_collections():
