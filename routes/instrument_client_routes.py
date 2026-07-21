@@ -11,6 +11,16 @@ import sys
 instrument_client_bp = Blueprint('instrument_client', __name__)
 
 
+def expand_session_range(session, start_date, end_date):
+    """Widen an InstrumentSession's start/end_date to cover a Collection's range, if needed."""
+    if not session:
+        return
+    if start_date and (not session.start_date or start_date < session.start_date):
+        session.start_date = start_date
+    if end_date and (not session.end_date or end_date > session.end_date):
+        session.end_date = end_date
+
+
 def resolve_project_id(payload):
     """Resolve the integer Project.id from request data.
 
@@ -74,6 +84,8 @@ def create_collection():
         if 'collection_type' in request.json:
             collection.collection_type = request.json['collection_type']
 
+        expand_session_range(instrument_session, collection.start_date, collection.end_date)
+
         db.session.add(collection)
         db.session.commit()
         return collectionSchema.jsonify(collection), 201
@@ -110,6 +122,8 @@ def update_collection(id):
             collection.total_image_count = int(request.json['total_image_count'])
         if 'collection_type' in request.json:
             collection.collection_type = request.json['collection_type']
+
+        expand_session_range(collection.instrument_session, collection.start_date, collection.end_date)
 
         db.session.commit()
         return collectionSchema.jsonify(collection)
