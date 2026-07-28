@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
 import {List, Show} from "@refinedev/antd";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import "@/src/styles/calendar-dark-mode.css";
 import { InstrumentSession } from "@/src/type";
 import {useList} from "@refinedev/core";
 import {useNavigate} from "react-router";
+import { ColorModeContext } from "@/src/contexts/color-mode";
 
 const localizer = momentLocalizer(moment);
 
@@ -14,6 +16,7 @@ export const InstrumentSessionList = () => {
         resource: "instrumentsession",
     });
     const navigate = useNavigate();
+    const { mode } = useContext(ColorModeContext);
 
     const events = data?.data.map((session) => ({
         id: session.id,
@@ -31,6 +34,7 @@ export const InstrumentSessionList = () => {
                     startAccessor="start"
                     endAccessor="end"
                     style={{ height: 500 }}
+                    className={mode === "dark" ? "rbc-dark-mode" : undefined}
                     defaultView="month"
                     eventPropGetter={(event) => ({
                         style: {
