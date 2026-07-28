@@ -1,0 +1,91 @@
+/* react-big-calendar ships light-only colors; these overrides make it legible
+   against antd's dark algorithm surfaces when ColorModeContext mode is "dark". */
+.rbc-dark-mode.rbc-calendar {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.rbc-dark-mode .rbc-off-range-bg {
+  background: #1d1d1d;
+}
+
+.rbc-dark-mode .rbc-off-range {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.rbc-dark-mode .rbc-today {
+  background-color: #112a45;
+}
+
+.rbc-dark-mode .rbc-header,
+.rbc-dark-mode .rbc-month-view,
+.rbc-dark-mode .rbc-month-row + .rbc-month-row,
+.rbc-dark-mode .rbc-day-bg + .rbc-day-bg,
+.rbc-dark-mode .rbc-header + .rbc-header,
+.rbc-dark-mode .rbc-time-view,
+.rbc-dark-mode .rbc-time-header.rbc-overflowing,
+.rbc-dark-mode .rbc-time-header-content,
+.rbc-dark-mode .rbc-time-content,
+.rbc-dark-mode .rbc-time-content > * + * > *,
+.rbc-dark-mode .rbc-timeslot-group,
+.rbc-dark-mode .rbc-day-slot .rbc-time-slot,
+.rbc-dark-mode .rbc-time-gutter,
+.rbc-dark-mode .rbc-agenda-view table.rbc-agenda-table,
+.rbc-dark-mode .rbc-agenda-view table.rbc-agenda-table tbody > tr > td,
+.rbc-dark-mode .rbc-agenda-view table.rbc-agenda-table thead > tr > th {
+  border-color: #424242;
+}
+
+.rbc-dark-mode .rbc-header {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.rbc-dark-mode .rbc-toolbar button {
+  color: rgba(255, 255, 255, 0.85);
+  background: #1f1f1f;
+  border-color: #424242;
+}
+
+.rbc-dark-mode .rbc-toolbar button:hover,
+.rbc-dark-mode .rbc-toolbar button:focus {
+  color: rgba(255, 255, 255, 0.85);
+  background: #2a2a2a;
+  border-color: #595959;
+}
+
+.rbc-dark-mode .rbc-toolbar button.rbc-active,
+.rbc-dark-mode .rbc-toolbar button.rbc-active:hover,
+.rbc-dark-mode .rbc-toolbar button.rbc-active:focus {
+  color: #fff;
+  background: #0958d9;
+  border-color: #0958d9;
+}
+
+.rbc-dark-mode .rbc-toolbar-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.rbc-dark-mode .rbc-agenda-view table.rbc-agenda-table {
+  background: #1f1f1f;
+}
+
+.rbc-dark-mode .rbc-show-more {
+  background: transparent;
+  color: #69b1ff;
+}
+
+.rbc-dark-mode .rbc-slot-selecting .rbc-event,
+.rbc-dark-mode .rbc-day-slot .rbc-slot-selecting .rbc-background-event {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.rbc-dark-mode .rbc-selected-cell {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.rbc-dark-mode .rbc-day-slot .rbc-time-slot {
+  border-top-color: #303030;
+}
+
+.rbc-dark-mode .rbc-current-time-indicator {
+  background-color: #ff4d4f;
+}
