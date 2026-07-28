@@ -55,9 +55,6 @@ export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({
         theme={{
           ...RefineThemes.Blue,
           algorithm: mode === "light" ? defaultAlgorithm : darkAlgorithm,
-          token: {
-            colorBgLayout: mode === "light" ? "#f0f5ff" : undefined,
-          },
         }}
       >
         {children}
