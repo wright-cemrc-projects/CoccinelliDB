@@ -134,6 +134,7 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     from routes.user_routes import user
     from routes.dashboard_routes import dashboard_bp
     from routes.instrument_client_routes import instrument_client_bp
+    from routes.tiltseries_routes import tiltseries_bp
 
     app.register_blueprint(main)
     app.register_blueprint(remote_api_bp)
@@ -141,6 +142,7 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     app.register_blueprint(user)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(instrument_client_bp)
+    app.register_blueprint(tiltseries_bp)
 
     from .models import Group, Facility, Person, Role, Project, group_person
     user_datastore = SQLAlchemyUserDatastore(db, Person, Role)

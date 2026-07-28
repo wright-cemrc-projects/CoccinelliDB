@@ -57,6 +57,17 @@ export interface Collection {
     instrument_session_id: number;
 }
 
+export interface TiltSeries {
+    name: string;
+    align_image: string | null;
+    tomogram_image: string | null;
+    tomogram_projxy_image: string | null;
+    tomogram_projxz_image: string | null;
+    tilt_count: number;
+    min_angle: number | null;
+    max_angle: number | null;
+}
+
 export interface RemoteSessionLog {
     id: number;
     start_date: Date;
