@@ -51,7 +51,7 @@ def get_dashboard_collections():
     """
     Returns active/recent collections visible to the current person, including a
     filmstrip of tilt-series thumbnails (most recent first, capped at 20) and a
-    tilt-series count found at data_location.
+    tilt-series count found at thumbnail_location (or data_location if unset).
     """
     if not hasattr(g, 'person') or g.person is None:
         return jsonify({"error": "Not authenticated"}), 401
@@ -60,7 +60,8 @@ def get_dashboard_collections():
 
     result = []
     for collection in collections:
-        tilt_series = scan_tilt_series(collection.data_location) if collection.data_location else []
+        thumbnail_root = collection.thumbnail_location or collection.data_location
+        tilt_series = scan_tilt_series(thumbnail_root) if thumbnail_root else []
 
         newest_first = sorted(tilt_series, key=lambda ts: ts.mtime, reverse=True)
         thumbnails = [
@@ -87,9 +88,10 @@ def get_dashboard_collections():
 @oidc.require_login
 def serve_collection_image(collection_id, filename):
     """
-    Serves a JPG thumbnail from a collection's data_location.
-    Validates that the current person has access to the collection
-    and that the filename does not escape the data_location directory.
+    Serves a JPG thumbnail from a collection's thumbnail_location (falling back to
+    data_location when no separate thumbnail folder is set). Validates that the
+    current person has access to the collection and that the filename does not
+    escape that directory.
     """
     if not hasattr(g, 'person') or g.person is None:
         abort(401)
@@ -100,10 +102,11 @@ def serve_collection_image(collection_id, filename):
         abort(403)
 
     collection = db.session.get(Collection, collection_id)
-    if not collection or not collection.data_location:
+    thumbnail_root = collection.thumbnail_location or collection.data_location if collection else None
+    if not collection or not thumbnail_root:
         abort(404)
 
-    requested = resolve_safe_path(collection.data_location, filename)
+    requested = resolve_safe_path(thumbnail_root, filename)
     if requested is None:
         abort(403)
 

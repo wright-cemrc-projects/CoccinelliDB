@@ -51,6 +51,13 @@ export const CollectionEdit = () => {
                     <Input />
                 </Form.Item>
                 <Form.Item
+                    label="Thumbnail Location"
+                    name={["thumbnail_location"]}
+                    tooltip="Optional. Folder scanned for tilt-series thumbnails. Defaults to Data Location when left blank."
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
                     label="Start"
                     name={["start_date"]}
                     getValueProps={(value) => ({ value: value ? dayjs(value) : "" })}

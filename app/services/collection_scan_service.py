@@ -1,9 +1,10 @@
-"""Filesystem scanning of a Collection's data_location for tilt-series thumbnails.
+"""Filesystem scanning of a Collection's thumbnail folder for tilt-series thumbnails.
 
 Tilt-series data is not persisted to the database; it is derived on each request by
-walking the directory a Collection points at, which is expected to look like:
+walking the directory a Collection points at (its thumbnail_location, or data_location
+when no separate thumbnail folder is set), which is expected to look like:
 
-    <data_location>/
+    <thumbnail_location>/
       <tilt_series_name>/
         <tilt_series_name>_Align.jpg
         motion/

@@ -50,6 +50,7 @@ export interface Project {
 export interface Collection {
     id: number;
     data_location: string;
+    thumbnail_location: string | null;
     collection_type: string | null;
     start_date: Date | null;
     end_date: Date | null;

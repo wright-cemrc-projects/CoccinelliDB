@@ -42,6 +42,9 @@ export const CollectionShow = () => {
             <Title level={5}>{"Data Location"}</Title>
             <TextField value={record?.data_location ?? "—"} />
 
+            <Title level={5}>{"Thumbnail Location"}</Title>
+            <TextField value={record?.thumbnail_location ?? "(same as Data Location)"} />
+
             <Title level={5}>{"Start"}</Title>
             <TextField value={record?.start_date ? new Date(record.start_date).toLocaleString() : "—"} />
 

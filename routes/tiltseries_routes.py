@@ -27,10 +27,11 @@ def _serialize(ts):
 @roles_accepted('Admin', 'Editor')
 def list_tilt_series(id):
     collection = db.get_or_404(Collection, id)
-    if not collection.data_location:
+    thumbnail_root = collection.thumbnail_location or collection.data_location
+    if not thumbnail_root:
         return jsonify({"tilt_series": []})
 
-    tilt_series = scan_tilt_series(collection.data_location)
+    tilt_series = scan_tilt_series(thumbnail_root)
     return jsonify({"tilt_series": [_serialize(ts) for ts in tilt_series]})
 
 
@@ -38,10 +39,11 @@ def list_tilt_series(id):
 @roles_accepted('Admin', 'Editor')
 def get_tilt_series(id, name):
     collection = db.get_or_404(Collection, id)
-    if not collection.data_location:
+    thumbnail_root = collection.thumbnail_location or collection.data_location
+    if not thumbnail_root:
         abort(404)
 
-    tilt_series = scan_tilt_series(collection.data_location)
+    tilt_series = scan_tilt_series(thumbnail_root)
     match = next((ts for ts in tilt_series if ts.name == name), None)
     if match is None:
         abort(404)
@@ -53,10 +55,11 @@ def get_tilt_series(id, name):
 @roles_accepted('Admin', 'Editor')
 def serve_tilt_series_image(id, filename):
     collection = db.session.get(Collection, id)
-    if not collection or not collection.data_location:
+    thumbnail_root = collection.thumbnail_location or collection.data_location if collection else None
+    if not collection or not thumbnail_root:
         abort(404)
 
-    requested = resolve_safe_path(collection.data_location, filename)
+    requested = resolve_safe_path(thumbnail_root, filename)
     if requested is None:
         abort(403)
 

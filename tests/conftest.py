@@ -1,12 +1,11 @@
 import pytest
 from app import create_app, db
-from config import TestingConfig
 import os
 import tempfile
 
 @pytest.fixture()
 def app():
-    app = create_app(TestingConfig)
+    app = create_app('testing')
 
     with app.app_context():
         db.create_all() 

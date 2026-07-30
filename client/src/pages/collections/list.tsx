@@ -15,6 +15,11 @@ export const CollectionList = () => {
                 <Table.Column dataIndex="id" title="ID" sorter />
                 <Table.Column dataIndex="data_location" title="Data Location" />
                 <Table.Column
+                    dataIndex="thumbnail_location"
+                    title="Thumbnail Location"
+                    render={(value: string | null) => value ?? "—"}
+                />
+                <Table.Column
                     dataIndex="collection_type"
                     title="Type"
                     render={(value: string | null) =>

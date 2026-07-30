@@ -232,6 +232,18 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
         facility = Facility(name=name)
         db.session.add(facility)
         db.session.commit()
+        click.echo(f"Created Facility id={facility.id}")
+
+    @app.cli.command("create-instrument")
+    @click.argument("name")
+    @click.argument("facility_id")
+    @click.option("--model", default=None, help="Optional instrument model/hardware name.")
+    def create_instrument(name, facility_id, model):
+        from .models import Instrument
+        instrument = Instrument(name=name, model=model, facility_id=facility_id)
+        db.session.add(instrument)
+        db.session.commit()
+        click.echo(f"Created Instrument id={instrument.id}")
 
     @app.cli.command("create-group")
     @click.argument("name")
@@ -271,16 +283,18 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
     @app.cli.command("create-collection")
     @click.argument("instrument_session_id")
     @click.option("--collection-type", default="Screening", help="Screening, SPA, or CryoET.")
-    @click.option("--data-location", default=None, help="Path scanned for thumbnails/images.")
+    @click.option("--data-location", default=None, help="Path to the collection's raw data.")
+    @click.option("--thumbnail-location", default=None, help="Path scanned for thumbnails/images. Defaults to --data-location.")
     @click.option("--start-date", default=None, help="ISO 8601, defaults to now.")
     @click.option("--end-date", default=None, help="ISO 8601, defaults to unset.")
     @click.option("--total-image-count", default=0, type=int)
-    def create_collection(instrument_session_id, collection_type, data_location, start_date, end_date, total_image_count):
+    def create_collection(instrument_session_id, collection_type, data_location, thumbnail_location, start_date, end_date, total_image_count):
         from .models import Collection
         collection = Collection(
             instrument_session_id=instrument_session_id,
             collection_type=collection_type,
             data_location=data_location,
+            thumbnail_location=thumbnail_location,
             start_date=datetime.fromisoformat(start_date) if start_date else datetime.utcnow(),
             end_date=datetime.fromisoformat(end_date) if end_date else None,
             total_image_count=total_image_count,
