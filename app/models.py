@@ -228,6 +228,9 @@ class Collection(db.Model):
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
     data_location = db.Column(db.String(512), unique=True)
+    # Optional separate folder for generated thumbnails/preview images.
+    # Falls back to data_location when unset (see collection_scan_service usage).
+    thumbnail_location = db.Column(db.String(512))
     # Linked table [one FacilityInstrumentSession-> many FacilityInstrumentCollection(s)]
     instrument_session_id : Mapped[int] = mapped_column(ForeignKey("instrument_session.id"))
     instrument_session : Mapped["InstrumentSession"] = relationship(back_populates="collections")

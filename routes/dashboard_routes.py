@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, send_from_directory, abort, g
 from app import oidc, db
 from app.models import InstrumentSession, Collection, session_person_link
+from app.services.collection_scan_service import scan_tilt_series, resolve_safe_path
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -48,8 +49,9 @@ def _get_accessible_collections():
 @oidc.require_login
 def get_dashboard_collections():
     """
-    Returns active/recent collections visible to the current person,
-    including a list of up to 20 thumbnail filenames found at data_location.
+    Returns active/recent collections visible to the current person, including a
+    filmstrip of tilt-series thumbnails (most recent first, capped at 20) and a
+    tilt-series count found at thumbnail_location (or data_location if unset).
     """
     if not hasattr(g, 'person') or g.person is None:
         return jsonify({"error": "Not authenticated"}), 401
@@ -58,18 +60,15 @@ def get_dashboard_collections():
 
     result = []
     for collection in collections:
-        thumbnails = []
-        if collection.data_location and os.path.isdir(collection.data_location):
-            try:
-                all_files = os.listdir(collection.data_location)
-                jpg_files = sorted(
-                    f for f in all_files
-                    if f.lower().endswith('.jpg')
-                )
-                # Most recent 20 thumbnails (last alphabetically, which typically == newest)
-                thumbnails = jpg_files[-20:]
-            except OSError:
-                thumbnails = []
+        thumbnail_root = collection.thumbnail_location or collection.data_location
+        tilt_series = scan_tilt_series(thumbnail_root) if thumbnail_root else []
+
+        newest_first = sorted(tilt_series, key=lambda ts: ts.mtime, reverse=True)
+        thumbnails = [
+            ts.tomogram_image or ts.align_image
+            for ts in newest_first
+            if ts.tomogram_image or ts.align_image
+        ][:20]
 
         result.append({
             "id": collection.id,
@@ -78,7 +77,7 @@ def get_dashboard_collections():
             "end_date": collection.end_date.isoformat() if collection.end_date else None,
             "session_id": collection.instrument_session_id,
             "instrument_id": collection.instrument_session.instrument_id if collection.instrument_session else None,
-            "image_count": len(thumbnails),
+            "tilt_series_count": len(tilt_series),
             "thumbnails": thumbnails,
         })
 
@@ -89,9 +88,10 @@ def get_dashboard_collections():
 @oidc.require_login
 def serve_collection_image(collection_id, filename):
     """
-    Serves a JPG thumbnail from a collection's data_location.
-    Validates that the current person has access to the collection
-    and that the filename does not escape the data_location directory.
+    Serves a JPG thumbnail from a collection's thumbnail_location (falling back to
+    data_location when no separate thumbnail folder is set). Validates that the
+    current person has access to the collection and that the filename does not
+    escape that directory.
     """
     if not hasattr(g, 'person') or g.person is None:
         abort(401)
@@ -102,13 +102,12 @@ def serve_collection_image(collection_id, filename):
         abort(403)
 
     collection = db.session.get(Collection, collection_id)
-    if not collection or not collection.data_location:
+    thumbnail_root = collection.thumbnail_location or collection.data_location if collection else None
+    if not collection or not thumbnail_root:
         abort(404)
 
-    # Resolve the real paths to guard against traversal
-    base_dir = os.path.realpath(collection.data_location)
-    requested = os.path.realpath(os.path.join(base_dir, filename))
-    if not requested.startswith(base_dir + os.sep):
+    requested = resolve_safe_path(thumbnail_root, filename)
+    if requested is None:
         abort(403)
 
-    return send_from_directory(base_dir, os.path.basename(requested))
+    return send_from_directory(os.path.dirname(requested), os.path.basename(requested))

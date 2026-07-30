@@ -50,11 +50,23 @@ export interface Project {
 export interface Collection {
     id: number;
     data_location: string;
+    thumbnail_location: string | null;
     collection_type: string | null;
     start_date: Date | null;
     end_date: Date | null;
     total_image_count: number | null;
     instrument_session_id: number;
+}
+
+export interface TiltSeries {
+    name: string;
+    align_image: string | null;
+    tomogram_image: string | null;
+    tomogram_projxy_image: string | null;
+    tomogram_projxz_image: string | null;
+    tilt_count: number;
+    min_angle: number | null;
+    max_angle: number | null;
 }
 
 export interface RemoteSessionLog {

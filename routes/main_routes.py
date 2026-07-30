@@ -424,6 +424,8 @@ def update_collection(id):
             collection.collection_type = request.json["collection_type"]
         if "data_location" in request.json:
             collection.data_location = request.json["data_location"]
+        if "thumbnail_location" in request.json:
+            collection.thumbnail_location = request.json["thumbnail_location"]
         if "total_image_count" in request.json:
             collection.total_image_count = request.json["total_image_count"]
         if "start_date" in request.json:

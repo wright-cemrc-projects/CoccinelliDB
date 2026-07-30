@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Card, Empty, Spin, Tag, Typography } from "antd";
+import { useNavigation } from "@refinedev/core";
 import axios from "axios";
 
 const { Title, Text } = Typography;
@@ -13,7 +14,7 @@ interface DashboardCollection {
     end_date: string | null;
     session_id: number;
     instrument_id: number | null;
-    image_count: number;
+    tilt_series_count: number;
     thumbnails: string[];
 }
 
@@ -83,6 +84,7 @@ interface CollectionCardProps {
 }
 
 function CollectionCard({ collection }: CollectionCardProps) {
+    const { show } = useNavigation();
     const isOngoing = collection.end_date === null;
 
     const title = (
@@ -104,16 +106,22 @@ function CollectionCard({ collection }: CollectionCardProps) {
 
     const extra = (
         <Text type="secondary" style={{ fontSize: 13 }}>
-            {collection.image_count} image{collection.image_count !== 1 ? "s" : ""}
+            {collection.tilt_series_count} tilt series
         </Text>
     );
 
     return (
-        <Card title={title} extra={extra} size="small">
+        <Card
+            title={title}
+            extra={extra}
+            size="small"
+            hoverable
+            onClick={() => show("collection", collection.id)}
+        >
             {collection.thumbnails.length === 0 ? (
                 <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="No thumbnail images found in data location."
+                    description="No tilt-series thumbnails found in data location."
                     style={{ margin: "12px 0" }}
                 />
             ) : (
@@ -126,11 +134,11 @@ function CollectionCard({ collection }: CollectionCardProps) {
                         paddingBottom: 8,
                     }}
                 >
-                    {collection.thumbnails.map((filename) => (
+                    {collection.thumbnails.map((path) => (
                         <img
-                            key={filename}
-                            src={`${API_URL}/dashboard/images/${collection.id}/${filename}`}
-                            alt={filename}
+                            key={path}
+                            src={`${API_URL}/dashboard/images/${collection.id}/${path}`}
+                            alt={path}
                             style={{
                                 height: 160,
                                 width: "auto",
