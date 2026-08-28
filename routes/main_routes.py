@@ -196,7 +196,8 @@ def create_session():
         if request.json.get("project_id") is not None:
             project_id = int(request.json["project_id"])
         facility_id = int(request.json["facility_id"])
-        instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id)
+        notes = request.json.get("notes") or None
+        instrument_session = InstrumentSession(start_date=start_date, end_date=end_date, project_id=project_id, facility_id=facility_id, instrument_id=instrument_id, notes=notes)
         db.session.add(instrument_session)
 
         try:
@@ -255,6 +256,8 @@ def update_session(id):
             session.instrument_id = request.json["instrument_id"]
         if "project_id" in request.json:
             session.project_id = int(request.json["project_id"]) if request.json["project_id"] is not None else None
+        if "notes" in request.json:
+            session.notes = request.json["notes"] or None
 
         # Update persons in the session
         if "persons" in request.json:

@@ -177,6 +177,15 @@ export const InstrumentSessionCreate = () => {
 
                     />
                 </Form.Item>
+                <Form.Item
+                    label={"End of Session Notes"}
+                    name={["notes"]}
+                >
+                    <Input.TextArea
+                        rows={6}
+                        placeholder="Notes on how the session went..."
+                    />
+                </Form.Item>
                 <Form.Item label="Session Participants" name={["persons"]}>
                     <Table dataSource={persons} rowKey={(_, index) => index!} pagination={false} size="small">
                         <Table.Column

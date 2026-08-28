@@ -32,6 +32,7 @@ export interface InstrumentSession {
     end_date: Date;
     instrument: Instrument;
     collections?: Collection[];
+    notes?: string | null;
 }
 
 export interface InstrumentIssue {

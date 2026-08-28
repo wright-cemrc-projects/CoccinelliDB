@@ -18,6 +18,8 @@ export const InstrumentSessionShow = () => {
             <TextField value={record?.start_date} />
             <Title level={5}>{"End Time"}</Title>
             <TextField value={record?.end_date} />
+            <Title level={5}>{"End of Session Notes"}</Title>
+            <TextField value={record?.notes || "—"} />
         </Show>
     );
 };
