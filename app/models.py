@@ -184,6 +184,8 @@ class InstrumentSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
+    # Free-text end-of-session notes (e.g. how the day went), filled in after the fact.
+    notes = db.Column(db.Text, nullable=True)
     # Linked table [one Facility-> many InstrumentSession(s)]
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
     facility : Mapped["Facility"] = relationship(back_populates="sessions")
