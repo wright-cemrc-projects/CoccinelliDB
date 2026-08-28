@@ -12,9 +12,10 @@ from sqlalchemy import select, func
 from app import create_app, db
 from app.models import Facility, InstrumentSession, Person, session_person_link
 
-# Column headers exactly as required by the reporting template.
-# All columns are filled from the database; sessions are per-(session, person)
-# and rows for persons whose session role is "staff" are excluded.
+# Column headers as required by the reporting template, plus a trailing "EM_ID"
+# column naming the instrument the session used (same identifier as the EM usage
+# report). All columns are filled from the database; sessions are per-(session,
+# person) and rows for persons whose session role is "staff" are excluded.
 CSV_FIELDS = [
     "Project_ID*",
     "Person_ID*",
@@ -22,6 +23,7 @@ CSV_FIELDS = [
     "Session End Date*",
     "Organization*",
     "Session Type*",
+    "EM_ID",
 ]
 
 
@@ -52,6 +54,7 @@ def collect_rows(start: datetime, end: datetime, facility_id: int | None = None)
     rows = []
     for session in sessions:
         project = session.project
+        instrument = session.instrument
 
         stmt = (
             select(session_person_link.c.onsite, Person.first_name, Person.last_name, Person.organization)
@@ -70,6 +73,7 @@ def collect_rows(start: datetime, end: datetime, facility_id: int | None = None)
                 "Session End Date*": session.end_date.strftime("%Y-%m-%d") if session.end_date else "",
                 "Organization*": organization or "",
                 "Session Type*": "Onsite" if onsite else "Remote",
+                "EM_ID": instrument.name if instrument else "",
             })
     return rows
 
@@ -86,7 +90,8 @@ def main():
         description="Report visitors (non-staff persons) on InstrumentSessions between two "
                      "dates, in the EM visitors report template format. A person is 'staff' "
                      "if their session role is 'staff'; those rows are excluded. Session Type "
-                     "is 'Onsite' or 'Remote' based on the person's onsite flag for that session."
+                     "is 'Onsite' or 'Remote' based on the person's onsite flag for that session. "
+                     "EM_ID names the instrument the session was on."
     )
     parser.add_argument("--start", required=True, help="start date, inclusive (YYYY-MM-DD)")
     parser.add_argument("--end", required=True, help="end date, inclusive (YYYY-MM-DD)")

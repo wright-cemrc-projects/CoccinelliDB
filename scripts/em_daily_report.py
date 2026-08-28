@@ -12,10 +12,12 @@ from sqlalchemy import func, select
 from app import create_app, db
 from app.models import Facility, InstrumentSession, session_person_link
 
-# Column headers exactly as required by the reporting template.
-# Columns marked with '*' are filled from the database; the rest are left
-# blank for manual entry. "Service Category*" and "Notes*" have no matching
-# field on InstrumentSession, so they're left blank too, for manual entry.
+# Column headers as required by the reporting template, plus a trailing "EM_ID"
+# column naming the instrument the session used (same identifier as the EM
+# usage and visitors reports). Columns marked with '*' are filled from the
+# database; the rest are left blank for manual entry. "Service Category*" and
+# "Notes*" have no matching field on InstrumentSession, so they're left blank
+# too, for manual entry.
 CSV_FIELDS = [
     "Project_ID*",
     "Date*",
@@ -23,6 +25,7 @@ CSV_FIELDS = [
     "Service Category*",
     "Included Training",
     "Notes*",
+    "EM_ID",
 ]
 
 
@@ -73,6 +76,7 @@ def collect_rows(start: datetime, end: datetime, facility_id: int | None = None)
     rows = []
     for session in sessions:
         project = session.project
+        instrument = session.instrument
         hours = total_staff_hours(session.id)
         for day in days_in_range(session.start_date, session.end_date, range_start, range_end):
             rows.append({
@@ -82,6 +86,7 @@ def collect_rows(start: datetime, end: datetime, facility_id: int | None = None)
                 "Service Category*": "",
                 "Included Training": "",
                 "Notes*": "",
+                "EM_ID": instrument.name if instrument else "",
             })
     return rows
 
@@ -99,7 +104,8 @@ def main():
                      "report template format. A session spanning multiple days produces one "
                      "row per calendar day it was active (staff hours repeated, not split). "
                      "Only Project_ID*, Date*, and Total Staff hours* are filled from the "
-                     "database; the remaining columns are left blank for manual entry."
+                     "database; the remaining columns are left blank for manual entry. "
+                     "EM_ID names the instrument the session was on."
     )
     parser.add_argument("--start", required=True, help="start date, inclusive (YYYY-MM-DD)")
     parser.add_argument("--end", required=True, help="end date, inclusive (YYYY-MM-DD)")

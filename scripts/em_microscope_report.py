@@ -10,7 +10,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app import create_app, db
 from app.models import Collection, Facility, InstrumentSession
 
-# Column headers exactly as required by the reporting template.
+# Column headers as required by the reporting template, plus a trailing
+# "Dataset Location" column giving the collection's data location on disk.
 # Columns marked with '*' are filled from the database; the rest are left
 # blank for manual entry.
 CSV_FIELDS = [
@@ -26,6 +27,7 @@ CSV_FIELDS = [
     "Lamella Count (FIB-SEM only)",
     "EM Performance QC Check #1",
     "EM Performance QC Check #2",
+    "Dataset Location",
 ]
 
 
@@ -70,6 +72,7 @@ def collect_rows(start: datetime, end: datetime, facility_id: int | None = None)
             "Lamella Count (FIB-SEM only)": "",
             "EM Performance QC Check #1": "",
             "EM Performance QC Check #2": "",
+            "Dataset Location": collection.data_location or "",
         })
     return rows
 
@@ -86,7 +89,8 @@ def main():
         description="Report Collections between two dates in the EM usage report template "
                      "format. Only starred columns (EM_ID*, Start/End Date*, Start/End Time*, "
                      "PROJECT_ID*, Image Count*) are filled from the database; the remaining "
-                     "columns are left blank for manual entry."
+                     "columns are left blank for manual entry. Dataset Location gives the "
+                     "collection's data location on disk."
     )
     parser.add_argument("--start", required=True, help="start date, inclusive (YYYY-MM-DD)")
     parser.add_argument("--end", required=True, help="end date, inclusive (YYYY-MM-DD)")
