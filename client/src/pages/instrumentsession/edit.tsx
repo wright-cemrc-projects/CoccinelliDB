@@ -1,9 +1,10 @@
 import {Edit, useForm, useSelect} from "@refinedev/antd";
 import {useNavigation} from "@refinedev/core";
-import {Form, Input, InputNumber, DatePicker, Select, Table, Switch, Button, Typography} from "antd";
+import {App, Form, Input, InputNumber, DatePicker, Select, Table, Switch, Button, Typography} from "antd";
 import {Collection, Facility, Instrument, Person, Project} from "@/src/type";
 import {useEffect, useState} from "react";
-import {DeleteOutlined, PlusOutlined} from "@ant-design/icons";
+import {DeleteOutlined, PlusOutlined, ScissorOutlined} from "@ant-design/icons";
+import axios from "axios";
 
 import dayjs from 'dayjs';
 import utc from "dayjs/plugin/utc";
@@ -11,6 +12,8 @@ import timezone from "dayjs/plugin/timezone"
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
 
 export const InstrumentSessionEdit = () => {
 
@@ -91,7 +94,9 @@ export const InstrumentSessionEdit = () => {
         setPersons(updatedPersons);
     };
 
-    const { show } = useNavigation();
+    const { show, list } = useNavigation();
+    const { modal, message } = App.useApp();
+    const [splitting, setSplitting] = useState(false);
 
     const { formProps, saveButtonProps, queryResult } = useForm({
         mutationMode: "pessimistic",
@@ -101,6 +106,38 @@ export const InstrumentSessionEdit = () => {
             },
         },
     });
+
+    const sessionId = queryResult?.data?.data?.id;
+    const collections: Collection[] = queryResult?.data?.data?.collections ?? [];
+    const datedCollectionCount = collections.filter((c) => c.start_date).length;
+
+    const handleSplit = () => {
+        modal.confirm({
+            title: "Split into separate sessions?",
+            content: `This session has ${datedCollectionCount} dated collections. Each will be moved ` +
+                "onto its own new Instrument Session matching its own time range, with the facility, " +
+                "project, instrument, and participant list copied from this session. This cannot be undone " +
+                "automatically.",
+            okText: "Split",
+            okButtonProps: { danger: true },
+            onOk: async () => {
+                setSplitting(true);
+                try {
+                    const response = await axios.post(
+                        `${API_URL}/instrumentsession/${sessionId}/split`,
+                        {},
+                        { withCredentials: true }
+                    );
+                    message.success(response.data?.message ?? "Session split successfully.");
+                    list("instrumentsession");
+                } catch (error: any) {
+                    message.error(error.response?.data?.error ?? "Failed to split session.");
+                } finally {
+                    setSplitting(false);
+                }
+            },
+        });
+    };
 
     useEffect(() => {
         if (queryResult?.data) {
@@ -285,8 +322,22 @@ export const InstrumentSessionEdit = () => {
                     </Button>
                 </Form.Item>
                 <Form.Item label="Associated Collections">
+                    <Button
+                        icon={<ScissorOutlined />}
+                        onClick={handleSplit}
+                        disabled={datedCollectionCount < 2}
+                        loading={splitting}
+                        style={{ marginBottom: 10 }}
+                        title={
+                            datedCollectionCount < 2
+                                ? "Needs at least 2 dated collections to split"
+                                : undefined
+                        }
+                    >
+                        Split into Separate Sessions
+                    </Button>
                     <Table
-                        dataSource={queryResult?.data?.data?.collections ?? []}
+                        dataSource={collections}
                         rowKey="id"
                         pagination={false}
                         size="small"

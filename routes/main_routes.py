@@ -308,6 +308,85 @@ def update_session(id):
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
+def split_session_by_collections(session):
+    """Split a session with multiple, distinct Collections into one session per Collection.
+
+    Each resulting session's start/end_date matches its Collection's time range;
+    facility/project/instrument and the participant list are copied from the
+    original session. The original session row is kept and repurposed for the
+    earliest Collection so its id stays valid; a new session row is created for
+    each remaining Collection. Collections with no start_date can't be assigned
+    a time range and are left linked to the original session.
+
+    Returns the list of resulting session ids (original session first). Raises
+    ValueError if there aren't at least 2 dated collections to split across.
+    Does not commit; the caller controls the transaction.
+    """
+    dated_collections = sorted(
+        (c for c in session.collections if c.start_date is not None),
+        key=lambda c: c.start_date,
+    )
+    if len(dated_collections) < 2:
+        raise ValueError("Session needs at least 2 dated collections to split.")
+
+    person_rows = [
+        {
+            "person_id": link.person_id,
+            "onsite": link.onsite,
+            "role": link.role,
+            "hours": link.hours,
+            "remote_access_level": link.remote_access_level,
+        }
+        for link in db.session.execute(
+            db.select(session_person_link).filter_by(session_id=session.id)
+        ).fetchall()
+    ]
+
+    first, *rest = dated_collections
+    session.start_date = first.start_date
+    session.end_date = first.end_date
+    new_session_ids = [session.id]
+
+    for collection in rest:
+        new_session = InstrumentSession(
+            start_date=collection.start_date,
+            end_date=collection.end_date,
+            project_id=session.project_id,
+            facility_id=session.facility_id,
+            instrument_id=session.instrument_id,
+        )
+        db.session.add(new_session)
+        db.session.flush()
+
+        for row in person_rows:
+            db.session.execute(session_person_link.insert().values(session_id=new_session.id, **row))
+
+        collection.instrument_session_id = new_session.id
+        new_session_ids.append(new_session.id)
+
+    return new_session_ids
+
+@roles_accepted('Admin', 'Editor')
+@main.route('/api/instrumentsession/<int:id>/split', methods=['POST'])
+def split_session(id):
+    try:
+        session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
+        try:
+            new_session_ids = split_session_by_collections(session)
+        except ValueError as err:
+            db.session.rollback()
+            return jsonify({"error": str(err)}), 400
+
+        db.session.commit()
+        return jsonify({
+            "message": f"Split session {id} into {len(new_session_ids)} sessions.",
+            "session_ids": new_session_ids,
+        })
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['DELETE'])
 def delete_session(id):
