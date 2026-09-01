@@ -1,12 +1,14 @@
 from flask import Blueprint, jsonify, request, redirect
 from flask_login import current_user
+from sqlalchemy.exc import IntegrityError
 
 from app import db
-from app.models import Project, Instrument, InstrumentSession, InstrumentIssue, session_person_link, RemoteSessionLog, Collection, SessionGroup
+from app.models import Project, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, RemoteSessionLog, Collection, SessionGroup, project_person_link
 from app.schema import projectSchema, projectsSchema,  \
     instrumentSessionSchema, \
     instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema, \
     remoteSessionLogsSchema, collectionSchema, collectionsSchema, sessionGroupSchema, sessionGroupsSchema
+from app.services.project_import_service import find_or_create_project, link_person_to_project
 from datetime import datetime, time, timedelta
 from flask_security import roles_accepted
 
@@ -42,19 +44,65 @@ def get_project_by_id(id):
     project_one = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
     return projectSchema.jsonify(project_one)
 
+def _existing_project_id_conflict(project_id, exclude_id=None):
+    """The id of another Project already using this project_id, if any."""
+    query = db.select(Project.id).filter_by(project_id=project_id)
+    if exclude_id is not None:
+        query = query.filter(Project.id != exclude_id)
+    return db.session.execute(query).scalar_one_or_none()
+
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/projects', methods=['POST'])
 def create_project():
     project_id = request.json["project_id"]
     facility_id = request.json["facility_id"]
     try:
+        conflict_id = _existing_project_id_conflict(project_id)
+        if conflict_id is not None:
+            return jsonify({
+                "error": f"Project ID '{project_id}' is already in use.",
+                "existing_id": conflict_id,
+            }), 409
+
         project = Project(project_id)
         project.facility_id = facility_id
         db.session.add(project)
         db.session.commit()
-        return jsonify({"message": "new project created."})
+        return jsonify({"message": "new project created.", "id": project.id})
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": f"Project ID '{project_id}' is already in use."}), 409
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+@roles_accepted('Admin', 'Editor')
+@main.route('/api/projects/find_or_create', methods=['POST'])
+def find_or_create_project_route():
+    """Get-or-create a project by project_id, for idempotent bulk import.
+
+    Unlike POST /api/projects, a project_id that already exists is not an
+    error here — the existing project is returned so re-running an import
+    over the same rows doesn't create duplicates.
+    """
+    try:
+        result = find_or_create_project(
+            project_id=request.json.get("project_id"),
+            facility_id=request.json.get("facility_id"),
+        )
+        verb = "created" if result.created else "matched existing"
+        return jsonify({
+            "id": result.record.id,
+            "created": result.created,
+            "message": f"{verb} project '{result.record.project_id}'.",
+        })
+    except ValueError as err:
+        return jsonify({"error": str(err)}), 400
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>', methods=['PATCH'])
@@ -62,13 +110,26 @@ def update_project(id):
     try:
         project_id = request.json["project_id"]
         facility_id = request.json["facility_id"]
+
+        conflict_id = _existing_project_id_conflict(project_id, exclude_id=id)
+        if conflict_id is not None:
+            return jsonify({
+                "error": f"Project ID '{project_id}' is already in use.",
+                "existing_id": conflict_id,
+            }), 409
+
         project = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
         project.project_id = project_id
         project.facility_id = facility_id
         db.session.commit()
         return jsonify({"message": f"{project} got updated"})
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": f"Project ID '{project_id}' is already in use."}), 409
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>', methods=['DELETE'])
@@ -79,8 +140,45 @@ def delete_project(id):
         db.session.commit()
         return jsonify({"message": f"{project} got deleted."})
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
+@roles_accepted('Admin', 'Editor')
+@main.route('/api/projects/<int:id>/persons', methods=['POST'])
+def link_project_person(id):
+    """Link a person to a project (or update their role if already linked)."""
+    try:
+        project = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
+        person_id = request.json.get("person_id")
+        if person_id is None:
+            return jsonify({"error": "person_id is required."}), 400
+        person = db.session.execute(db.select(Person).filter_by(id=person_id)).scalar_one()
+
+        newly_linked = link_person_to_project(project, person, request.json.get("role"))
+        db.session.commit()
+        verb = "Linked" if newly_linked else "Updated role for"
+        return jsonify({"message": f"{verb} {person} on project '{project.project_id}'."})
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+@roles_accepted('Admin', 'Editor')
+@main.route('/api/projects/<int:id>/persons/<int:person_id>', methods=['DELETE'])
+def unlink_project_person(id, person_id):
+    try:
+        db.session.execute(
+            project_person_link.delete()
+            .where(project_person_link.c.project_id == id)
+            .where(project_person_link.c.person_id == person_id)
+        )
+        db.session.commit()
+        return jsonify({"message": f"Unlinked person {person_id} from project {id}."})
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 
 @roles_accepted('Admin', 'Editor')

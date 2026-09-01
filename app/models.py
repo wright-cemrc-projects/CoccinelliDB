@@ -114,7 +114,8 @@ class Person(db.Model, UserMixin):
 project_person_link = db.Table('project_person',
                         db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
                         db.Column('person_id', db.Integer, db.ForeignKey('person.id')),
-                        db.Column('role', db.String(45)))
+                        db.Column('role', db.String(45)),
+                        db.UniqueConstraint("project_id", "person_id", name="uq_project_person"))
 
 # Entries below using SQLAlchemy ORM configuration style with Declarative mappings with Mapped.
 # https://docs.sqlalchemy.org/en/20/orm/basic_relationships.html
@@ -125,11 +126,13 @@ class Project(db.Model):
     """ Representation of a research project """
     __tablename__ = "project"
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.String(45))
+    project_id = db.Column(db.String(45), unique=True)
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
     facility : Mapped["Facility"] = relationship(back_populates="projects")
     # Linked table [one FacilityProject -> many FacilityInstrumentSessions]
     sessions: Mapped[List["InstrumentSession"]] = relationship(back_populates="project")
+    # Linked table [many Project -> many Person(s)]
+    persons = db.relationship("Person", secondary=project_person_link, backref="projects", lazy="dynamic")
 
     def __init__(self, project_id):
         self.project_id = project_id
