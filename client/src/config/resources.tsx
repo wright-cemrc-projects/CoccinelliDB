@@ -8,6 +8,7 @@ import {
     AlertOutlined,
     UsergroupAddOutlined,
     AuditOutlined,
+    LinkOutlined,
 } from "@ant-design/icons";
 
 
@@ -106,6 +107,18 @@ export const resources: IResourceItem[] = [
         }
     },
     {
+        name: "sessiongroups",
+        list: "/sessiongroups",
+        create: "/sessiongroups/create",
+        edit: "/sessiongroups/edit/:id",
+        show: "/sessiongroups/show/:id",
+        meta: {
+            label: "Session Groups",
+            canDelete: true,
+            icon: <LinkOutlined />
+        }
+    },
+    {
         name: "instrumentissues",
         list: "/instrumentissues",
         create: "/instrumentissues/create",
@@ -141,14 +154,14 @@ export const resources: IResourceItem[] = [
 // Resources each role is allowed to access (admin = all, use [] as sentinel)
 const roleAccessMap: Record<string, string[]> = {
     admin:  [], // sentinel: allow everything
-    editor: ["dashboard", "projects", "instruments", "instrumentsession", "instrumentissues", "collection"],
-    user:   ["dashboard", "projects", "instrumentsession"],
+    editor: ["dashboard", "projects", "instruments", "instrumentsession", "sessiongroups", "instrumentissues", "collection"],
+    user:   ["dashboard", "projects", "instrumentsession", "sessiongroups"],
 };
 
 // Resources each role can only view (list + show) — no create, edit, or delete.
 // Admin and Editor always get full write access regardless of this map.
 const readOnlyAccessMap: Record<string, string[]> = {
-    user: ["projects", "instrumentsession"],
+    user: ["projects", "instrumentsession", "sessiongroups"],
 };
 
 function stripWriteAccess(resource: IResourceItem): IResourceItem {

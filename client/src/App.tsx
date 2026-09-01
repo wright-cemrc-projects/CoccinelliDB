@@ -33,6 +33,7 @@ import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/pr
 import { GroupList, GroupEdit, GroupCreate, GroupShow } from "./pages/groups";
 import { InstrumentCreate, InstrumentEdit, InstrumentList, InstrumentShow } from "./pages/instruments";
 import { InstrumentSessionList, InstrumentSessionEdit, InstrumentSessionCreate, InstrumentSessionShow } from "./pages/instrumentsession";
+import { SessionGroupList, SessionGroupShow, SessionGroupEdit, SessionGroupCreate } from "./pages/sessiongroups";
 import { PersonList, PersonEdit, PersonCreate, PersonShow } from "./pages/persons";
 import { InstrumentIssueCreate, InstrumentIssueEdit, InstrumentIssueList, InstrumentIssueShow } from "./pages/instrumentissues"
 import { RemoteSessionLogList } from "./pages/remotelogs";
@@ -149,6 +150,12 @@ function App() {
                       <Route path="create" element={<InstrumentSessionCreate />}/>
                       <Route path="edit/:id" element={<InstrumentSessionEdit />}/>
                       <Route path="show/:id" element={<InstrumentSessionShow />}/>
+                    </Route>
+                    <Route path="/sessiongroups">
+                      <Route index element={<SessionGroupList />}/>
+                      <Route path="create" element={<SessionGroupCreate />}/>
+                      <Route path="edit/:id" element={<SessionGroupEdit />}/>
+                      <Route path="show/:id" element={<SessionGroupShow />}/>
                     </Route>
                     <Route path="/instrumentissues">
                       <Route index element={<InstrumentIssueList />}/>

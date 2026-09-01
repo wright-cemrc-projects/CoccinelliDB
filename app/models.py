@@ -178,6 +178,24 @@ session_person_link = db.Table(
     db.UniqueConstraint("session_id", "person_id", name="uq_session_person")
 )
 
+class SessionGroup(db.Model):
+    """ A named block of related InstrumentSession(s)
+
+    Sessions produced by splitting one long booking are put into a shared group so
+    the block is still recognizable afterwards. Groups can also be made by hand to
+    tie together sessions that belong to the same run of work or share a Collection.
+    """
+    __tablename__ = "session_group"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    notes = db.Column(db.Text, nullable=True)
+    created_date = db.Column(db.DateTime)
+    # Linked table [one SessionGroup -> many InstrumentSession(s)]
+    sessions: Mapped[List["InstrumentSession"]] = relationship(back_populates="session_group")
+
+    def __repr__(self):
+        return f"<SessionGroup(id={self.id},name={self.name})>"
+
 class InstrumentSession(db.Model):
     """ Representation of a session of instrument use """
     __tablename__ = "instrument_session"
@@ -186,6 +204,9 @@ class InstrumentSession(db.Model):
     end_date = db.Column(db.DateTime)
     # Free-text end-of-session notes (e.g. how the day went), filled in after the fact.
     notes = db.Column(db.Text, nullable=True)
+    # Linked table [one SessionGroup -> many InstrumentSession(s)]
+    session_group_id : Mapped[int] = mapped_column(ForeignKey("session_group.id"), nullable=True)
+    session_group : Mapped["SessionGroup"] = relationship(back_populates="sessions")
     # Linked table [one Facility-> many InstrumentSession(s)]
     facility_id : Mapped[int] = mapped_column(ForeignKey("facility.id"))
     facility : Mapped["Facility"] = relationship(back_populates="sessions")

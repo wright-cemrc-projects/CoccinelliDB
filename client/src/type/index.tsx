@@ -33,6 +33,17 @@ export interface InstrumentSession {
     instrument: Instrument;
     collections?: Collection[];
     notes?: string | null;
+    session_group_id?: number | null;
+    session_group?: Pick<SessionGroup, "id" | "name"> | null;
+}
+
+// A block of related sessions — e.g. the days a long booking was split into.
+export interface SessionGroup {
+    id: number;
+    name: string | null;
+    notes: string | null;
+    created_date: Date | null;
+    sessions?: InstrumentSession[];
 }
 
 export interface InstrumentIssue {

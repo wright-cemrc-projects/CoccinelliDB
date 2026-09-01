@@ -1,10 +1,10 @@
 import {Edit, useForm, useSelect} from "@refinedev/antd";
-import {useNavigation} from "@refinedev/core";
-import {App, Form, Input, InputNumber, DatePicker, Select, Table, Switch, Button, Typography} from "antd";
-import {Collection, Facility, Instrument, Person, Project} from "@/src/type";
+import {useNavigation, useOne} from "@refinedev/core";
+import {Form, Input, InputNumber, DatePicker, Select, Table, Switch, Button, Space, Tag, Typography} from "antd";
+import {Collection, Facility, Instrument, InstrumentSession, Person, Project, SessionGroup} from "@/src/type";
 import {useEffect, useState} from "react";
-import {DeleteOutlined, PlusOutlined, ScissorOutlined} from "@ant-design/icons";
-import axios from "axios";
+import {DeleteOutlined, LinkOutlined, PlusOutlined, ScissorOutlined} from "@ant-design/icons";
+import {SplitSessionModal} from "./splitSessionModal";
 
 import dayjs from 'dayjs';
 import utc from "dayjs/plugin/utc";
@@ -12,8 +12,6 @@ import timezone from "dayjs/plugin/timezone"
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
 
 export const InstrumentSessionEdit = () => {
 
@@ -94,9 +92,21 @@ export const InstrumentSessionEdit = () => {
         setPersons(updatedPersons);
     };
 
-    const { show, list } = useNavigation();
-    const { modal, message } = App.useApp();
-    const [splitting, setSplitting] = useState(false);
+    const { selectProps: sessionGroupSelectProps } = useSelect({
+        resource: "sessiongroups",
+        optionLabel: (item: SessionGroup) => item?.name ?? `Group ${item?.id}`,
+        optionValue: "id",
+        onSearch: (value) => [
+            {
+                field: "name",
+                operator: "contains",
+                value: value,
+            },
+        ],
+    });
+
+    const { show, list, edit } = useNavigation();
+    const [splitOpen, setSplitOpen] = useState(false);
 
     const { formProps, saveButtonProps, queryResult } = useForm({
         mutationMode: "pessimistic",
@@ -107,37 +117,29 @@ export const InstrumentSessionEdit = () => {
         },
     });
 
-    const sessionId = queryResult?.data?.data?.id;
+    // The record id arrives as refine's BaseKey (string | number); everything downstream wants a number.
+    const rawSessionId = queryResult?.data?.data?.id;
+    const sessionId = rawSessionId == null ? undefined : Number(rawSessionId);
     const collections: Collection[] = queryResult?.data?.data?.collections ?? [];
     const datedCollectionCount = collections.filter((c) => c.start_date).length;
+    const sessionGroupId: number | null = queryResult?.data?.data?.session_group_id ?? null;
 
-    const handleSplit = () => {
-        modal.confirm({
-            title: "Split into separate sessions?",
-            content: `This session has ${datedCollectionCount} dated collections. Each will be moved ` +
-                "onto its own new Instrument Session matching its own time range, with the facility, " +
-                "project, instrument, and participant list copied from this session. This cannot be undone " +
-                "automatically.",
-            okText: "Split",
-            okButtonProps: { danger: true },
-            onOk: async () => {
-                setSplitting(true);
-                try {
-                    const response = await axios.post(
-                        `${API_URL}/instrumentsession/${sessionId}/split`,
-                        {},
-                        { withCredentials: true }
-                    );
-                    message.success(response.data?.message ?? "Session split successfully.");
-                    list("instrumentsession");
-                } catch (error: any) {
-                    message.error(error.response?.data?.error ?? "Failed to split session.");
-                } finally {
-                    setSplitting(false);
-                }
-            },
-        });
-    };
+    // The other sessions this one is linked to, so the block stays visible from here.
+    const { data: groupData } = useOne<SessionGroup>({
+        resource: "sessiongroups",
+        id: sessionGroupId ?? undefined,
+        queryOptions: { enabled: sessionGroupId != null },
+    });
+    const linkedSessions: InstrumentSession[] = (groupData?.data?.sessions ?? []).filter(
+        (s) => s.id !== sessionId
+    );
+
+    const startDate = queryResult?.data?.data?.start_date;
+    const endDate = queryResult?.data?.data?.end_date;
+    const spansMultipleDays =
+        !!startDate && !!endDate &&
+        dayjs(endDate).startOf("day").isAfter(dayjs(startDate).startOf("day"));
+    const canSplit = spansMultipleDays || datedCollectionCount >= 2;
 
     useEffect(() => {
         if (queryResult?.data) {
@@ -249,6 +251,56 @@ export const InstrumentSessionEdit = () => {
                         placeholder="Notes on how the session went..."
                     />
                 </Form.Item>
+                <Form.Item
+                    label={"Session Group"}
+                    name={["session_group_id"]}
+                    help="Links this session to a block of related sessions — for example the days one long booking was split into, or sessions sharing a collection record."
+                >
+                    <Select
+                        {...sessionGroupSelectProps}
+                        allowClear
+                        placeholder="Not linked to a group"
+                        dropdownStyle={{ padding: "0px" }}
+                        style={{ width: "100%" }}
+                    />
+                </Form.Item>
+                {linkedSessions.length > 0 && (
+                    <Form.Item label="Linked Sessions">
+                        <Space style={{ marginBottom: 10 }}>
+                            <Tag icon={<LinkOutlined />}>
+                                {groupData?.data?.name ?? `Group ${sessionGroupId}`}
+                            </Tag>
+                            <Typography.Link onClick={() => show("sessiongroups", sessionGroupId!)}>
+                                View the whole block
+                            </Typography.Link>
+                        </Space>
+                        <Table dataSource={linkedSessions} rowKey="id" pagination={false} size="small">
+                            <Table.Column dataIndex="id" title="ID" width={70} />
+                            <Table.Column
+                                dataIndex="start_date"
+                                title="Start"
+                                render={(value: string | null) =>
+                                    value ? dayjs(value).format("YYYY-MM-DD HH:mm") : "—"
+                                }
+                            />
+                            <Table.Column
+                                dataIndex="end_date"
+                                title="End"
+                                render={(value: string | null) =>
+                                    value ? dayjs(value).format("YYYY-MM-DD HH:mm") : "—"
+                                }
+                            />
+                            <Table.Column
+                                title="Action"
+                                render={(_, record: InstrumentSession) => (
+                                    <Typography.Link onClick={() => edit("instrumentsession", record.id)}>
+                                        Edit
+                                    </Typography.Link>
+                                )}
+                            />
+                        </Table>
+                    </Form.Item>
+                )}
                 <Form.Item label="Session Participants" name={["persons"]}>
                     <Table dataSource={persons} rowKey={(_, index) => index!} pagination={false} size="small">
                         <Table.Column
@@ -333,14 +385,13 @@ export const InstrumentSessionEdit = () => {
                 <Form.Item label="Associated Collections">
                     <Button
                         icon={<ScissorOutlined />}
-                        onClick={handleSplit}
-                        disabled={datedCollectionCount < 2}
-                        loading={splitting}
+                        onClick={() => setSplitOpen(true)}
+                        disabled={!canSplit}
                         style={{ marginBottom: 10 }}
                         title={
-                            datedCollectionCount < 2
-                                ? "Needs at least 2 dated collections to split"
-                                : undefined
+                            canSplit
+                                ? undefined
+                                : "Needs a session spanning more than one day, or at least 2 dated collections"
                         }
                     >
                         Split into Separate Sessions
@@ -376,6 +427,20 @@ export const InstrumentSessionEdit = () => {
                     </Table>
                 </Form.Item>
             </Form>
+            <SplitSessionModal
+                open={splitOpen}
+                sessionId={sessionId}
+                datedCollectionCount={datedCollectionCount}
+                onCancel={() => setSplitOpen(false)}
+                onSplit={(_, sessionGroupId) => {
+                    setSplitOpen(false);
+                    if (sessionGroupId) {
+                        show("sessiongroups", sessionGroupId);
+                    } else {
+                        list("instrumentsession");
+                    }
+                }}
+            />
         </Edit>
     );
 };

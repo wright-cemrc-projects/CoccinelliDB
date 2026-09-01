@@ -2,7 +2,7 @@
 from marshmallow import Schema, fields, post_dump
 
 from . import ma
-from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db, RemoteSessionLog, Collection
+from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db, RemoteSessionLog, Collection, SessionGroup
 from datetime import timezone, datetime
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
@@ -56,6 +56,8 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
 
     instrument = fields.Nested("InstrumentSchema", only=["id", "name"])
     collections = fields.Nested("CollectionSchema", many=True)
+    # Flat fields only, so this doesn't recurse back into SessionGroupSchema.sessions
+    session_group = fields.Nested("SessionGroupSchema", only=["id", "name"])
 
     @post_dump
     def add_person_details(self, data, **kwargs):
@@ -81,6 +83,22 @@ class InstrumentSessionSchema(ma.SQLAlchemyAutoSchema):
 
 instrumentSessionSchema = InstrumentSessionSchema()
 instrumentSessionsSchema = InstrumentSessionSchema(many=True)
+
+class SessionGroupSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = SessionGroup
+        include_fk = True
+
+    # Restricted to flat fields only, so this doesn't recurse back into
+    # SessionGroupSchema.sessions -> InstrumentSessionSchema.session_group -> ...
+    sessions = fields.Nested(
+        "InstrumentSessionSchema",
+        many=True,
+        only=["id", "start_date", "end_date", "notes", "instrument", "project_id", "facility_id"]
+    )
+
+sessionGroupSchema = SessionGroupSchema()
+sessionGroupsSchema = SessionGroupSchema(many=True)
 
 class ProjectSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
