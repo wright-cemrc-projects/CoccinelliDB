@@ -10,6 +10,7 @@ from app import db
 from app.models import Facility, Group, Person, group_person, Role
 from app.schema import facilitiesSchema, facilitySchema, facilityGroupSchema, facilityGroupsSchema, roleSchema, rolesSchema, \
     facilityPersonSchema, facilityPersonsSchema
+from app.services.project_import_service import find_or_create_person
 
 user = Blueprint('user', __name__)
 
@@ -254,6 +255,46 @@ def create_person():
         db.session.rollback()
         logger.error("create_person failed: %s", err, exc_info=True)
         return jsonify({"err": str(err)}), 400
+
+@roles_accepted('Admin')
+@user.route('/api/persons/find_or_create', methods=['POST'])
+def find_or_create_person_route():
+    """Get-or-create a person matched by email or net_id, for idempotent bulk import.
+
+    Unlike POST /api/persons, an existing match is not an error here — the
+    existing person is returned so re-running an import over the same rows
+    links to the same person instead of creating a duplicate. net_id is
+    optional (unlike POST /api/persons) since not every imported person, e.g.
+    an outside collaborator, has one; email is always required as the fallback
+    identity.
+    """
+    try:
+        result = find_or_create_person(
+            first_name=request.json.get("first_name"),
+            last_name=request.json.get("last_name"),
+            email=request.json.get("email"),
+            net_id=request.json.get("net_id"),
+            organization=request.json.get("organization"),
+            address1=request.json.get("address1"),
+            address2=request.json.get("address2"),
+            state=request.json.get("state"),
+            country=request.json.get("country"),
+            telephone=request.json.get("telephone"),
+        )
+        db.session.commit()
+        verb = "created" if result.created else "matched existing"
+        return jsonify({
+            "id": result.record.id,
+            "created": result.created,
+            "message": f"{verb} person {result.record}.",
+        })
+    except ValueError as err:
+        db.session.rollback()
+        return jsonify({"error": str(err)}), 400
+    except Exception as err:
+        db.session.rollback()
+        logger.error("find_or_create_person_route failed: %s", err, exc_info=True)
+        return jsonify({"error": str(err)}), 400
 
 @roles_accepted('Admin')
 @user.route('/api/persons/<int:id>', methods=['GET'])

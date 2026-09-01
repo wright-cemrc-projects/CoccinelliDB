@@ -2,7 +2,7 @@
 from marshmallow import Schema, fields, post_dump
 
 from . import ma
-from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db, RemoteSessionLog, Collection, SessionGroup
+from .models import Project, Facility, Group, Person, Role, Instrument, InstrumentSession, InstrumentIssue, session_person_link, db, RemoteSessionLog, Collection, SessionGroup, project_person_link
 from datetime import timezone, datetime
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
@@ -104,6 +104,36 @@ class ProjectSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Project
         include_fk = True
+
+    @post_dump
+    def add_person_details(self, data, **kwargs):
+        """ Attach linked persons (id, name, email, role) from project_person_link """
+        project_id = data.get("id")
+        if project_id:
+            rows = db.session.execute(
+                db.select(
+                    project_person_link.c.person_id,
+                    project_person_link.c.role,
+                    Person.first_name,
+                    Person.last_name,
+                    Person.email,
+                ).join(Person, project_person_link.c.person_id == Person.id)
+                .filter(project_person_link.c.project_id == project_id)
+            ).fetchall()
+
+            data["persons"] = [
+                {
+                    "person_id": row.person_id,
+                    "first_name": row.first_name,
+                    "last_name": row.last_name,
+                    "email": row.email,
+                    "role": row.role,
+                }
+                for row in rows
+            ]
+
+        return data
+
 projectSchema = ProjectSchema()
 projectsSchema = ProjectSchema(many=True)
 
