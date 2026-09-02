@@ -28,3 +28,7 @@ class TestingConfig(Config):
     # SQLite database for testing (using in-memory database)
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     TESTING = True
+    # Same OAuth bypass as DevelopmentConfig: routes protected by roles_accepted
+    # need a real authenticated user to test against, not just an open door.
+    OIDC_ENABLED = False
+    DEV_USER_EMAIL = 'test-admin@gmail.com'

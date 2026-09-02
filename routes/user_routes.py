@@ -14,8 +14,8 @@ from app.services.project_import_service import find_or_create_person
 
 user = Blueprint('user', __name__)
 
-@roles_accepted('Admin')
 @user.route('/api/facilities', methods=['GET'])
+@roles_accepted('Admin')
 def get_facility_list():
     search_query = request.args.get("name_like", "")
     facility_list = []
@@ -26,14 +26,14 @@ def get_facility_list():
 
     return facilitiesSchema.jsonify(facility_list)
 
-@roles_accepted('Admin')
 @user.route('/api/facilities/<int:id>', methods=['GET'])
+@roles_accepted('Admin')
 def get_facility_by_id(id):
     facility_one = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
     return facilitySchema.jsonify(facility_one)
 
-@roles_accepted('Admin')
 @user.route('/api/facilities', methods=['POST'])
+@roles_accepted('Admin')
 def create_facility():
     name = request.json["name"]
     try:
@@ -45,8 +45,8 @@ def create_facility():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/facilities/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin')
 def update_facility(id):
     try:
         name = request.json["name"]
@@ -57,8 +57,8 @@ def update_facility(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/facilities/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin')
 def delete_facility(id):
     try:
         facility = db.session.execute(db.select(Facility).filter_by(id=id)).scalar_one()
@@ -68,8 +68,8 @@ def delete_facility(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/groups', methods=['POST'])
+@roles_accepted('Admin')
 def create_group():
     try:
         name = request.json["name"]
@@ -80,8 +80,8 @@ def create_group():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/groups/<int:id>', methods=['GET'])
+@roles_accepted('Admin')
 def get_group_by_id(id):
     try:
         group = db.get_or_404(Group, id)
@@ -89,8 +89,8 @@ def get_group_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/groups', methods=['GET'])
+@roles_accepted('Admin')
 def get_group_list():
     try:
         name_like = request.args.get("name_like")
@@ -104,8 +104,8 @@ def get_group_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/groups/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin')
 def update_group(id):
     try:
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
@@ -137,8 +137,8 @@ def update_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/groups/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin')
 def delete_group(id):
     try:
         group = db.session.execute(db.select(Group).filter_by(id=id)).scalar_one()
@@ -148,8 +148,8 @@ def delete_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/roles', methods=['POST'])
+@roles_accepted('Admin')
 def create_roles():
     try:
         name = request.json["name"]
@@ -162,14 +162,14 @@ def create_roles():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route("/api/roles", methods=["GET"])
+@roles_accepted('Admin')
 def get_roles():
     roles = Role.query.all()
     return rolesSchema.jsonify(roles)
 
-@roles_accepted('Admin')
 @user.route("/api/roles/<int:id>")
+@roles_accepted('Admin')
 def get_role_by_id(id):
     try:
         role = db.get_or_404(Role, id)
@@ -177,8 +177,8 @@ def get_role_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/roles/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin')
 def update_role(id):
     try:
         name = request.json["name"]
@@ -191,8 +191,8 @@ def update_role(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/roles/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin')
 def delete_role(id):
     try:
         role = db.session.execute(db.select(Role).filter_by(id=id)).scalar_one()
@@ -202,8 +202,8 @@ def delete_role(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/persons', methods=['POST'])
+@roles_accepted('Admin')
 def create_person():
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -256,8 +256,8 @@ def create_person():
         logger.error("create_person failed: %s", err, exc_info=True)
         return jsonify({"err": str(err)}), 400
 
-@roles_accepted('Admin')
 @user.route('/api/persons/find_or_create', methods=['POST'])
+@roles_accepted('Admin')
 def find_or_create_person_route():
     """Get-or-create a person matched by email or net_id, for idempotent bulk import.
 
@@ -296,8 +296,8 @@ def find_or_create_person_route():
         logger.error("find_or_create_person_route failed: %s", err, exc_info=True)
         return jsonify({"error": str(err)}), 400
 
-@roles_accepted('Admin')
 @user.route('/api/persons/<int:id>', methods=['GET'])
+@roles_accepted('Admin')
 def get_person_by_id(id):
     try:
         person = db.get_or_404(Person, id)
@@ -305,8 +305,8 @@ def get_person_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/groups/<int:id>/persons', methods=['GET'])
+@roles_accepted('Admin')
 def get_person_by_group(id):
     try:
         group = Group.query.get_or_404(id)
@@ -324,8 +324,8 @@ def get_person_by_group(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/persons', methods=['GET'])
+@roles_accepted('Admin')
 def get_person_list():
     try:
         query = Person.query
@@ -354,8 +354,8 @@ def get_person_list():
         print(err)
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/persons/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin')
 def update_person(id):
     try:
         date_format = "%Y-%m-%dT%H:%M:%S"
@@ -389,8 +389,8 @@ def update_person(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin')
 @user.route('/api/persons/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin')
 def delete_person(id):
     try:
         person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()

@@ -25,8 +25,8 @@ def index():
 def hello_world():
     return jsonify({"message": "Hello World"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_project_list():
     search_query = request.args.get("project_id_like", "")
 
@@ -38,8 +38,8 @@ def get_project_list():
 
     return projectsSchema.jsonify(project_list)
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_project_by_id(id):
     project_one = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
     return projectSchema.jsonify(project_one)
@@ -51,8 +51,8 @@ def _existing_project_id_conflict(project_id, exclude_id=None):
         query = query.filter(Project.id != exclude_id)
     return db.session.execute(query).scalar_one_or_none()
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def create_project():
     project_id = request.json["project_id"]
     facility_id = request.json["facility_id"]
@@ -77,8 +77,8 @@ def create_project():
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/find_or_create', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def find_or_create_project_route():
     """Get-or-create a project by project_id, for idempotent bulk import.
 
@@ -104,8 +104,8 @@ def find_or_create_project_route():
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin', 'Editor')
 def update_project(id):
     try:
         project_id = request.json["project_id"]
@@ -131,8 +131,8 @@ def update_project(id):
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin', 'Editor')
 def delete_project(id):
     try:
         project = db.session.execute(db.select(Project).filter_by(id=id)).scalar_one()
@@ -144,8 +144,8 @@ def delete_project(id):
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>/persons', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def link_project_person(id):
     """Link a person to a project (or update their role if already linked)."""
     try:
@@ -164,8 +164,8 @@ def link_project_person(id):
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/projects/<int:id>/persons/<int:person_id>', methods=['DELETE'])
+@roles_accepted('Admin', 'Editor')
 def unlink_project_person(id, person_id):
     try:
         db.session.execute(
@@ -181,8 +181,8 @@ def unlink_project_person(id, person_id):
         return jsonify({"error": str(err), "message": str(err)}), 400
 
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def create_instrument():
     try:
         instrument = Instrument()
@@ -198,8 +198,8 @@ def create_instrument():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments/<int:id>', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_instrument_by_id(id):
     try:
         session = db.get_or_404(Instrument, id)
@@ -207,8 +207,8 @@ def get_instrument_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_instrument_list():
     try:
         search_query = request.args.get("name_like", "")
@@ -221,8 +221,8 @@ def get_instrument_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin', 'Editor')
 def update_instrument(id):
     try:
         instrument = db.session.execute(db.select(Instrument).filter_by(id=id)).scalar_one()
@@ -238,8 +238,8 @@ def update_instrument(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instruments/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin', 'Editor')
 def delete_instrument(id):
     try:
         instrument = db.session.execute(db.select(Instrument).filter_by(id=id)).scalar_one()
@@ -278,8 +278,8 @@ def _normalize_person_entry(person_data):
         "remote_access_level": person_data.get("remote_access_level") or "",
     }
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def create_session():
     try:
         print(request.json, file=sys.stderr)
@@ -326,8 +326,8 @@ def create_session():
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_session_by_id(id):
     try:
         session = db.get_or_404(InstrumentSession, id)
@@ -335,8 +335,8 @@ def get_session_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_session_list():
     try:
         session_list = db.session.execute(db.select(InstrumentSession)).scalars()
@@ -344,8 +344,8 @@ def get_session_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin', 'Editor')
 def update_session(id):
     try:
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
@@ -598,8 +598,8 @@ def _parse_day_start_time(raw):
     except ValueError:
         raise ValueError(f"Could not read '{raw}' as a time. Use a 24-hour time such as '09:00'.")
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>/split', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def split_session(id):
     """Split a session into pieces, either per calendar day or per collection.
 
@@ -637,8 +637,8 @@ def split_session(id):
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>/split/preview', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def preview_split_session(id):
     """Report the time ranges a day split would produce, without changing anything."""
     try:
@@ -662,8 +662,8 @@ def preview_split_session(id):
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/sessiongroups', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_session_group_list():
     try:
         search_query = request.args.get("name_like", "")
@@ -675,8 +675,8 @@ def get_session_group_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/sessiongroups/<int:id>', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_session_group_by_id(id):
     try:
         group = db.get_or_404(SessionGroup, id)
@@ -684,8 +684,8 @@ def get_session_group_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/sessiongroups', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def create_session_group():
     try:
         group = SessionGroup(
@@ -727,8 +727,8 @@ def _set_session_group_members(group_id, session_ids):
         ).scalars():
             session.session_group_id = group_id
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/sessiongroups/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin', 'Editor')
 def update_session_group(id):
     try:
         group = db.session.execute(db.select(SessionGroup).filter_by(id=id)).scalar_one()
@@ -746,8 +746,8 @@ def update_session_group(id):
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/sessiongroups/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin', 'Editor')
 def delete_session_group(id):
     """Delete a group. Its sessions are unlinked, never deleted along with it."""
     try:
@@ -761,8 +761,8 @@ def delete_session_group(id):
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentsession/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin', 'Editor')
 def delete_session(id):
     try:
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
@@ -772,8 +772,8 @@ def delete_session(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
 def create_instrumentissue():
     try:
         instrument_id = request.json["instrument_id"]
@@ -798,8 +798,8 @@ def create_instrumentissue():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues/<int:id>', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_instrumentissue_by_id(id):
     try:
         issue = db.get_or_404(InstrumentIssue, id)
@@ -807,8 +807,8 @@ def get_instrumentissue_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_instrumentissue_list():
     try:
         issue_list = db.session.execute(db.select(InstrumentIssue)).scalars()
@@ -816,8 +816,8 @@ def get_instrumentissue_list():
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin', 'Editor')
 def update_instrumentissue(id):
     try:
         issue = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()
@@ -836,8 +836,8 @@ def update_instrumentissue(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/instrumentissues/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin', 'Editor')
 def delete_instrumentissue(id):
     try:
         session = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()
@@ -848,17 +848,31 @@ def delete_instrumentissue(id):
         return jsonify({"err": f"{err=}"})
 
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/collection', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_collection_list():
     try:
-        collection_list = db.session.execute(db.select(Collection)).scalars()
+        query = db.select(Collection)
+
+        # Matches the _sort/_order convention refine's simple-rest data provider
+        # sends (see get_person_list for the same pattern).
+        allowed_sort_fields = {"id", "start_date"}
+        sorter_fields = request.args.get("_sort", "").split(",")
+        sorter_orders = request.args.get("_order", "asc").split(",")
+        for i, field in enumerate(sorter_fields):
+            field = field.strip()
+            order = sorter_orders[i].strip().lower() if i < len(sorter_orders) else "asc"
+            if field in allowed_sort_fields:
+                sort_column = getattr(Collection, field)
+                query = query.order_by(sort_column.desc() if order == "desc" else sort_column.asc())
+
+        collection_list = db.session.execute(query).scalars()
         return collectionsSchema.jsonify(collection_list)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/collection/<int:id>', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
 def get_collection_by_id(id):
     try:
         collection = db.get_or_404(Collection, id)
@@ -866,8 +880,8 @@ def get_collection_by_id(id):
     except Exception as err:
         return jsonify({"err": f"{err=}"})
 
-@roles_accepted('Admin', 'Editor')
 @main.route('/api/collection/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin', 'Editor')
 def update_collection(id):
     try:
         collection = db.session.execute(db.select(Collection).filter_by(id=id)).scalar_one()
@@ -891,8 +905,21 @@ def update_collection(id):
         db.session.rollback()
         return jsonify({"err": f"{err=}"}), 400
 
+@main.route('/api/collection/<int:id>', methods=['DELETE'])
 @roles_accepted('Admin')
+def delete_collection(id):
+    try:
+        collection = db.session.execute(db.select(Collection).filter_by(id=id)).scalar_one()
+        db.session.delete(collection)
+        db.session.commit()
+        return jsonify({"message": f"Collection {id} got deleted."})
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
 @main.route('/api/remotelogs', methods=['GET'])
+@roles_accepted('Admin')
 def get_remotelog_list():
     try:
         log_list = db.session.execute(db.select(RemoteSessionLog)).scalars()

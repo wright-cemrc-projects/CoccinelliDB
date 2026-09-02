@@ -58,7 +58,8 @@ def test_dry_run_writes_nothing(app, script, facility, tmp_path):
         db.session.rollback()
 
         assert db.session.execute(db.select(db.func.count(Project.id))).scalar() == 0
-        assert db.session.execute(db.select(db.func.count(Person.id))).scalar() == 0
+        # 1, not 0: the seeded test-admin user (see conftest.py) is a real row.
+        assert db.session.execute(db.select(db.func.count(Person.id))).scalar() == 1
 
 
 def test_a_bad_row_leaves_no_partial_project_or_person_behind(app, script, facility, tmp_path):
@@ -112,7 +113,8 @@ def test_rerun_over_the_same_rows_is_idempotent(app, script, facility, tmp_path)
         assert counts["links_created"] == 0
 
         assert db.session.execute(db.select(db.func.count(Project.id))).scalar() == 1
-        assert db.session.execute(db.select(db.func.count(Person.id))).scalar() == 2
+        # 3, not 2: plus the seeded test-admin user (see conftest.py).
+        assert db.session.execute(db.select(db.func.count(Person.id))).scalar() == 3
 
 
 def test_missing_facility_column_without_default_is_an_error(app, script, tmp_path):
