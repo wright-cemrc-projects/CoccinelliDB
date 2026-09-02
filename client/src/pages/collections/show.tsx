@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Show, TextField } from "@refinedev/antd";
-import { useNavigation, useShow } from "@refinedev/core";
+import { DeleteButton, Show, TextField } from "@refinedev/antd";
+import { useGetIdentity, useNavigation, useShow } from "@refinedev/core";
 import { Card, Col, Empty, Row, Tag, Typography } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router";
@@ -13,8 +13,13 @@ const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
 export const CollectionShow = () => {
     const { query } = useShow<Collection>({});
     const { data, isLoading } = query;
-    const { show } = useNavigation();
+    const { show, list } = useNavigation();
     const navigate = useNavigate();
+    // Deleting a collection is restricted to Admins on the backend; the button
+    // is hidden for everyone else rather than shown-then-rejected. Every other
+    // role sharing "collection" access (e.g. Editor) still gets full read/edit.
+    const { data: identity } = useGetIdentity<{ roles?: string[] }>();
+    const isAdmin = (identity?.roles ?? []).some((role) => role.toLowerCase() === "admin");
 
     const record = data?.data;
 
@@ -32,7 +37,20 @@ export const CollectionShow = () => {
     }, [record?.id]);
 
     return (
-        <Show isLoading={isLoading}>
+        <Show
+            isLoading={isLoading}
+            headerButtons={({ defaultButtons }) => (
+                <>
+                    {defaultButtons}
+                    {isAdmin && (
+                        <DeleteButton
+                            recordItemId={record?.id}
+                            onSuccess={() => list("collection")}
+                        />
+                    )}
+                </>
+            )}
+        >
             <Title level={5}>{"ID"}</Title>
             <TextField value={record?.id} />
 

@@ -41,12 +41,18 @@ def test_person(client):
     create_person_resp = client.post("/api/persons", data=json.dumps({"first_name": "Yan", "last_name": "Zhuang", "email": "yzhuang63@wisc.edu", "net_id": "9084938471"}), headers={"Content-Type": "application/json"})
     assert create_person_resp.status_code == 200
     assert json.loads(create_person_resp.data)["message"] == "Person(name=Yan Zhuang, email=yzhuang63@wisc.edu) created."
-    get_person_resp = client.get("/api/persons/1")
+
+    # The seeded test-admin user (see conftest.py) already occupies id 1, so
+    # look this person up by email rather than assuming an id.
+    person_list = json.loads(client.get("/api/persons").data)
+    person_id = next(p["id"] for p in person_list if p["email"] == "yzhuang63@wisc.edu")
+
+    get_person_resp = client.get(f"/api/persons/{person_id}")
     assert json.loads(get_person_resp.data)["email"] == "yzhuang63@wisc.edu"
-    update_person_resp = client.patch("/api/persons/1", data=json.dumps({"organization": "UW Madison"}), headers={"Content-Type": "application/json"})
+    update_person_resp = client.patch(f"/api/persons/{person_id}", data=json.dumps({"organization": "UW Madison"}), headers={"Content-Type": "application/json"})
     assert update_person_resp.status_code == 200
     assert json.loads(update_person_resp.data)["message"] == "Person(name=Yan Zhuang, email=yzhuang63@wisc.edu) got updated."
-    update_get_person_resp = client.get("/api/persons/1")
+    update_get_person_resp = client.get(f"/api/persons/{person_id}")
     assert json.loads(update_get_person_resp.data)["organization"] == "UW Madison"
-    delete_person_resp = client.delete("/api/persons/1")
+    delete_person_resp = client.delete(f"/api/persons/{person_id}")
     assert json.loads(delete_person_resp.data)["message"] == "Person(name=Yan Zhuang, email=yzhuang63@wisc.edu) got deleted."

@@ -4,7 +4,11 @@ from flask import Flask, g
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import login_user, current_user
+from flask_login import current_user
+# flask_security's login_user (not flask_login's) — it fires the
+# identity_changed signal that flask-principal needs to populate the user's
+# roles, which is what @roles_accepted actually checks.
+from flask_security.utils import login_user
 import click
 import os
 from datetime import datetime
@@ -163,6 +167,8 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
             person = Person.query.filter_by(email=email).first()
             if person:
                 g.person = person
+                if not current_user.is_authenticated:
+                    login_user(person)
 
     @app.cli.command("create-roles")
     @click.argument("roles", nargs=-1)
