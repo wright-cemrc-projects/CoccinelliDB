@@ -6,6 +6,9 @@ import { Collection } from "@/src/type";
 export const CollectionList = () => {
     const { tableProps } = useTable<Collection>({
         syncWithLocation: true,
+        sorters: {
+            initial: [{ field: "start_date", order: "asc" }],
+        },
     });
     const { show } = useNavigation();
     // Deleting a collection is restricted to Admins on the backend; the button
@@ -34,6 +37,8 @@ export const CollectionList = () => {
                 <Table.Column
                     dataIndex="start_date"
                     title="Start"
+                    sorter
+                    defaultSortOrder="ascend"
                     render={(value: string | null) =>
                         value ? new Date(value).toLocaleString() : "—"
                     }

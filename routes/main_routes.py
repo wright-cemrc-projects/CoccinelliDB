@@ -852,7 +852,21 @@ def delete_instrumentissue(id):
 @roles_accepted('Admin', 'Editor')
 def get_collection_list():
     try:
-        collection_list = db.session.execute(db.select(Collection)).scalars()
+        query = db.select(Collection)
+
+        # Matches the _sort/_order convention refine's simple-rest data provider
+        # sends (see get_person_list for the same pattern).
+        allowed_sort_fields = {"id", "start_date"}
+        sorter_fields = request.args.get("_sort", "").split(",")
+        sorter_orders = request.args.get("_order", "asc").split(",")
+        for i, field in enumerate(sorter_fields):
+            field = field.strip()
+            order = sorter_orders[i].strip().lower() if i < len(sorter_orders) else "asc"
+            if field in allowed_sort_fields:
+                sort_column = getattr(Collection, field)
+                query = query.order_by(sort_column.desc() if order == "desc" else sort_column.asc())
+
+        collection_list = db.session.execute(query).scalars()
         return collectionsSchema.jsonify(collection_list)
     except Exception as err:
         return jsonify({"err": f"{err=}"})
