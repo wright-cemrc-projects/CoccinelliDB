@@ -766,11 +766,25 @@ def delete_session_group(id):
 def delete_session(id):
     try:
         session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
+
+        # Collection.instrument_session_id is a required (NOT NULL) FK, so the
+        # DB would refuse this delete anyway once a linked Collection exists —
+        # but as a raw IntegrityError, not a message anyone should have to
+        # decode. Check up front and say what's actually blocking it.
+        if session.collections:
+            return jsonify({
+                "error": f"Cannot delete session {id}: it still has "
+                         f"{len(session.collections)} linked collection(s). "
+                         "Delete or reassign them first.",
+            }), 400
+
         db.session.delete(session)
         db.session.commit()
         return jsonify({"message": f"{session} got deleted."})
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @main.route('/api/instrumentissues', methods=['POST'])
 @roles_accepted('Admin', 'Editor')

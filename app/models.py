@@ -222,7 +222,12 @@ class InstrumentSession(db.Model):
     # Linked table [one InstrumentSession-> many InstrumentCollection(s)]
     collections: Mapped[List["Collection"]] = relationship(back_populates="instrument_session")
     # Linked table [many FacilityInstrumentSession-> many FacilityPersons]
-    persons = db.relationship("Person", backref="instrument_session", lazy="dynamic", secondary=session_person_link, cascade="all, delete")
+    # No cascade= here on purpose: this is a many-to-many secondary relationship,
+    # so SQLAlchemy already clears session_person_link rows for a deleted session
+    # without it. `cascade="all, delete"` (as this used to read) tells SQLAlchemy
+    # to delete the related Person rows themselves, not just the link — i.e.
+    # deleting a session with participants would delete those Person records.
+    persons = db.relationship("Person", backref="instrument_session", lazy="dynamic", secondary=session_person_link)
 
     @validates("end_date")
     def validate_end_date(self, key, end_date):
