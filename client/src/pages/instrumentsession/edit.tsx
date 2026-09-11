@@ -105,7 +105,7 @@ export const InstrumentSessionEdit = () => {
         ],
     });
 
-    const { show, list, edit } = useNavigation();
+    const { show, list, edit, goBack } = useNavigation();
     const [splitOpen, setSplitOpen] = useState(false);
 
     const { formProps, saveButtonProps, queryResult } = useForm({
@@ -115,6 +115,12 @@ export const InstrumentSessionEdit = () => {
                 return { ...values, persons };
             },
         },
+        // Default redirect is a fresh navigation to the bare list route, which
+        // drops the calendar's position (date/view are kept in its URL query
+        // params — see instrumentsession/list.tsx). Going back in history
+        // instead returns to that exact URL, same as the header's back button.
+        redirect: false,
+        onMutationSuccess: () => goBack(),
     });
 
     // The record id arrives as refine's BaseKey (string | number); everything downstream wants a number.
