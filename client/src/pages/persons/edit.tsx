@@ -8,10 +8,26 @@ export const PersonEdit = () => {
         optionLabel: "name",
         optionValue: "id",
     });
-    console.log(formProps);
+
+    // Without this, an untouched date field submits as-is (fine, it's still
+    // the original ISO string), but touching a DatePicker leaves a raw dayjs
+    // object in the form value — formProps.onFinish would send that straight
+    // to the API instead of a string, which the backend can't parse.
+    const handleFormSubmit = (values: any) => {
+        const payload = { ...values,
+            start_date: values.start_date
+                ? dayjs(values.start_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+            end_date: values.end_date
+                ? dayjs(values.end_date).format("YYYY-MM-DDTHH:mm:ss[Z]")
+                : null,
+        }
+        formProps.onFinish?.(payload);
+    };
+
     return (
         <Edit saveButtonProps={saveButtonProps}>
-            <Form {...formProps} layout="vertical">
+            <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
                 <Form.Item
                     label={"Start Date"}
                     name={["start_date"]}
