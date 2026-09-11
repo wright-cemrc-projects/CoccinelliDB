@@ -206,8 +206,6 @@ def delete_role(id):
 @roles_accepted('Admin')
 def create_person():
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
-
         # Get required arguments for initializer
         first_name = None
         if "first_name" in request.json:
@@ -241,10 +239,10 @@ def create_person():
             person.telephone = request.json["telephone"]
 
         if "start_date" in request.json:
-            person.start_date = datetime.fromisoformat(request.json["start_date"])
+            person.start_date = datetime.fromisoformat(request.json["start_date"]) if request.json["start_date"] else None
         if "end_date" in request.json:
-            person.end_date = datetime.fromisoformat(request.json["end_date"])
-        role_ids = request.json.get("roles", [])
+            person.end_date = datetime.fromisoformat(request.json["end_date"]) if request.json["end_date"] else None
+        role_ids = request.json.get("roles") or []
         if role_ids:
             roles = Role.query.filter(Role.id.in_(role_ids)).all()
             person.roles = roles
@@ -254,7 +252,7 @@ def create_person():
     except Exception as err:
         db.session.rollback()
         logger.error("create_person failed: %s", err, exc_info=True)
-        return jsonify({"err": str(err)}), 400
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @user.route('/api/persons/find_or_create', methods=['POST'])
 @roles_accepted('Admin')
@@ -358,7 +356,6 @@ def get_person_list():
 @roles_accepted('Admin')
 def update_person(id):
     try:
-        date_format = "%Y-%m-%dT%H:%M:%S"
         person = db.session.execute(db.select(Person).filter_by(id=id)).scalar_one()
         if "first_name" in request.json:
             person.first_name = request.json["first_name"]
@@ -381,13 +378,18 @@ def update_person(id):
         if "net_id" in request.json:
             person.net_id = request.json["net_id"]
         if "start_date" in request.json:
-            person.start_date = datetime.fromisoformat(request.json["start_date"])
+            person.start_date = datetime.fromisoformat(request.json["start_date"]) if request.json["start_date"] else None
         if "end_date" in request.json:
-            person.end_date = datetime.fromisoformat(request.json["end_date"])
+            person.end_date = datetime.fromisoformat(request.json["end_date"]) if request.json["end_date"] else None
+        if "roles" in request.json:
+            role_ids = request.json["roles"] or []
+            person.roles = Role.query.filter(Role.id.in_(role_ids)).all() if role_ids else []
         db.session.commit()
         return jsonify({"message": f"{person} got updated."})
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        logger.error("update_person failed: %s", err, exc_info=True)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @user.route('/api/persons/<int:id>', methods=['DELETE'])
 @roles_accepted('Admin')
@@ -398,4 +400,6 @@ def delete_person(id):
         db.session.commit()
         return jsonify({"message": f"{person} got deleted."})
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        logger.error("delete_person failed: %s", err, exc_info=True)
+        return jsonify({"error": str(err), "message": str(err)}), 400
