@@ -23,17 +23,27 @@ export const CollectionEdit = () => {
     const { formProps, saveButtonProps, queryResult } = useForm<Collection>();
     const record = queryResult?.data?.data;
 
-    // The record's "editable" flag isn't a plain form field: unlocking a
-    // finalized collection has to happen as its own request (the backend
-    // refuses to bundle it with other field changes — see update_collection),
-    // and only an Admin may do it. Tracked separately so it can drive the
-    // rest of the form's disabled state and trigger that immediate call.
+    // Two separate things, deliberately not one shared boolean:
+    //   - `locked`: was this record ALREADY finalized when it loaded, and not
+    //     yet unlocked? Drives whether the form/Save button are interactive at
+    //     all. Only changes via handleUnlock's immediate call (unlocking a
+    //     finalized collection has to be its own request — the backend refuses
+    //     to bundle it with other field changes, see update_collection — and
+    //     only an Admin may do it).
+    //   - `editable`: what the "Editable" switch is currently set to, for the
+    //     *next* save. Freely toggleable in either direction whenever the form
+    //     isn't locked; this is what finalizes the record when you hit Save.
+    // Conflating these into one variable was the bug: gating Save on the
+    // switch's own current value meant flipping it off to finalize disabled
+    // Save before you could ever click it.
+    const [locked, setLocked] = useState(false);
     const [editable, setEditable] = useState(true);
     const [unlocking, setUnlocking] = useState(false);
 
     useEffect(() => {
         if (record) {
             setEditable(record.editable);
+            setLocked(!record.editable);
         }
     }, [record]);
 
@@ -47,6 +57,7 @@ export const CollectionEdit = () => {
                 { withCredentials: true }
             );
             setEditable(true);
+            setLocked(false);
             message.success("Collection unlocked. You can now edit it.");
         } catch (error: any) {
             message.error(error.response?.data?.error ?? "Failed to unlock collection.");
@@ -70,8 +81,8 @@ export const CollectionEdit = () => {
     };
 
     return (
-        <Edit saveButtonProps={{ ...saveButtonProps, disabled: !editable }}>
-            {!editable && (
+        <Edit saveButtonProps={{ ...saveButtonProps, disabled: locked }}>
+            {locked && (
                 <Alert
                     type="warning"
                     showIcon
@@ -91,7 +102,7 @@ export const CollectionEdit = () => {
                     }
                 />
             )}
-            <Form {...formProps} layout="vertical" onFinish={handleFormSubmit} disabled={!editable}>
+            <Form {...formProps} layout="vertical" onFinish={handleFormSubmit} disabled={locked}>
                 <Form.Item
                     label="Instrument Session"
                     name={["instrument_session_id"]}
@@ -146,10 +157,10 @@ export const CollectionEdit = () => {
                 <Form.Item label="Lamella Count" name={["lamella_count"]}>
                     <InputNumber min={0} style={{ width: "100%" }} />
                 </Form.Item>
-                {editable && (
+                {!locked && (
                     <Form.Item
                         label="Editable"
-                        tooltip="Turn off to finalize this collection and protect it from further changes (including from the instrument API). Anyone with edit access can finalize; only an Admin can unlock it again."
+                        tooltip="Turn off to finalize this collection and protect it from further changes (including from the instrument API) once you save. Anyone with edit access can finalize; only an Admin can unlock it again."
                     >
                         <Space>
                             <Switch
@@ -159,7 +170,9 @@ export const CollectionEdit = () => {
                                 onChange={(checked) => setEditable(checked)}
                             />
                             <Typography.Text type="secondary">
-                                {editable ? "Save to finalize instead." : "Will be finalized on save."}
+                                {editable
+                                    ? "Turn off and save to finalize this collection."
+                                    : "Will be finalized when you save."}
                             </Typography.Text>
                         </Space>
                     </Form.Item>
