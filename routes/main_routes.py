@@ -9,6 +9,7 @@ from app.schema import projectSchema, projectsSchema,  \
     instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema, \
     remoteSessionLogsSchema, collectionSchema, collectionsSchema, sessionGroupSchema, sessionGroupsSchema
 from app.services.project_import_service import find_or_create_project, link_person_to_project
+from app.services.collection_finalize_service import AlreadyFinalized, finalize_collection
 from datetime import datetime, time, timedelta
 from flask_security import roles_accepted
 
@@ -868,6 +869,12 @@ def get_collection_list():
     try:
         query = db.select(Collection)
 
+        # Matches the <field>_like convention refine's simple-rest data provider
+        # sends for a "contains" filter (see get_project_list for the same pattern).
+        data_location_like = request.args.get("data_location_like", "")
+        if data_location_like:
+            query = query.filter(Collection.data_location.ilike(f"%{data_location_like}%"))
+
         # Matches the _sort/_order convention refine's simple-rest data provider
         # sends (see get_person_list for the same pattern).
         allowed_sort_fields = {"id", "start_date"}
@@ -899,6 +906,27 @@ def get_collection_by_id(id):
 def update_collection(id):
     try:
         collection = db.session.execute(db.select(Collection).filter_by(id=id)).scalar_one()
+
+        other_fields_requested = set(request.json.keys()) - {"editable"}
+        if not collection.editable:
+            # Finalized: the only thing a request may do is unlock it (set
+            # editable back to True), and only an Admin may do that. This is
+            # deliberately a separate request from any other field change —
+            # unlock first, then edit — rather than allowing both at once.
+            if other_fields_requested:
+                return jsonify({
+                    "error": f"Collection {id} is finalized (not editable). "
+                             "Unlock it first before changing other fields.",
+                }), 400
+            if "editable" in request.json:
+                if not current_user.has_role("Admin"):
+                    return jsonify({"error": "Only an Admin can unlock a finalized collection."}), 403
+                collection.editable = bool(request.json["editable"])
+                db.session.commit()
+                verb = "unlocked" if collection.editable else "left finalized"
+                return jsonify({"message": f"Collection {id} {verb}."})
+            return jsonify({"message": f"Collection {id} is finalized; nothing to update."})
+
         if "instrument_session_id" in request.json:
             collection.instrument_session_id = request.json["instrument_session_id"]
         if "collection_type" in request.json:
@@ -909,24 +937,81 @@ def update_collection(id):
             collection.thumbnail_location = request.json["thumbnail_location"]
         if "total_image_count" in request.json:
             collection.total_image_count = request.json["total_image_count"]
+        if "lamella_count" in request.json:
+            collection.lamella_count = request.json["lamella_count"]
         if "start_date" in request.json:
             collection.start_date = datetime.fromisoformat(request.json["start_date"]) if request.json["start_date"] else None
         if "end_date" in request.json:
             collection.end_date = datetime.fromisoformat(request.json["end_date"]) if request.json["end_date"] else None
+        if "editable" in request.json:
+            # Locking (Admin or Editor) is allowed alongside other field
+            # changes in the same request — it's only unlocking, above, that's
+            # restricted to its own request.
+            collection.editable = bool(request.json["editable"])
         db.session.commit()
         return jsonify({"message": f"Collection {id} got updated"})
     except Exception as err:
         db.session.rollback()
-        return jsonify({"err": f"{err=}"}), 400
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @main.route('/api/collection/<int:id>', methods=['DELETE'])
 @roles_accepted('Admin')
 def delete_collection(id):
     try:
         collection = db.session.execute(db.select(Collection).filter_by(id=id)).scalar_one()
+        if not collection.editable:
+            return jsonify({
+                "error": f"Collection {id} is finalized (not editable). Unlock it first before deleting.",
+            }), 400
         db.session.delete(collection)
         db.session.commit()
         return jsonify({"message": f"Collection {id} got deleted."})
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+@main.route('/api/collection/bulk_finalize', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
+def bulk_finalize_collections():
+    """Apply reviewed image/lamella counts to a batch of collections and lock each one.
+
+    Body: {"rows": [{"id": 5, "total_image_count": 120, "lamella_count": 3}, ...]}
+    Each row identifies a collection by "id" or "data_location". A row whose
+    collection is already finalized is left untouched and reported separately
+    under already_finalized_ids rather than as an error or a silent re-lock —
+    see finalize_collection for why. A bad row (unknown id, non-numeric count)
+    is reported under errors and doesn't affect any other row.
+    """
+    try:
+        rows = request.json.get("rows") or []
+        finalized_ids = []
+        already_finalized_ids = []
+        errors = []
+
+        for i, row in enumerate(rows):
+            try:
+                collection = finalize_collection(
+                    collection_id=row.get("id"),
+                    data_location=row.get("data_location"),
+                    total_image_count=row.get("total_image_count"),
+                    lamella_count=row.get("lamella_count"),
+                )
+                finalized_ids.append(collection.id)
+            except AlreadyFinalized as err:
+                already_finalized_ids.append(err.collection_id)
+            except ValueError as err:
+                errors.append({"row": i, "error": str(err)})
+
+        db.session.commit()
+        return jsonify({
+            "message": f"Finalized {len(finalized_ids)} collection(s), "
+                       f"{len(already_finalized_ids)} already finalized, "
+                       f"{len(errors)} error(s).",
+            "finalized_ids": finalized_ids,
+            "already_finalized_ids": already_finalized_ids,
+            "errors": errors,
+        })
     except Exception as err:
         db.session.rollback()
         print(err, file=sys.stderr)

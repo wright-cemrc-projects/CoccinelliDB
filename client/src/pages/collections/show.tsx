@@ -45,6 +45,12 @@ export const CollectionShow = () => {
                     {isAdmin && (
                         <DeleteButton
                             recordItemId={record?.id}
+                            disabled={record?.editable === false}
+                            title={
+                                record?.editable === false
+                                    ? "Finalized collections must be unlocked before they can be deleted."
+                                    : undefined
+                            }
                             onSuccess={() => list("collection")}
                         />
                     )}
@@ -53,6 +59,13 @@ export const CollectionShow = () => {
         >
             <Title level={5}>{"ID"}</Title>
             <TextField value={record?.id} />
+
+            <Title level={5}>{"Status"}</Title>
+            {record && (
+                <Tag color={record.editable ? "green" : "gold"}>
+                    {record.editable ? "Editable" : "Finalized"}
+                </Tag>
+            )}
 
             <Title level={5}>{"Type"}</Title>
             <TextField value={record?.collection_type ?? "—"} />
@@ -71,6 +84,9 @@ export const CollectionShow = () => {
 
             <Title level={5}>{"Image Count"}</Title>
             <TextField value={record?.total_image_count ?? "—"} />
+
+            <Title level={5}>{"Lamella Count"}</Title>
+            <TextField value={record?.lamella_count ?? "—"} />
 
             <Title level={5}>{"Instrument Session"}</Title>
             {record?.instrument_session_id ? (

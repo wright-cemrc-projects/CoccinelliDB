@@ -67,6 +67,10 @@ export interface Collection {
     start_date: Date | null;
     end_date: Date | null;
     total_image_count: number | null;
+    lamella_count: number | null;
+    // Once false, the record is finalized: the backend refuses further edits
+    // (from the app and the instrument API) until an Admin sets this back to true.
+    editable: boolean;
     instrument_session_id: number;
 }
 
