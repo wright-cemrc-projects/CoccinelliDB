@@ -269,7 +269,11 @@ class Collection(db.Model):
     total_image_count = db.Column(db.Integer)
     # Classify as Screening, SPA, or CryoET
     collection_type = db.Column(db.String(45))
-    # TODO: Group, User Owner, User Operator
+    lamella_count = db.Column(db.Integer, nullable=True)
+    # Locks the record once a reviewer has finalized its values. While False,
+    # PATCH/DELETE on this collection (from the app and from the instrument
+    # client API) are refused until an Admin sets it back to True.
+    editable = db.Column(db.Boolean, nullable=False, default=True, server_default=db.true())
 
 class TiltSeries(db.Model):
     """ Representation for a tilt-series and tomogram """

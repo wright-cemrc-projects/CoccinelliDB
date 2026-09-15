@@ -114,6 +114,16 @@ def update_collection(id):
         if not collection:
             return jsonify({"error": f"Collection {id} not found"}), 404
 
+        if not collection.editable:
+            # Finalized collections are protected from further changes, including
+            # from an ongoing scan's own updates. There's no user/role concept on
+            # this API-key-authenticated route, so unlike the main app's PATCH,
+            # there's no way to unlock from here — that's deliberate: only the
+            # reviewing Admin in the main app can do that.
+            return jsonify({
+                "error": f"Collection {id} is finalized (not editable) and cannot be updated via the instrument API.",
+            }), 400
+
         if 'start_date' in request.json:
             collection.start_date = datetime.fromisoformat(request.json['start_date'])
         if 'end_date' in request.json:
