@@ -10,10 +10,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app import create_app, db
 from app.models import Collection, Facility, InstrumentSession
 
-# Column headers as required by the reporting template, plus a trailing
-# "Dataset Location" column giving the collection's data location on disk.
-# Columns marked with '*' are filled from the database; the rest are left
-# blank for manual entry.
+# Column headers as required by the reporting template, plus trailing
+# "Dataset Location" and "Finalized*" columns giving the collection's data
+# location on disk and its review status. Columns marked with '*' are filled
+# from the database; the rest are left blank for manual entry. "Lamella Count
+# (FIB-SEM only)" is also filled from the database (Collection.lamella_count)
+# but keeps its unstarred header text as-is to match the template exactly.
 CSV_FIELDS = [
     "EM_ID*",
     "Start Date*",
@@ -28,6 +30,7 @@ CSV_FIELDS = [
     "EM Performance QC Check #1",
     "EM Performance QC Check #2",
     "Dataset Location",
+    "Finalized*",
 ]
 
 
@@ -69,10 +72,11 @@ def collect_rows(start: datetime, end: datetime, facility_id: int | None = None)
             "PROJECT_ID*": project.project_id if project else "",
             "EM Outcome Category": "",
             "Image Count*": collection.total_image_count,
-            "Lamella Count (FIB-SEM only)": "",
+            "Lamella Count (FIB-SEM only)": collection.lamella_count if collection.lamella_count is not None else "",
             "EM Performance QC Check #1": "",
             "EM Performance QC Check #2": "",
             "Dataset Location": collection.data_location or "",
+            "Finalized*": "Yes" if not collection.editable else "No",
         })
     return rows
 
@@ -88,9 +92,10 @@ def main():
     parser = argparse.ArgumentParser(
         description="Report Collections between two dates in the EM usage report template "
                      "format. Only starred columns (EM_ID*, Start/End Date*, Start/End Time*, "
-                     "PROJECT_ID*, Image Count*) are filled from the database; the remaining "
-                     "columns are left blank for manual entry. Dataset Location gives the "
-                     "collection's data location on disk."
+                     "PROJECT_ID*, Image Count*, Finalized*) plus Lamella Count (FIB-SEM only) "
+                     "are filled from the database; the remaining columns are left blank for "
+                     "manual entry. Dataset Location gives the collection's data location on "
+                     "disk; Finalized reflects whether the collection has been locked after review."
     )
     parser.add_argument("--start", required=True, help="start date, inclusive (YYYY-MM-DD)")
     parser.add_argument("--end", required=True, help="end date, inclusive (YYYY-MM-DD)")
