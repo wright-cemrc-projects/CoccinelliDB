@@ -3,8 +3,9 @@ import {useNavigation, useOne} from "@refinedev/core";
 import {Form, Input, InputNumber, DatePicker, Select, Table, Switch, Button, Space, Tag, Typography} from "antd";
 import {Collection, Facility, Instrument, InstrumentSession, Person, Project, SessionGroup} from "@/src/type";
 import {useEffect, useState} from "react";
-import {DeleteOutlined, LinkOutlined, PlusOutlined, ScissorOutlined} from "@ant-design/icons";
+import {DeleteOutlined, LinkOutlined, MergeOutlined, PlusOutlined, ScissorOutlined} from "@ant-design/icons";
 import {SplitSessionModal} from "./splitSessionModal";
+import {MergeSessionsModal} from "./mergeSessionsModal";
 
 import dayjs from 'dayjs';
 import utc from "dayjs/plugin/utc";
@@ -107,6 +108,7 @@ export const InstrumentSessionEdit = () => {
 
     const { show, list, edit, goBack } = useNavigation();
     const [splitOpen, setSplitOpen] = useState(false);
+    const [mergeOpen, setMergeOpen] = useState(false);
 
     const { formProps, saveButtonProps, queryResult } = useForm({
         mutationMode: "pessimistic",
@@ -389,19 +391,28 @@ export const InstrumentSessionEdit = () => {
                     </Button>
                 </Form.Item>
                 <Form.Item label="Associated Collections">
-                    <Button
-                        icon={<ScissorOutlined />}
-                        onClick={() => setSplitOpen(true)}
-                        disabled={!canSplit}
-                        style={{ marginBottom: 10 }}
-                        title={
-                            canSplit
-                                ? undefined
-                                : "Needs a session spanning more than one day, or at least 2 dated collections"
-                        }
-                    >
-                        Split into Separate Sessions
-                    </Button>
+                    <Space style={{ marginBottom: 10 }}>
+                        <Button
+                            icon={<ScissorOutlined />}
+                            onClick={() => setSplitOpen(true)}
+                            disabled={!canSplit}
+                            title={
+                                canSplit
+                                    ? undefined
+                                    : "Needs a session spanning more than one day, or at least 2 dated collections"
+                            }
+                        >
+                            Split into Separate Sessions
+                        </Button>
+                        <Button
+                            icon={<MergeOutlined />}
+                            onClick={() => setMergeOpen(true)}
+                            disabled={!sessionId}
+                            title="Fold accidental duplicate sessions on this instrument into this one"
+                        >
+                            Merge Duplicate Sessions
+                        </Button>
+                    </Space>
                     <Table
                         dataSource={collections}
                         rowKey="id"
@@ -445,6 +456,17 @@ export const InstrumentSessionEdit = () => {
                     } else {
                         list("instrumentsession");
                     }
+                }}
+            />
+            <MergeSessionsModal
+                open={mergeOpen}
+                sessionId={sessionId}
+                onCancel={() => setMergeOpen(false)}
+                onMerged={() => {
+                    setMergeOpen(false);
+                    // This session survives the merge as the primary, so stay
+                    // on this page — just reload its (now-merged) data.
+                    queryResult?.refetch?.();
                 }}
             />
         </Edit>

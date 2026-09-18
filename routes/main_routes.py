@@ -10,6 +10,7 @@ from app.schema import projectSchema, projectsSchema,  \
     remoteSessionLogsSchema, collectionSchema, collectionsSchema, sessionGroupSchema, sessionGroupsSchema
 from app.services.project_import_service import find_or_create_project, link_person_to_project
 from app.services.collection_finalize_service import AlreadyFinalized, finalize_collection
+from app.services.session_merge_service import find_merge_candidates, merge_sessions, plan_merge
 from datetime import datetime, time, timedelta
 from flask_security import roles_accepted
 
@@ -660,6 +661,106 @@ def preview_split_session(id):
     except ValueError as err:
         return jsonify({"error": str(err), "message": str(err)}), 400
     except Exception as err:
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+def _serialize_merge_plan(plan):
+    person_names = {
+        p.id: f"{p.first_name} {p.last_name}"
+        for p in db.session.execute(
+            db.select(Person).filter(Person.id.in_([mp.person_id for mp in plan.persons]))
+        ).scalars()
+    }
+    return {
+        "primary_id": plan.primary_id,
+        "other_ids": plan.other_ids,
+        "start_date": plan.start_date.isoformat() if plan.start_date else None,
+        "end_date": plan.end_date.isoformat() if plan.end_date else None,
+        "notes": plan.notes,
+        "persons": [
+            {
+                "person_id": p.person_id,
+                "name": person_names.get(p.person_id, f"Person {p.person_id}"),
+                "onsite": p.onsite,
+                "role": p.role,
+                "hours": p.hours,
+                "remote_access_level": p.remote_access_level,
+            }
+            for p in plan.persons
+        ],
+        "collection_ids_to_move": plan.collection_ids_to_move,
+        "warnings": plan.warnings,
+    }
+
+@main.route('/api/instrumentsession/<int:id>/merge_candidates', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
+def get_merge_candidates(id):
+    """Other sessions on the same instrument that might be accidental duplicates
+    of this one (overlapping, or falling on the same calendar date). A
+    suggestion list for the merge UI, not a guarantee they can be merged."""
+    try:
+        session = db.session.execute(db.select(InstrumentSession).filter_by(id=id)).scalar_one()
+        candidates = find_merge_candidates(session)
+        return jsonify({
+            "candidates": [
+                {
+                    "id": c.id,
+                    "start_date": c.start_date.isoformat() if c.start_date else None,
+                    "end_date": c.end_date.isoformat() if c.end_date else None,
+                    "notes": c.notes,
+                    "collection_count": len(c.collections),
+                    "person_count": db.session.execute(
+                        db.select(db.func.count()).select_from(session_person_link)
+                        .filter(session_person_link.c.session_id == c.id)
+                    ).scalar(),
+                    "has_locked_collections": any(not col.editable for col in c.collections),
+                }
+                for c in candidates
+            ]
+        })
+    except Exception as err:
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+@main.route('/api/instrumentsession/merge/preview', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
+def preview_merge_sessions():
+    """Report what merging `other_ids` into `primary_id` would produce, without changing anything."""
+    try:
+        body = request.json or {}
+        plan = plan_merge(body.get("primary_id"), body.get("other_ids") or [])
+        return jsonify(_serialize_merge_plan(plan))
+    except ValueError as err:
+        return jsonify({"error": str(err), "message": str(err)}), 400
+    except Exception as err:
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+@main.route('/api/instrumentsession/merge', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
+def merge_sessions_route():
+    """Merge `other_ids` into `primary_id`: widen its time range, concatenate
+    notes, union participants (summing hours for anyone on more than one),
+    move all Collections over, and delete the other sessions.
+
+    Body: {"primary_id": <id>, "other_ids": [<id>, ...]}.
+    """
+    try:
+        body = request.json or {}
+        try:
+            plan = merge_sessions(body.get("primary_id"), body.get("other_ids") or [])
+        except ValueError as err:
+            db.session.rollback()
+            return jsonify({"error": str(err), "message": str(err)}), 400
+
+        db.session.commit()
+        response = _serialize_merge_plan(plan)
+        response["message"] = (
+            f"Merged {len(plan.other_ids)} session(s) into session {plan.primary_id}."
+        )
+        return jsonify(response)
+    except Exception as err:
+        db.session.rollback()
         print(err, file=sys.stderr)
         return jsonify({"error": str(err), "message": str(err)}), 400
 
