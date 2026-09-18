@@ -275,22 +275,28 @@ def test_merge_rejects_missing_dates(app, ids):
             plan_merge(primary.id, [other.id])
 
 
-def test_merge_blocked_by_a_finalized_collection_on_the_other_session(app, ids):
+def test_finalized_collection_does_not_block_a_merge_and_stays_finalized(app, ids):
     with app.app_context():
         primary = make_session(ids, datetime(2026, 3, 1, 9, 0), datetime(2026, 3, 1, 11, 0))
         other = make_session(ids, datetime(2026, 3, 1, 10, 0), datetime(2026, 3, 1, 12, 0))
-        locked = Collection(data_location="/data/locked", instrument_session_id=other.id, editable=False)
+        locked = Collection(
+            data_location="/data/locked", instrument_session_id=other.id, editable=False,
+            total_image_count=321, lamella_count=4,
+        )
         db.session.add(locked)
         db.session.commit()
         other_id, locked_id = other.id, locked.id
 
-        with pytest.raises(ValueError, match="finalized"):
-            merge_sessions(primary.id, [other_id])
-        db.session.rollback()
+        merge_sessions(primary.id, [other_id])
+        db.session.commit()
 
-        # Nothing changed — the blocked session and its collection are untouched.
-        assert db.session.get(InstrumentSession, other_id) is not None
-        assert db.session.get(Collection, locked_id).instrument_session_id == other_id
+        assert db.session.get(InstrumentSession, other_id) is None
+        moved = db.session.get(Collection, locked_id)
+        assert moved.instrument_session_id == primary.id
+        # Its finalized state and reviewed values are untouched by the move.
+        assert moved.editable is False
+        assert moved.total_image_count == 321
+        assert moved.lamella_count == 4
 
 
 def test_project_mismatch_is_a_warning_not_a_block(app, ids):
@@ -396,18 +402,32 @@ def test_merge_route_applies_and_returns_summary(app, client, ids):
         assert db.session.get(InstrumentSession, primary_id).end_date == datetime(2026, 3, 1, 13, 0)
 
 
-def test_merge_route_rejects_locked_collection_with_400(app, client, ids):
+def test_merge_route_allows_finalized_collection_but_direct_reparent_is_still_refused(app, client, ids):
     with app.app_context():
         primary = make_session(ids, datetime(2026, 3, 1, 9, 0), datetime(2026, 3, 1, 11, 0))
         other = make_session(ids, datetime(2026, 3, 1, 10, 0), datetime(2026, 3, 1, 12, 0))
-        db.session.add(Collection(data_location="/data/x", instrument_session_id=other.id, editable=False))
+        third = make_session(ids, datetime(2026, 3, 2, 9, 0), datetime(2026, 3, 2, 11, 0))
+        locked = Collection(data_location="/data/x", instrument_session_id=other.id, editable=False)
+        db.session.add(locked)
         db.session.commit()
-        primary_id, other_id = primary.id, other.id
+        primary_id, other_id, third_id, locked_id = primary.id, other.id, third.id, locked.id
 
     resp = post_json(client, "/api/instrumentsession/merge", {
         "primary_id": primary_id, "other_ids": [other_id],
     })
-    assert resp.status_code == 400
+    assert resp.status_code == 200
 
     with app.app_context():
-        assert db.session.get(InstrumentSession, other_id) is not None
+        assert db.session.get(InstrumentSession, other_id) is None
+        moved = db.session.get(Collection, locked_id)
+        assert moved.instrument_session_id == primary_id
+        assert moved.editable is False
+
+    # Merging is the only way a finalized collection changes sessions: a direct
+    # edit is still refused until it's unlocked.
+    patch = client.patch(
+        f"/api/collection/{locked_id}",
+        data=json.dumps({"instrument_session_id": third_id}),
+        headers={"Content-Type": "application/json"},
+    )
+    assert patch.status_code == 400
