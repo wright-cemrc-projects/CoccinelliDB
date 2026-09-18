@@ -11,14 +11,17 @@ from app import create_app, db
 from app.models import Collection, Facility, InstrumentSession
 
 # Column headers matching the reporting template exactly, plus trailing
-# "Dataset Location" and "Finalized" columns giving the collection's data
-# location(s) on disk and its review status.
+# "Dataset Location", "Finalized", and "Instrument Session ID" columns giving
+# the collection's data location(s) on disk, its review status, and the id of
+# the InstrumentSession the row came from (to help find and merge rows that
+# belong together).
 #
 # Filled from the database: EM_ID, Start/End Date, Start/End Time,
 # EM_Use_Category, PROJECT_ID, Image Count, Lamella Count (FIB-SEM only),
-# Dataset Location, Finalized. "EM Performance QC Check #1" defaults to "OK"
-# (override by hand if a session actually failed QC); "EM Outcome Category"
-# and "EM Performance QC Check #2" are left blank for manual entry.
+# Dataset Location, Finalized, Instrument Session ID. "EM Performance QC
+# Check #1" defaults to "OK" (override by hand if a session actually failed
+# QC); "EM Outcome Category" and "EM Performance QC Check #2" are left blank
+# for manual entry.
 CSV_FIELDS = [
     "EM_ID",
     "Start Date",
@@ -34,6 +37,7 @@ CSV_FIELDS = [
     "EM Performance QC Check #2",
     "Dataset Location",
     "Finalized",
+    "Instrument Session ID",
 ]
 
 # collection_type values (normalized: lowercased, spaces/hyphens/underscores
@@ -122,6 +126,7 @@ def collect_rows(start: datetime, end: datetime, facility_id: int | None = None)
             "EM Performance QC Check #2": "",
             "Dataset Location": "; ".join(c.data_location for c in group if c.data_location),
             "Finalized": "Yes" if all(not c.editable for c in group) else "No",
+            "Instrument Session ID": session.id,
         })
     return rows
 
@@ -141,8 +146,10 @@ def main():
                      "Dataset Location listing every folder joined with '; '. EM_ID, Start/End "
                      "Date, Start/End Time, EM_Use_Category, PROJECT_ID, Image Count, Lamella "
                      "Count (FIB-SEM only), Dataset Location, and Finalized are filled from the "
-                     "database. EM_Use_Category is set to 'Data Collection' when any collection "
-                     "in the row is SPA or Cryo-ET (tomography); Finalized is 'Yes' only if "
+                     "database, along with the Instrument Session ID each row came from (to help "
+                     "find and merge rows that belong together). EM_Use_Category is set to "
+                     "'Data Collection' when any collection in the row is SPA or Cryo-ET "
+                     "(tomography); Finalized is 'Yes' only if "
                      "every collection in the row has been locked after review. EM Performance "
                      "QC Check #1 defaults to 'OK'; EM Outcome Category and QC Check #2 are left "
                      "blank for manual entry."
