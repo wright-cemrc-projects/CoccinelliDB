@@ -123,7 +123,31 @@ def test_em_use_category_is_data_collection_for_spa_and_cryoet(app, script, ids,
         assert rows[0]["EM_Use_Category"] == "Data Collection"
 
 
-@pytest.mark.parametrize("collection_type", ["Screening", None, "Setup"])
+@pytest.mark.parametrize("collection_type", ["Screening", "screening", " SCREENING "])
+def test_em_use_category_is_screening_for_screening_collections(app, script, ids, collection_type):
+    with app.app_context():
+        session = make_session(ids)
+        make_collection(
+            session.id, data_location="/data/x", start_date=datetime(2026, 3, 1), collection_type=collection_type
+        )
+        db.session.commit()
+
+        rows = script.collect_rows(datetime(2026, 3, 1), datetime(2026, 3, 2))
+        assert rows[0]["EM_Use_Category"] == "Screening"
+
+
+def test_combined_row_of_screening_and_data_collection_is_data_collection(app, script, ids):
+    with app.app_context():
+        session = make_session(ids)
+        make_collection(session.id, data_location="/data/s", start_date=datetime(2026, 3, 1, 9), collection_type="Screening")
+        make_collection(session.id, data_location="/data/d", start_date=datetime(2026, 3, 1, 10), collection_type="CryoET")
+        db.session.commit()
+
+        rows = script.collect_rows(datetime(2026, 3, 1), datetime(2026, 3, 2))
+        assert rows[0]["EM_Use_Category"] == "Data Collection"
+
+
+@pytest.mark.parametrize("collection_type", [None, "Setup"])
 def test_em_use_category_is_blank_for_non_data_collection_types(app, script, ids, collection_type):
     with app.app_context():
         session = make_session(ids)
