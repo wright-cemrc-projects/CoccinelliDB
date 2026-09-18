@@ -254,3 +254,37 @@ def test_qc_check_1_defaults_to_ok(app, script, ids):
 
 def test_no_column_headers_are_starred(script):
     assert not any(field.endswith("*") for field in script.CSV_FIELDS)
+
+
+# --- Instrument Session ID ---------------------------------------------------
+
+
+def test_instrument_session_id_column_is_the_source_session(app, script, ids):
+    with app.app_context():
+        first = make_session(ids)
+        second = make_session(ids)
+        make_collection(first.id, data_location="/data/first", start_date=datetime(2026, 3, 1, 9, 0))
+        make_collection(second.id, data_location="/data/second", start_date=datetime(2026, 3, 1, 9, 30))
+        db.session.commit()
+        first_id, second_id = first.id, second.id
+
+        rows = script.collect_rows(datetime(2026, 3, 1), datetime(2026, 3, 2))
+        assert row_by_location_substring(rows, "/data/first")["Instrument Session ID"] == first_id
+        assert row_by_location_substring(rows, "/data/second")["Instrument Session ID"] == second_id
+
+
+def test_combined_row_reports_its_single_shared_session_id(app, script, ids):
+    with app.app_context():
+        session = make_session(ids)
+        make_collection(session.id, data_location="/data/a", start_date=datetime(2026, 3, 1, 9, 0))
+        make_collection(session.id, data_location="/data/b", start_date=datetime(2026, 3, 1, 10, 0))
+        db.session.commit()
+
+        rows = script.collect_rows(datetime(2026, 3, 1), datetime(2026, 3, 2))
+        assert len(rows) == 1
+        assert rows[0]["Instrument Session ID"] == session.id
+
+
+def test_instrument_session_id_is_the_last_column(script):
+    # Appended after the template columns so they keep their positions.
+    assert script.CSV_FIELDS[-1] == "Instrument Session ID"
