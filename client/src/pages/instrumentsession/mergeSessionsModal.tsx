@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { App, Alert, Checkbox, Empty, Modal, Space, Table, Tag, Tooltip, Typography } from "antd";
+import { App, Alert, Checkbox, Empty, Modal, Table, Tag, Tooltip, Typography } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
 
@@ -169,19 +169,10 @@ export const MergeSessionsModal = ({ open, sessionId, onCancel, onMerged }: Merg
                         title=""
                         width={40}
                         render={(_, record: MergeCandidate) => (
-                            <Tooltip
-                                title={
-                                    record.has_locked_collections
-                                        ? "Has a finalized collection — unlock it first before this session can be merged."
-                                        : undefined
-                                }
-                            >
-                                <Checkbox
-                                    checked={selectedIds.includes(record.id)}
-                                    disabled={record.has_locked_collections}
-                                    onChange={(e) => toggleSelected(record.id, e.target.checked)}
-                                />
-                            </Tooltip>
+                            <Checkbox
+                                checked={selectedIds.includes(record.id)}
+                                onChange={(e) => toggleSelected(record.id, e.target.checked)}
+                            />
                         )}
                     />
                     <Table.Column dataIndex="id" title="ID" width={70} />
@@ -207,7 +198,11 @@ export const MergeSessionsModal = ({ open, sessionId, onCancel, onMerged }: Merg
                     <Table.Column
                         title=""
                         render={(_, record: MergeCandidate) =>
-                            record.has_locked_collections ? <Tag color="gold">Finalized</Tag> : null
+                            record.has_locked_collections ? (
+                                <Tooltip title="Has finalized collection(s). Merging moves them onto this session but keeps them finalized.">
+                                    <Tag color="gold">Finalized collection</Tag>
+                                </Tooltip>
+                            ) : null
                         }
                     />
                 </Table>

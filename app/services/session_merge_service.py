@@ -8,6 +8,12 @@ widens to cover all of them, their notes are concatenated onto its own
 hours for anyone listed on more than one), and all of their Collections move
 onto it. The other sessions are then deleted.
 
+A finalized (editable=False) Collection does not block a merge: finalizing
+protects a collection's own reviewed values, which merging never touches — it
+only changes which session the collection is linked to. Its finalized state
+carries over unchanged. This is the one path that re-parents a finalized
+collection; a direct PATCH of its instrument_session_id is still refused.
+
 `plan_merge` computes all of this without writing anything, so the API can
 show a preview before the user commits. `merge_sessions` computes the same
 plan and applies it. Neither commits; the caller controls the transaction.
@@ -75,14 +81,6 @@ def _check_mergeable(primary: InstrumentSession, others: list[InstrumentSession]
             raise ValueError(f"Session {other.id} is at a different facility than session {primary.id}.")
         if other.start_date is None or other.end_date is None:
             raise ValueError(f"Session {other.id} is missing a start or end date.")
-
-        locked = [c for c in other.collections if not c.editable]
-        if locked:
-            locked_ids = ", ".join(str(c.id) for c in locked)
-            raise ValueError(
-                f"Session {other.id} has finalized collection(s) (id {locked_ids}) that must "
-                "be unlocked before this session can be merged away."
-            )
 
 
 def _merge_notes(primary: InstrumentSession, others: list[InstrumentSession]) -> str | None:
@@ -211,8 +209,7 @@ def find_merge_candidates(session: InstrumentSession) -> list[InstrumentSession]
     """Other sessions on the same instrument that look like they might be
     duplicates of `session`: overlapping time ranges, or falling on the same
     calendar date as its start. A suggestion list, not a hard filter — the
-    human doing the merge makes the final call, including for a candidate
-    this reports as blocked (e.g. by a finalized collection)."""
+    human doing the merge makes the final call."""
     if session.start_date is None:
         return []
 
