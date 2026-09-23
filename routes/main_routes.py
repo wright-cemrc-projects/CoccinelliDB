@@ -357,6 +357,8 @@ def update_session(id):
             session.end_date = datetime.fromisoformat(request.json["end_date"])
         if request.json.get("instrument_id") is not None:
             session.instrument_id = request.json["instrument_id"]
+        if request.json.get("facility_id") is not None:
+            session.facility_id = int(request.json["facility_id"])
         if "project_id" in request.json:
             session.project_id = int(request.json["project_id"]) if request.json["project_id"] is not None else None
         if "notes" in request.json:
