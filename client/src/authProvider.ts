@@ -1,8 +1,8 @@
 import type { AuthProvider } from "@refinedev/core";
 import axios from "axios";
+import { redirectToLogin } from "./authUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080";
-const AUTH_URL = import.meta.env.VITE_AUTH_URL || "http://127.0.0.1:8080";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,6 +12,20 @@ const api = axios.create({
   },
 });
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
+
+// The backend's session can expire between requests (OIDC token refresh
+// failure). It now reports that as a 401 instead of silently redirecting,
+// so send the user back through login rather than surfacing a raw fetch
+// error, preserving the page they were on.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      redirectToLogin();
+    }
+    return Promise.reject(error);
+  },
+);
 
 const fetchWithCredentials = async (url: string, method: string = "GET", body: any = null) => {
   try {
@@ -31,7 +45,7 @@ const fetchWithCredentials = async (url: string, method: string = "GET", body: a
 export const authProvider: AuthProvider = {
   login: async () => {
     // Redirect the user to Flask's /login route, which starts OIDC authentication
-    window.location.href = `${AUTH_URL}/login`;
+    redirectToLogin();
     return { success: true };
   },
 
@@ -78,6 +92,10 @@ export const authProvider: AuthProvider = {
 
   onError: async (error) => {
     console.error(error);
+    if (error?.statusCode === 401 || error?.response?.status === 401) {
+      redirectToLogin();
+      return { logout: true };
+    }
     return { error };
   },
 };

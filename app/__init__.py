@@ -1,6 +1,6 @@
 import string
 
-from flask import Flask, g
+from flask import Flask, g, request, jsonify
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -115,6 +115,12 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
 
     app.config.from_object(conf)
 
+    if config_name == "production" and not app.config.get("FRONTEND_URL"):
+        raise RuntimeError(
+            "FRONTEND_URL must be set in the environment when running with "
+            "the production config (see etc/coccinellidb.service)."
+        )
+
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
@@ -169,6 +175,27 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
                 g.person = person
                 if not current_user.is_authenticated:
                     login_user(person)
+
+    @app.after_request
+    def api_auth_redirect_to_401(response):
+        """
+        flask_oidc's before_request hook redirects (302) to /logout when a
+        session's token has expired and can't be refreshed. For a page
+        navigation that's fine, but for an XHR/fetch call from the SPA the
+        browser silently follows the redirect chain and the request resolves
+        as 200 with an HTML body instead of an auth error, so the frontend
+        never finds out it needs to re-login. Surface it as a 401 instead
+        for anything under /api/ so the SPA's error handling can react to it.
+        """
+        if (
+            app.config.get("OIDC_ENABLED", True)
+            and request.path.startswith("/api/")
+            and response.status_code in (301, 302, 303, 307, 308)
+        ):
+            location = response.headers.get("Location", "")
+            if "logout" in location or "login" in location:
+                return jsonify({"error": "authentication_required"}), 401
+        return response
 
     @app.cli.command("create-roles")
     @click.argument("roles", nargs=-1)

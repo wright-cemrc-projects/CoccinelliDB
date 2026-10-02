@@ -21,7 +21,8 @@ import { App as AntdApp } from "antd";
 import dataProvider from "@refinedev/simple-rest";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { authProvider } from "./authProvider";
-import { Header } from "@/src/components";
+import { redirectToLogin } from "./authUtils";
+import { Header, ErrorBoundary } from "@/src/components";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { ForgotPassword } from "./pages/forgotPassword";
 // import { Login } from "./pages/login";
@@ -47,7 +48,20 @@ import {RoleList, RoleShow, RoleEdit, RoleCreate} from "@/src/pages/roles";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080/api";
 
-const httpClient = axios.create();
+const httpClient = axios.create({ withCredentials: true });
+// Mirrors the interceptor in authProvider.ts: the simple-rest dataProvider
+// uses this client for every resource request (list/create/edit/show), so
+// without this, an expired session surfaces as a broken render instead of
+// sending the user back through login.
+httpClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      redirectToLogin();
+    }
+    return Promise.reject(error);
+  },
+);
 
 function App() {
   const [isLogged, setIsLoggedIn] = useState(false);
@@ -75,6 +89,7 @@ function App() {
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <AntdApp>
+            <ErrorBoundary>
             <DevtoolsProvider>
               <Refine
                 dataProvider={dataProvider(API_URL, httpClient)}
@@ -183,6 +198,7 @@ function App() {
               </Refine>
               <DevtoolsPanel />
             </DevtoolsProvider>
+            </ErrorBoundary>
           </AntdApp>
         </ColorModeContextProvider>
       </RefineKbarProvider>
