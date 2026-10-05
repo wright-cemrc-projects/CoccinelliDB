@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, redirect
+from flask import Blueprint, jsonify, request, redirect, current_app
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 
@@ -21,7 +21,7 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
     print(current_user)
-    return redirect("http://localhost:5173/")
+    return redirect(current_app.config["FRONTEND_URL"])
 
 @main.route('/api/home', methods=['GET'])
 def hello_world():

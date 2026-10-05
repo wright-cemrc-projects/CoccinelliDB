@@ -9,6 +9,10 @@ class Config:
     # Real OIDC login is required unless a config explicitly turns it off.
     OIDC_ENABLED = True
     DEV_USER_EMAIL = None
+    # Where the frontend is served from; used to build post-login/-logout
+    # redirect URLs. No domain is hardcoded here — set FRONTEND_URL in the
+    # deployment environment (see etc/coccinellidb.service).
+    FRONTEND_URL = os.environ.get('FRONTEND_URL')
 
 class DevelopmentConfig(Config):
     # SQLite database for development
@@ -17,6 +21,7 @@ class DevelopmentConfig(Config):
     # Skip the real OAuth flow locally; requests run as a seeded dev user instead.
     OIDC_ENABLED = False
     DEV_USER_EMAIL = 'dev-user@gmail.com'
+    FRONTEND_URL = os.environ.get('FRONTEND_URL') or 'http://localhost:5173'
 
 class ProductionConfig(Config):
     DB_USERNAME = os.environ.get('DB_USERNAME') or 'no user'

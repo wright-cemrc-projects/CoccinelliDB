@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, abort, g
+from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, abort, g, current_app
 from app import oidc, db
 import os
 from app.models import Person
@@ -30,11 +30,9 @@ def logout():
     :return:
     """
 
-    # TODO: remove these FQDN from the code
-    callbackURL = "http://localhost:5173"
+    callbackURL = current_app.config["FRONTEND_URL"]
     environment = os.getenv('FLASK_ENV', 'development')
     if environment == 'production':
-       callbackURL = "https://cryo-db.biochem.wisc.edu"
        oidc.logout()
        return redirect(callbackURL)
 
