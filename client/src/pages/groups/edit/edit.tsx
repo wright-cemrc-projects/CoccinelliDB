@@ -15,6 +15,7 @@ export const GroupEdit = () => {
         resource: "persons",
         optionLabel: (item: Person) => `${item?.first_name} ${item?.last_name}`,
         optionValue: "id",
+        defaultValue: queryResult?.data?.data?.persons_ids ?? [],
         onSearch: (value) => [
             {
                 field: "first_name",
@@ -35,11 +36,12 @@ export const GroupEdit = () => {
     });
 
 
-    const initialPersons = queryResult?.data?.data?.persons ?? [];
+    // `persons` on the group record is a plain list of person ids (not objects),
+    // so which one is primary is only known via the /groups/:id/persons lookup
+    // below (fed into `tableProps`), not from `initialPersons` itself.
+    const initialPersons = queryResult?.data?.data?.persons_ids ?? [];
     const initialName = queryResult?.data?.data?.name ?? [];
-    const [primaryContact, setPrimaryContact] = useState<number | null>(
-        initialPersons.find((person: any) => person.primary_contact)?.id ?? null
-    );
+    const [primaryContact, setPrimaryContact] = useState<number | null>(null);
     useEffect(() => {
         const primary = tableProps?.dataSource?.find((person: any) => person.primary_contact)?.id ?? null;
         setPrimaryContact(primary);
