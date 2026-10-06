@@ -135,7 +135,9 @@ def update_group(id):
         db.session.commit()
         return jsonify({"message": f"{group} got updated"})
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        logger.error("update_group failed: %s", err, exc_info=True)
+        return jsonify({"error": str(err)}), 400
 
 @user.route('/api/groups/<int:id>', methods=['DELETE'])
 @roles_accepted('Admin')
@@ -328,6 +330,8 @@ def get_person_list():
     try:
         query = Person.query
         full_name_like = request.args.get("full_name_like")
+        first_name_like = request.args.get("first_name_like")
+        last_name_like = request.args.get("last_name_like")
 
         sorter_fields = request.args.get("_sort", "").split(",")
         sorter_orders = request.args.get("_order", "asc").split(",")
@@ -338,6 +342,16 @@ def get_person_list():
 
             query = query.filter(full_name_expr.contains(filter_value))
 
+        if first_name_like or last_name_like:
+            # Sent together (e.g. from the group-edit person picker) to mean
+            # "name contains this text," so OR rather than AND them.
+            name_conditions = []
+            if first_name_like:
+                name_conditions.append(Person.first_name.ilike(f"%{first_name_like}%"))
+            if last_name_like:
+                name_conditions.append(Person.last_name.ilike(f"%{last_name_like}%"))
+            query = query.filter(or_(*name_conditions))
+
         allowed_fields = {"first_name", "last_name", "email", "net_id"}
         for i, field in enumerate(sorter_fields):
             field = field.strip()
@@ -345,8 +359,18 @@ def get_person_list():
             if field in allowed_fields:
                 sort_column = getattr(Person, field)
                 query = query.order_by(asc(sort_column) if order == "asc" else desc(sort_column))
+
+        total = query.count()
+
+        start = request.args.get("_start", type=int)
+        end = request.args.get("_end", type=int)
+        if start is not None and end is not None:
+            query = query.offset(start).limit(max(end - start, 0))
+
         persons = query.all()
-        return facilityPersonsSchema.jsonify(persons)
+        response = facilityPersonsSchema.jsonify(persons)
+        response.headers["X-Total-Count"] = str(total)
+        return response
 
     except Exception as err:
         print(err)

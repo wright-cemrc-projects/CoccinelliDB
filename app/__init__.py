@@ -135,7 +135,7 @@ def create_app(config_name=os.getenv('FLASK_ENV', 'development')):
         _seed_dev_user(app, dev_email)
         oidc = _DevOidcStub(dev_email)
 
-    CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+    CORS(app, supports_credentials=True, origins=["http://localhost:5173"], expose_headers=["X-Total-Count"])
    
     # Register routes (from routes/*)
     from routes.main_routes import main
