@@ -85,6 +85,19 @@ export interface TiltSeries {
     max_angle: number | null;
 }
 
+export interface DatasetHistory {
+    id: number;
+    collection_id: number;
+    completed_by_id: number;
+    completed_by?: Pick<Person, "id" | "first_name" | "last_name">;
+    action: string | null;
+    location: string | null;
+    date: Date | null;
+    retention_date: Date | null;
+    approval_date: Date | null;
+    notes: string | null;
+}
+
 export interface RemoteSessionLog {
     id: number;
     start_date: Date;
