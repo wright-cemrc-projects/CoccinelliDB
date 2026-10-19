@@ -5,6 +5,7 @@ import { Card, Col, Empty, Row, Tag, Typography } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router";
 import { Collection, TiltSeries } from "@/src/type";
+import { DatasetHistoryPanel } from "./datasetHistory";
 
 const { Title, Link, Text } = Typography;
 
@@ -142,6 +143,8 @@ export const CollectionShow = () => {
                     })}
                 </Row>
             )}
+
+            {record?.id && <DatasetHistoryPanel collectionId={record.id} />}
         </Show>
     );
 };

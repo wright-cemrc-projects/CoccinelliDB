@@ -3,11 +3,12 @@ from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 
 from app import db
-from app.models import Project, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, RemoteSessionLog, Collection, SessionGroup, project_person_link
+from app.models import Project, Person, Instrument, InstrumentSession, InstrumentIssue, session_person_link, RemoteSessionLog, Collection, SessionGroup, project_person_link, DatasetHistory
 from app.schema import projectSchema, projectsSchema,  \
     instrumentSessionSchema, \
     instrumentSessionsSchema, instrumentSchema, instrumentsSchema, instrumentIssueSchema, instrumentIssuesSchema, \
-    remoteSessionLogsSchema, collectionSchema, collectionsSchema, sessionGroupSchema, sessionGroupsSchema
+    remoteSessionLogsSchema, collectionSchema, collectionsSchema, sessionGroupSchema, sessionGroupsSchema, \
+    datasetHistorySchema, datasetHistoriesSchema
 from app.services.project_import_service import find_or_create_project, link_person_to_project
 from app.services.collection_finalize_service import AlreadyFinalized, finalize_collection
 from app.services.session_merge_service import find_merge_candidates, merge_sessions, plan_merge
@@ -1115,6 +1116,81 @@ def bulk_finalize_collections():
             "already_finalized_ids": already_finalized_ids,
             "errors": errors,
         })
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+def _apply_dataset_history_fields(history, payload):
+    if "completed_by_id" in payload:
+        history.completed_by_id = payload["completed_by_id"]
+    if "action" in payload:
+        history.action = payload["action"]
+    if "location" in payload:
+        history.location = payload["location"]
+    if "notes" in payload:
+        history.notes = payload["notes"]
+    for field in ("date", "retention_date", "approval_date"):
+        if field in payload:
+            setattr(history, field, datetime.fromisoformat(payload[field]) if payload[field] else None)
+
+@main.route('/api/collection/<int:id>/history', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
+def get_dataset_history_list(id):
+    try:
+        db.get_or_404(Collection, id)
+        history_list = db.session.execute(
+            db.select(DatasetHistory).filter_by(collection_id=id).order_by(DatasetHistory.date.desc())
+        ).scalars()
+        return datasetHistoriesSchema.jsonify(history_list)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@main.route('/api/collection/<int:id>/history', methods=['POST'])
+@roles_accepted('Admin', 'Editor')
+def create_dataset_history(id):
+    try:
+        db.get_or_404(Collection, id)
+        history = DatasetHistory(collection_id=id, completed_by_id=request.json["completed_by_id"])
+        _apply_dataset_history_fields(history, request.json)
+        db.session.add(history)
+        db.session.commit()
+        return datasetHistorySchema.jsonify(history), 201
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+@main.route('/api/datasethistory/<int:id>', methods=['GET'])
+@roles_accepted('Admin', 'Editor')
+def get_dataset_history_by_id(id):
+    try:
+        history = db.get_or_404(DatasetHistory, id)
+        return datasetHistorySchema.jsonify(history)
+    except Exception as err:
+        return jsonify({"err": f"{err=}"})
+
+@main.route('/api/datasethistory/<int:id>', methods=['PATCH'])
+@roles_accepted('Admin', 'Editor')
+def update_dataset_history(id):
+    try:
+        history = db.session.execute(db.select(DatasetHistory).filter_by(id=id)).scalar_one()
+        _apply_dataset_history_fields(history, request.json)
+        db.session.commit()
+        return datasetHistorySchema.jsonify(history)
+    except Exception as err:
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
+
+@main.route('/api/datasethistory/<int:id>', methods=['DELETE'])
+@roles_accepted('Admin')
+def delete_dataset_history(id):
+    try:
+        history = db.session.execute(db.select(DatasetHistory).filter_by(id=id)).scalar_one()
+        db.session.delete(history)
+        db.session.commit()
+        return jsonify({"message": f"DatasetHistory {id} deleted."})
     except Exception as err:
         db.session.rollback()
         print(err, file=sys.stderr)

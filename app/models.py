@@ -275,6 +275,25 @@ class Collection(db.Model):
     # client API) are refused until an Admin sets it back to True.
     editable = db.Column(db.Boolean, nullable=False, default=True, server_default=db.true())
 
+class DatasetHistory(db.Model):
+    """ Representation of a change made to a Collection's data, e.g. removal or move """
+    __tablename__ = "dataset_history"
+    id = db.Column(db.Integer, primary_key=True)
+    collection_id : Mapped[int] = mapped_column(ForeignKey("collection.id"))
+    collection : Mapped["Collection"] = relationship()
+    completed_by_id : Mapped[int] = mapped_column(ForeignKey("person.id"))
+    completed_by : Mapped["Person"] = relationship()
+    action = db.Column(db.String(45))
+    # Long text field for storage path/location, compatible with MariaDB and SQLite.
+    location = db.Column(db.Text, nullable=True)
+    date = db.Column(db.DateTime)
+    retention_date = db.Column(db.DateTime, nullable=True)
+    approval_date = db.Column(db.DateTime, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<DatasetHistory(id={self.id},collection_id={self.collection_id},action={self.action})>"
+
 class TiltSeries(db.Model):
     """ Representation for a tilt-series and tomogram """
     __tablename__ = "tiltseries"
