@@ -92,8 +92,11 @@ export interface DatasetHistory {
     completed_by?: Pick<Person, "id" | "first_name" | "last_name">;
     action: string | null;
     location: string | null;
+    backup_location: string | null;
+    backup_path: string | null;
+    dataset_size_tb: number | null;
     date: Date | null;
-    retention_date: Date | null;
+    retention_period_months: number | null;
     approval_date: Date | null;
     notes: string | null;
 }

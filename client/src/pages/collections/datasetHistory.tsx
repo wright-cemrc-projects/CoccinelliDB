@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelect } from "@refinedev/antd";
 import { useGetIdentity } from "@refinedev/core";
-import { App, AutoComplete, Button, DatePicker, Form, Input, Modal, Popconfirm, Select, Space, Table, Typography } from "antd";
+import { App, AutoComplete, Button, DatePicker, Form, Input, InputNumber, Modal, Popconfirm, Select, Space, Table, Typography } from "antd";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -67,7 +67,6 @@ export const DatasetHistoryPanel = ({ collectionId }: DatasetHistoryPanelProps) 
             ...record,
             completed_by_id: record.completed_by_id,
             date: record.date ? dayjs(record.date) : null,
-            retention_date: record.retention_date ? dayjs(record.retention_date) : null,
             approval_date: record.approval_date ? dayjs(record.approval_date) : null,
         });
         setModalOpen(true);
@@ -88,7 +87,6 @@ export const DatasetHistoryPanel = ({ collectionId }: DatasetHistoryPanelProps) 
         const payload = {
             ...values,
             date: values.date ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss[Z]") : null,
-            retention_date: values.retention_date ? dayjs(values.retention_date).format("YYYY-MM-DDTHH:mm:ss[Z]") : null,
             approval_date: values.approval_date ? dayjs(values.approval_date).format("YYYY-MM-DDTHH:mm:ss[Z]") : null,
         };
 
@@ -115,6 +113,13 @@ export const DatasetHistoryPanel = ({ collectionId }: DatasetHistoryPanelProps) 
         },
         { title: "Action", dataIndex: "action", render: (value: string | null) => value ?? "—" },
         { title: "Location", dataIndex: "location", render: (value: string | null) => value ?? "—" },
+        { title: "Backup Location", dataIndex: "backup_location", render: (value: string | null) => value ?? "—" },
+        { title: "Backup Path", dataIndex: "backup_path", render: (value: string | null) => value ?? "—" },
+        {
+            title: "Size (TB)",
+            dataIndex: "dataset_size_tb",
+            render: (value: number | null) => (value ?? "—"),
+        },
         {
             title: "Completed By",
             dataIndex: "completed_by",
@@ -122,9 +127,9 @@ export const DatasetHistoryPanel = ({ collectionId }: DatasetHistoryPanelProps) 
                 value ? `${value.first_name} ${value.last_name}` : "—",
         },
         {
-            title: "Retention Date",
-            dataIndex: "retention_date",
-            render: (value: string | null) => (value ? new Date(value).toLocaleDateString() : "—"),
+            title: "Retention (months)",
+            dataIndex: "retention_period_months",
+            render: (value: number | null) => (value ?? "—"),
         },
         {
             title: "Approval Date",
@@ -194,11 +199,20 @@ export const DatasetHistoryPanel = ({ collectionId }: DatasetHistoryPanelProps) 
                     <Form.Item label="Location" name="location" tooltip="Where the data was moved to, if applicable">
                         <Input.TextArea rows={2} />
                     </Form.Item>
+                    <Form.Item label="Backup Location" name="backup_location" tooltip="Storage system/device the backup lives on">
+                        <Input.TextArea rows={2} />
+                    </Form.Item>
+                    <Form.Item label="Backup Path" name="backup_path" tooltip="Full path to the backup copy">
+                        <Input.TextArea rows={2} />
+                    </Form.Item>
+                    <Form.Item label="Dataset Size (TB)" name="dataset_size_tb">
+                        <InputNumber min={0} step={0.1} style={{ width: "100%" }} />
+                    </Form.Item>
                     <Form.Item label="Date" name="date" rules={[{ required: true, message: "Date is required" }]}>
                         <DatePicker showTime style={{ width: "100%" }} />
                     </Form.Item>
-                    <Form.Item label="Retention Date" name="retention_date">
-                        <DatePicker style={{ width: "100%" }} />
+                    <Form.Item label="Retention Period (months)" name="retention_period_months">
+                        <InputNumber min={0} style={{ width: "100%" }} />
                     </Form.Item>
                     <Form.Item label="Approval Date" name="approval_date">
                         <DatePicker style={{ width: "100%" }} />
