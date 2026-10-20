@@ -1,5 +1,5 @@
 import {Edit, useForm, useSelect} from "@refinedev/antd";
-import {Form, Input, DatePicker, Select} from "antd";
+import {Form, Input, DatePicker, Select, Switch} from "antd";
 import {Instrument} from "@/src/type";
 
 import dayjs from "dayjs";
@@ -55,6 +55,13 @@ export const InstrumentIssueEdit = () => {
                         style={{ width: "100%" }}
 
                     />
+                </Form.Item>
+                <Form.Item
+                    label={"Instrument Offline"}
+                    name={["instrument_offline"]}
+                    valuePropName="checked"
+                >
+                    <Switch checkedChildren="Offline" unCheckedChildren="Online" />
                 </Form.Item>
                 <Form.Item
                     label={"Start Date"}
