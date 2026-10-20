@@ -1128,9 +1128,17 @@ def _apply_dataset_history_fields(history, payload):
         history.action = payload["action"]
     if "location" in payload:
         history.location = payload["location"]
+    if "backup_location" in payload:
+        history.backup_location = payload["backup_location"]
+    if "backup_path" in payload:
+        history.backup_path = payload["backup_path"]
+    if "dataset_size_tb" in payload:
+        history.dataset_size_tb = float(payload["dataset_size_tb"]) if payload["dataset_size_tb"] is not None else None
+    if "retention_period_months" in payload:
+        history.retention_period_months = int(payload["retention_period_months"]) if payload["retention_period_months"] is not None else None
     if "notes" in payload:
         history.notes = payload["notes"]
-    for field in ("date", "retention_date", "approval_date"):
+    for field in ("date", "approval_date"):
         if field in payload:
             setattr(history, field, datetime.fromisoformat(payload[field]) if payload[field] else None)
 

@@ -286,8 +286,11 @@ class DatasetHistory(db.Model):
     action = db.Column(db.String(45))
     # Long text field for storage path/location, compatible with MariaDB and SQLite.
     location = db.Column(db.Text, nullable=True)
+    backup_location = db.Column(db.Text, nullable=True)
+    backup_path = db.Column(db.Text, nullable=True)
+    dataset_size_tb = db.Column(db.Float, nullable=True)
     date = db.Column(db.DateTime)
-    retention_date = db.Column(db.DateTime, nullable=True)
+    retention_period_months = db.Column(db.Integer, nullable=True)
     approval_date = db.Column(db.DateTime, nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
