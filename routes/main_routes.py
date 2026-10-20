@@ -909,31 +909,28 @@ def create_instrumentissue():
         end_date = None
         if "end_date" in request.json:
             end_date = datetime.fromisoformat(request.json["end_date"])
+        instrument_offline = bool(request.json["instrument_offline"]) if request.json.get("instrument_offline") is not None else None
 
-        issue = InstrumentIssue(issue_title=issue_title,issue_description=issue_description,start_date=start_date, end_date=end_date, instrument_id=instrument_id)
+        issue = InstrumentIssue(issue_title=issue_title,issue_description=issue_description,start_date=start_date, end_date=end_date, instrument_id=instrument_id, instrument_offline=instrument_offline)
         db.session.add(issue)
         db.session.commit()
-        return jsonify({"message": f"new instrument session {start_date} created."})
+        return instrumentIssueSchema.jsonify(issue), 201
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @main.route('/api/instrumentissues/<int:id>', methods=['GET'])
 @roles_accepted('Admin', 'Editor')
 def get_instrumentissue_by_id(id):
-    try:
-        issue = db.get_or_404(InstrumentIssue, id)
-        return instrumentIssueSchema.jsonify(issue)
-    except Exception as err:
-        return jsonify({"err": f"{err=}"})
+    issue = db.get_or_404(InstrumentIssue, id)
+    return instrumentIssueSchema.jsonify(issue)
 
 @main.route('/api/instrumentissues', methods=['GET'])
 @roles_accepted('Admin', 'Editor')
 def get_instrumentissue_list():
-    try:
-        issue_list = db.session.execute(db.select(InstrumentIssue)).scalars()
-        return instrumentIssuesSchema.jsonify(issue_list)
-    except Exception as err:
-        return jsonify({"err": f"{err=}"})
+    issue_list = db.session.execute(db.select(InstrumentIssue)).scalars()
+    return instrumentIssuesSchema.jsonify(issue_list)
 
 @main.route('/api/instrumentissues/<int:id>', methods=['PATCH'])
 @roles_accepted('Admin', 'Editor')
@@ -946,25 +943,32 @@ def update_instrumentissue(id):
             issue.issue_description = request.json["issue_description"]
         if "instrument_id" in request.json:
             issue.instrument_id = request.json["instrument_id"]
+        if "instrument_offline" in request.json:
+            value = request.json["instrument_offline"]
+            issue.instrument_offline = bool(value) if value is not None else None
         if "start_date" in request.json:
-            issue.start_date = datetime.fromisoformat(request.json["start_date"])
+            issue.start_date = datetime.fromisoformat(request.json["start_date"]) if request.json["start_date"] else None
         if "end_date" in request.json:
-            issue.end_date = datetime.fromisoformat(request.json["end_date"])
+            issue.end_date = datetime.fromisoformat(request.json["end_date"]) if request.json["end_date"] else None
         db.session.commit()
-        return jsonify({"message": f"{issue} got updated"})
+        return instrumentIssueSchema.jsonify(issue)
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 @main.route('/api/instrumentissues/<int:id>', methods=['DELETE'])
 @roles_accepted('Admin', 'Editor')
 def delete_instrumentissue(id):
     try:
-        session = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()
-        db.session.delete(session)
+        issue = db.session.execute(db.select(InstrumentIssue).filter_by(id=id)).scalar_one()
+        db.session.delete(issue)
         db.session.commit()
-        return jsonify({"message": f"{session} got deleted."})
+        return jsonify({"message": f"{issue} got deleted."})
     except Exception as err:
-        return jsonify({"err": f"{err=}"})
+        db.session.rollback()
+        print(err, file=sys.stderr)
+        return jsonify({"error": str(err), "message": str(err)}), 400
 
 
 @main.route('/api/collection', methods=['GET'])
